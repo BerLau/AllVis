@@ -1,0 +1,16 @@
+# ingore all files under build
+build/*
+# ingore all cmake cache files
+CMakeCache.txt
+# ingore all cmake install files
+CMakeFiles/*
+# ingore all cmake install files
+cmake_install.cmake
+# ingore all cmake install files
+install_manifest.txt
+# ignore all files under .vscode
+.vscode/*
+# ignore all files under .vs
+.vs/*
+# ignore all cache files
+.cache/*

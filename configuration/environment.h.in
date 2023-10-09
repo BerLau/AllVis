@@ -1,0 +1,7 @@
+#pragma once
+#ifndef _CONFIGURATION_ENVIRONMENT_H_
+#define _CONFIGURATION_ENVIRONMENT_H_
+
+const char* const SOURCE_PATH = "@ENVIRONMENT@";
+
+#endif // _CONFIGURATION_ENVIRONMENT_H_
