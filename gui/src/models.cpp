@@ -47,7 +47,7 @@ namespace Rendering
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     }
 
-    void Cube_Model::draw(Shader_Program *shader)
+    void Cube_Model::draw()
     {
         if (mesh == nullptr || shader == nullptr)
         {

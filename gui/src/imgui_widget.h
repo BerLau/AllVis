@@ -96,7 +96,7 @@ namespace GUI
         // constructors and deconstructor
         Rendering::Texture_Ptr sample_texture;
         Rendering::Camera_Ptr camera;
-        Rendering::OGLModel_U_Ptr cube_model;
+        Rendering::OGL_Model_U_Ptr cube_model;
 
     public:
         Sample_OGL_Widget(const std::string &name = "OpenGL IMG_Widget", float x = 0, float y = 0, float width = 0, float height = 0, bool active = true);
@@ -123,6 +123,24 @@ namespace GUI
         // void update();
     };
 
+    class Transform_Widget : public IMG_Widget
+    {
+        // attributes
+    public:
+        Core::Transform *transform;
+        // constructors and deconstructor
+    public:
+        Transform_Widget(const std::string &name = "Transform_Widget", float x = 0, float y = 0, float width = 0, float height = 0, bool active = true) : IMG_Widget(name, x, y, width, height, active), transform(nullptr){};
+        ~Transform_Widget(){};
+        // methods
+    public:
+        void show();
+        void bind_transform(Core::Transform *transform)
+        {
+            this->transform = transform;
+        }
+    };
+
     struct UI_Settings
     {
         // attributes
@@ -131,6 +149,7 @@ namespace GUI
         bool show_OpenGL_window = false;
         bool show_Log_window = false;
         bool show_Text_window = true;
+        bool show_Transform_window = false;
         float clear_color[4] = {0.45f, 0.55f, 0.60f, 1.00f};
 
         void save_to_file();
@@ -178,5 +197,6 @@ namespace GUI
         float get_text_width(const std::string &text, float scale);
         float get_text_height(const std::string &text, float scale);
     };
+
 };
 #endif

@@ -7,7 +7,10 @@
 
 namespace Core
 {
-
+    struct EulerAngle
+    {
+        float yaw, pitch, roll;
+    };
     class Quaternion
     {
         // attributes
@@ -50,15 +53,13 @@ namespace Core
         // conversion
         Matrix4 get_matrix() const;
         std::tuple<Vector3, float> get_axis_angle() const;
-        Vector3 get_euler_angle() const;
+        EulerAngle get_euler_angle() const;
 
         // static methods
     public:
         static float dot(const Quaternion &a, const Quaternion &b);
         static Quaternion identity(){ return Quaternion(1, 0, 0, 0);}
-
-        static Quaternion from_euler_angle(float x, float y, float z);
-        static Quaternion from_euler_angle(const Vector3 &euler_angle);
+        static Quaternion from_euler_angle(const EulerAngle& euler_angle);
         static Quaternion from_axis_angle(const Vector3 &axis, float angle);
         static Quaternion from_matrix(const Matrix4 &mat);
         static Quaternion from_matrix(const Matrix3 &mat);

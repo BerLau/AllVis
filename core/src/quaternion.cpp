@@ -149,54 +149,56 @@ namespace Core
         }
     }
 
-    Vector3 Quaternion::get_euler_angle() const
+    EulerAngle Quaternion::get_euler_angle() const
     {
-        float sqw = w * w;
-        float sqx = x * x;
-        float sqy = y * y;
-        float sqz = z * z;
-        float unit = sqx + sqy + sqz + sqw;
-        float test = x * y + z * w;
-        float heading, attitude, bank;
-        if (test > 0.499 * unit)
-        {
-            heading = 2 * atan2(x, w);
-            attitude = M_PI / 2;
-            bank = 0;
+        // reference: https://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToEuler/index.htm
+        double sqw = w * w;
+        double sqx = x * x;
+        double sqy = y * y;
+        double sqz = z * z;
+        double unit = sqx + sqy + sqz + sqw; // if normalised is one, otherwise is correction factor
+        double test = x * y + z * w;
+        float yaw, pitch, roll;
+        if (test > 0.49999 * unit)
+        { // singularity at north pole
+            yaw = 2 * atan2(x, w);
+            pitch = M_PI / 2;
+            roll = 0;
         }
-        else if (test < -0.499 * unit)
-        {
-            heading = -2 * atan2(x, w);
-            attitude = -M_PI / 2;
-            bank = 0;
+        else if (test < -0.49999 * unit)
+        { // singularity at south pole
+            yaw = -2 * atan2(x, w);
+            pitch = -M_PI / 2;
+            roll = 0;
         }
         else
         {
-            heading = atan2(2 * y * w - 2 * x * z, sqx - sqy - sqz + sqw);
-            attitude = asin(2 * test / unit);
-            bank = atan2(2 * x * w - 2 * y * z, -sqx + sqy - sqz + sqw);
+            yaw = atan2(2 * y * w - 2 * x * z, sqx - sqy - sqz + sqw);
+            pitch = asin(2 * test / unit);
+            roll = atan2(2 * x * w - 2 * y * z, -sqx + sqy - sqz + sqw);
         }
-        return Vector3(heading, attitude, bank);
+        return {Geometry::degrees(yaw), Geometry::degrees(pitch), Geometry::degrees(roll)};
     }
 
-    Quaternion Quaternion::from_euler_angle(float x, float y, float z)
+    Quaternion Quaternion::from_euler_angle(const EulerAngle &euler_angle)
     {
-        float cx = cos(x / 2);
-        float cy = cos(y / 2);
-        float cz = cos(z / 2);
-        float sx = sin(x / 2);
-        float sy = sin(y / 2);
-        float sz = sin(z / 2);
+        // reference: https://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/index.htm
+        float yaw = Geometry::radians(euler_angle.yaw);
+        float pitch = Geometry::radians(euler_angle.pitch);
+        float roll = Geometry::radians(euler_angle.roll);
+
+        float c1 = cos(yaw / 2);
+        float c2 = cos(pitch / 2);
+        float c3 = cos(roll / 2);
+        float s1 = sin(yaw / 2);
+        float s2 = sin(pitch / 2);
+        float s3 = sin(roll / 2);
+
         return Quaternion(
-            sx * cy * cz + cx * sy * sz,
-            cx * sy * cz - sx * cy * sz,
-            cx * cy * sz + sx * sy * cz,
-            cx * cy * cz - sx * sy * sz);
-    }
-
-    Quaternion Quaternion::from_euler_angle(const Vector3 &euler_angle)
-    {
-        return from_euler_angle(euler_angle.x(), euler_angle.y(), euler_angle.z());
+            c1 * c2 * c3 - s1 * s2 * s3,
+            s1 * s2 * c3 + c1 * c2 * s3,
+            s1 * c2 * c3 + c1 * s2 * s3,
+            c1 * s2 * c3 - s1 * c2 * s3);
     }
 
     Quaternion Quaternion::from_axis_angle(const Vector3 &axis, float angle)

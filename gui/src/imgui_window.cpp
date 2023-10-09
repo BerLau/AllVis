@@ -44,18 +44,17 @@ namespace GUI
         Rendering::shader_program_factory.add_shader_from_file("./shaders/test_texture.frag", GL_FRAGMENT_SHADER, "test_texture_fragment");
         Rendering::shader_program_factory.add_shader_program("test_texture_shader", "test_texture_vertex", "test_texture_fragment");
 
-
         auto w = std::unique_ptr<Sample_OGL_Widget>(new Sample_OGL_Widget("OpenGL Window", 0, 0, 800, 600, true));
         w->background_color[0] = 0.0f;
         w->background_color[1] = 0.3f;
         w->background_color[2] = 0.7f;
         w->set_shader(Rendering::shader_program_factory.find_shader_program("basic_shader"));
-        Rendering::Texture* tex = Rendering::load_texture("./textures/box.jpeg");
+        Rendering::Texture *tex = Rendering::load_texture("./textures/box.jpeg");
         // Rendering::sampler_manager.add_sampler("default", new Rendering::Sampler());
         Rendering::Sampler_Manager::instance().add_sampler("basic_shader", new Rendering::Sampler());
         tex->set_sampler(Rendering::Sampler_Manager::instance().get_sampler("default"));
         // check if the texture is loaded
-        if(tex == nullptr)
+        if (tex == nullptr)
         {
             throw std::runtime_error("Failed to load texture");
         }
@@ -70,6 +69,8 @@ namespace GUI
         text_widget->background_color[1] = 1.0;
         text_widget->background_color[2] = 1.0;
         dynamic_cast<UI_Settings_Widget *>(this->settings_widget.get())->bind_settings(&this->settings);
+
+        this->transform_widget = std::unique_ptr<Transform_Widget>(new Transform_Widget("Transform", 0, 0, 800, 600, true));
     }
 
     void Window::show(bool maximized)
@@ -92,6 +93,15 @@ namespace GUI
             if (settings.show_OpenGL_window)
             {
                 ogl_widget_test->show();
+                if (settings.show_Transform_window)
+                {
+                    Sample_OGL_Widget *ogl_widget_ = dynamic_cast<Sample_OGL_Widget *>(ogl_widget_test.get());
+                    Rendering::Cube_Model *cube_ = dynamic_cast<Rendering::Cube_Model *>(ogl_widget_->cube_model.get());
+                    Core::Transform *transform = cube_->transform.get();
+                    auto *transform_widget_ = dynamic_cast<Transform_Widget *>(this->transform_widget.get());
+                    transform_widget_->bind_transform(transform);
+                    transform_widget_->show();
+                }
             }
 
             if (settings.show_Text_window)

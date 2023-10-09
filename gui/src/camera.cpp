@@ -11,7 +11,7 @@ namespace Rendering
 
     Camera::Camera(const Core::Vector3 &position, float pitch, float yaw, float roll)
     {
-        transform = Core::Transform_Ptr(new Core::Transform(position, pitch, yaw, roll));
+        transform = Core::Transform_Ptr(new Core::Transform(position, Core::EulerAngle{pitch, yaw, roll}));
         init();
     }
 

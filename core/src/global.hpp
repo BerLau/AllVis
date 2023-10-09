@@ -8,6 +8,8 @@
 #define DOUBLE_EPSILON 1e-12
 #define EQUAL_D(a, b) (fabs((a) - (b)) < DOUBLE_EPSILON)
 
+#define CLAMP(x, min, max) ((x) < (min) ? (min) : ((x) > (max) ? (max) : (x)))
+
 namespace Core
 {
     const int FAILURE = 0;

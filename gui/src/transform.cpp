@@ -3,12 +3,10 @@
 
 namespace Core
 {
-    Transform::Transform(const Core::Vector3 &pos, float x_degree, float y_degree, float z_degree, const Core::Vector3 &scale)
+    Transform::Transform(const Core::Vector3 &pos, const EulerAngle& euler_angle,  const Core::Vector3 &scale)
         : m_position(pos),
           m_scale(scale),
-          m_orientation(Quaternion::from_euler_angle(Vector3(Geometry::radians(x_degree),
-                                                             Geometry::radians(y_degree),
-                                                             Geometry::radians(z_degree))))
+          m_orientation(Quaternion::from_euler_angle(euler_angle))
     {
     }
 
@@ -65,9 +63,9 @@ namespace Core
         this->m_orientation = rotation;
     }
 
-    void Transform::set_orientation(float x_degree, float y_degree, float z_degree)
+    void Transform::set_orientation(const Core::EulerAngle &euler_angle)
     {
-        this->m_orientation = Quaternion::from_euler_angle(Vector3(Geometry::radians(x_degree), Geometry::radians(y_degree), Geometry::radians(z_degree)));
+        this->m_orientation = Quaternion::from_euler_angle(euler_angle);
     }
 
     void Transform::set_orientation(const Core::Vector3 &front, const Core::Vector3 &up, const Core::Vector3 &right)
@@ -141,10 +139,9 @@ namespace Core
         return m_orientation;
     }
 
-    Vector3 Transform::get_orientation_xyz()
+    EulerAngle Transform::get_orientation_euler_angle()
     {
-        Vector3 euler = m_orientation.get_euler_angle();
-        return Vector3(Geometry::degrees(euler.x()), Geometry::degrees(euler.y()), Geometry::degrees(euler.z()));
+        return m_orientation.get_euler_angle();
     }
 
     Matrix4 Transform::get_rotation_matrix()

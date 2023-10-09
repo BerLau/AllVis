@@ -125,7 +125,8 @@ namespace GUI
 
     void Sample_OGL_Widget::init()
     {
-        cube_model = Rendering::OGLModel_U_Ptr(new Rendering::Cube_Model());
+        cube_model = Rendering::OGL_Model_U_Ptr(new Rendering::Cube_Model());
+        cube_model->transform->set_position(Core::Vector3(0.0f, 0.0f, 0.0f));
     }
 
     void Sample_OGL_Widget::destroy()
@@ -155,13 +156,14 @@ namespace GUI
         glViewport(0, 0, width, height);
         glClearColor(background_color[0], background_color[1], background_color[2], background_color[3]);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        Core::Matrix4 model = Core::Matrix4::identity();
         Core::Matrix4 projection = Geometry::perspective(45.0f, width / height, 0.1f, 100.0f);
         shader->activate();
         shader->set_mat4("view", camera->get_view_matrix().data());
         shader->set_mat4("projection", projection.data());
         shader->set_vec3("u_color", color);
-        cube_model->draw(shader);
+        cube_model->bind_shader(shader);
+        cube_model->draw();
+        cube_model->unbind_shader();
     }
 
     Log_Widget::Log_Widget(const std::string &name, float x, float y, float width, float height, bool active) : IMG_Widget(name, x, y, width, height, active)
@@ -215,6 +217,7 @@ namespace GUI
         file << "show_OpenGL_window " << show_OpenGL_window << std::endl;
         file << "show_Log_window " << show_Log_window << std::endl;
         file << "show_Text_window " << show_Text_window << std::endl;
+        file << "show_Transform_window " << show_Transform_window << std::endl;
         file << "clear_color " << clear_color[0] << " " << clear_color[1] << " " << clear_color[2] << " " << clear_color[3] << std::endl;
         // close file
         file.close();
@@ -259,6 +262,10 @@ namespace GUI
             {
                 ss >> show_Text_window;
             }
+            else if (key == "show_Transform_window")
+            {
+                ss >> show_Transform_window;
+            }
             else if (key == "clear_color")
             {
                 ss >> clear_color[0] >> clear_color[1] >> clear_color[2] >> clear_color[3];
@@ -275,6 +282,7 @@ namespace GUI
                 ImGui::Checkbox("Show OpenGL Window", &this->settings->show_OpenGL_window);
                 ImGui::Checkbox("Show Log Window", &this->settings->show_Log_window);
                 ImGui::Checkbox("Show Text Window", &this->settings->show_Text_window);
+                ImGui::Checkbox("Show Transform Window", &this->settings->show_Transform_window);
                 ImGui::ColorEdit3("Clear Color", (float *)&this->settings->clear_color);
                 if (ImGui::Button("Save Layout"))
                 {
@@ -398,6 +406,44 @@ namespace GUI
             height = std::max(height, ch.size.y() * scale);
         }
         return height;
+    }
+
+    void Transform_Widget::show()
+    {
+
+        ImGui::Begin(name.c_str(), &active);
+        if (transform != nullptr)
+        {
+            auto pos = transform->get_position();
+            ImGui::Text("Position");
+            ImGui::DragFloat3("##position", pos.data(), 0.1f);
+            transform->set_position(pos);
+            Core::EulerAngle euler_angle = transform->get_orientation_euler_angle();
+            ImGui::Text("Rotation(yaw,pitch,roll)");
+            ImGui::DragFloat3("##rotation", (float *)&euler_angle, 0.1f, -180, 180);
+            transform->set_orientation(euler_angle);
+            auto scale = transform->get_scale();
+            static bool lock_proportion = false;
+            if (lock_proportion)
+            {
+                ImGui::Text("Scale");
+                float x = scale.x();
+                ImGui::DragFloat("##scale", &scale.x(), 0.01f, 0.01f, 100.0f);
+                float ratio = scale.x() / x;
+                scale.y() *= ratio;
+                scale.z() *= ratio;
+            }
+            else
+            {
+                ImGui::Text("Scale");
+                ImGui::DragFloat3("##scale", scale.data(), 0.01f, 0.01f, 100.0f);
+            }
+            ImGui::SameLine();
+            ImGui::Checkbox("Lock Proportion", &lock_proportion);
+            transform->set_scale(scale);
+        }
+
+        ImGui::End();
     }
 
 }; // namespace GUI
