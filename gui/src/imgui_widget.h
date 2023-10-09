@@ -13,10 +13,10 @@
 #include "ui_log.h"
 #include <map>
 #include "shader.h"
-#include "mesh.h"
 #include "texture.h"
 #include "text_render.h"
 #include "camera.h"
+#include "models.h"
 
 #include <freetype2/ft2build.h>
 #include FT_FREETYPE_H
@@ -94,16 +94,15 @@ namespace GUI
         Rendering::Shader_Program *shader;
         float color[3] = {0.5f, 0.1f, 0.2f};
         // constructors and deconstructor
-        Rendering::Mesh_Ptr mesh;
         Rendering::Texture_Ptr sample_texture;
         Rendering::Camera_Ptr camera;
+        Rendering::OGLModel_U_Ptr cube_model;
 
     public:
         Sample_OGL_Widget(const std::string &name = "OpenGL IMG_Widget", float x = 0, float y = 0, float width = 0, float height = 0, bool active = true);
         ~Sample_OGL_Widget();
         // methods
     public:
-        void create_mesh();
         void set_shader(Rendering::Shader_Program *shader);
         void render();
     };

@@ -15,7 +15,6 @@ namespace Rendering
     using Mesh_W_Ptr = std::weak_ptr<Mesh>;
     using Mesh_Ptr = Mesh_U_Ptr;
 
-
     class Mesh
     {
     public:
@@ -61,11 +60,6 @@ namespace Rendering
             }
         };
         // attributes
-    private:
-        GLuint vao;
-        GLuint vbo;
-        GLuint ebo;
-        bool mapped;
 
     public:
         char *vertices;
@@ -78,11 +72,7 @@ namespace Rendering
         // constructors and deconstructor
     public:
         Mesh(Layout layout, unsigned int vertex_count, unsigned int index_count)
-            : vao(0),
-              vbo(0),
-              ebo(0),
-              mapped(false),
-              vertex_count(vertex_count),
+            : vertex_count(vertex_count),
               index_count(index_count),
               layout(layout)
         {
@@ -91,22 +81,12 @@ namespace Rendering
         }
         ~Mesh()
         {
-            destroy();
             delete[] vertices;
             delete[] indices;
         }
         // methods
     public:
-        void map();
-        void destroy();
-        void bind() const
-        {
-            glBindVertexArray(vao);
-        }
-        void unbind() const
-        {
-            glBindVertexArray(0);
-        }
+        void map_buffers(GLuint vao, GLuint vbo, GLuint ebo);
 
         // template function to access vertex by index
         template <typename T>
@@ -125,13 +105,13 @@ namespace Rendering
         template <typename T>
         T *vertex(unsigned int index, unsigned int segment)
         {
-            return (T*)(vertices + index * layout.size + layout.offset(segment));
+            return (T *)(vertices + index * layout.size + layout.offset(segment));
         }
 
         template <typename T>
-        const T* vertex(unsigned int index, unsigned int segment) const
+        const T *vertex(unsigned int index, unsigned int segment) const
         {
-            return (T*)(vertices + index * layout.size + layout.offset(segment));
+            return (T *)(vertices + index * layout.size + layout.offset(segment));
         }
 
         // function to access index by index

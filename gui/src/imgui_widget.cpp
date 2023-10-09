@@ -112,7 +112,7 @@ namespace GUI
         this->release_framebuffer();
     }
 
-    Sample_OGL_Widget::Sample_OGL_Widget(const std::string &name, float x, float y, float width, float height, bool active) : OGL_Widget(name, x, y, width, height, active), shader(nullptr), mesh(nullptr)
+    Sample_OGL_Widget::Sample_OGL_Widget(const std::string &name, float x, float y, float width, float height, bool active) : OGL_Widget(name, x, y, width, height, active), shader(nullptr), cube_model(nullptr)
     {
         camera = Rendering::Camera_Ptr(new Rendering::Camera(Core::Vector3(2.0f, 2.0f, 5.0f), Core::Vector3(0.0f, 0.0f, 0.0f), Core::Vector3(0.0f, 1.0f, 0.0f)));
         init();
@@ -125,7 +125,7 @@ namespace GUI
 
     void Sample_OGL_Widget::init()
     {
-        this->create_mesh();
+        cube_model = Rendering::OGLModel_U_Ptr(new Rendering::Cube_Model());
     }
 
     void Sample_OGL_Widget::destroy()
@@ -145,153 +145,6 @@ namespace GUI
         }
     }
 
-    void Sample_OGL_Widget::create_mesh()
-    {
-
-        // create a Cube mesh
-        struct Pos
-        {
-            float x;
-            float y;
-            float z;
-        };
-
-        struct Normal
-        {
-            float x;
-            float y;
-            float z;
-        };
-
-        struct TexCoord
-        {
-            float u;
-            float v;
-        };
-
-        // position data for a cube
-        Pos vertices[] = {
-            // face 1
-            {-1.0f, -1.0f, 1.0f},
-            {1.0f, -1.0f, 1.0f},
-            {1.0f, 1.0f, 1.0f},
-            {-1.0f, 1.0f, 1.0f},
-            // face 2
-            {-1.0f, -1.0f, -1.0f},
-            {-1.0f, 1.0f, -1.0f},
-            {1.0f, 1.0f, -1.0f},
-            {1.0f, -1.0f, -1.0f},
-            // face 3
-            {-1.0f, 1.0f, -1.0f},
-            {-1.0f, 1.0f, 1.0f},
-            {1.0f, 1.0f, 1.0f},
-            {1.0f, 1.0f, -1.0f},
-            // face 4
-            {-1.0f, -1.0f, -1.0f},
-            {1.0f, -1.0f, -1.0f},
-            {1.0f, -1.0f, 1.0f},
-            {-1.0f, -1.0f, 1.0f},
-            // face 5
-            {1.0f, -1.0f, -1.0f},
-            {1.0f, 1.0f, -1.0f},
-            {1.0f, 1.0f, 1.0f},
-            {1.0f, -1.0f, 1.0f},
-            // face 6
-            {-1.0f, -1.0f, -1.0f},
-            {-1.0f, -1.0f, 1.0f},
-            {-1.0f, 1.0f, 1.0f},
-            {-1.0f, 1.0f, -1.0f}};
-
-        // normal data for a cube
-        Normal normals[] = {
-            // face 1
-            {0.0f, 0.0f, 1.0f},
-            {0.0f, 0.0f, 1.0f},
-            {0.0f, 0.0f, 1.0f},
-            {0.0f, 0.0f, 1.0f},
-            // face 2
-            {0.0f, 0.0f, -1.0f},
-            {0.0f, 0.0f, -1.0f},
-            {0.0f, 0.0f, -1.0f},
-            {0.0f, 0.0f, -1.0f},
-            // face 3
-            {0.0f, 1.0f, 0.0f},
-            {0.0f, 1.0f, 0.0f},
-            {0.0f, 1.0f, 0.0f},
-            {0.0f, 1.0f, 0.0f},
-            // face 4
-            {0.0f, -1.0f, 0.0f},
-            {0.0f, -1.0f, 0.0f},
-            {0.0f, -1.0f, 0.0f},
-            {0.0f, -1.0f, 0.0f},
-            // face 5
-            {1.0f, 0.0f, 0.0f},
-            {1.0f, 0.0f, 0.0f},
-            {1.0f, 0.0f, 0.0f},
-            {1.0f, 0.0f, 0.0f},
-            // face 6
-            {-1.0f, 0.0f, 0.0f},
-            {-1.0f, 0.0f, 0.0f},
-            {-1.0f, 0.0f, 0.0f},
-            {-1.0f, 0.0f, 0.0f}};
-
-        // texture coordinate data for a cube
-        TexCoord tex_coords[] = {
-            // face 1
-            {0.0f, 0.0f},
-            {1.0f, 0.0f},
-            {1.0f, 1.0f},
-            {0.0f, 1.0f},
-            // face 2
-            {1.0f, 0.0f},
-            {1.0f, 1.0f},
-            {0.0f, 1.0f},
-            {0.0f, 0.0f},
-            // face 3
-            {0.0f, 1.0f},
-            {0.0f, 0.0f},
-            {1.0f, 0.0f},
-            {1.0f, 1.0f},
-            // face 4
-            {1.0f, 1.0f},
-            {0.0f, 1.0f},
-            {0.0f, 0.0f},
-            {1.0f, 0.0f},
-            // face 5
-            {1.0f, 0.0f},
-            {1.0f, 1.0f},
-            {0.0f, 1.0f},
-            {0.0f, 0.0f},
-            // face 6
-            {0.0f, 0.0f},
-            {1.0f, 0.0f},
-            {1.0f, 1.0f},
-            {0.0f, 1.0f}};
-
-        Rendering::Mesh::Layout layout;
-        layout.add(3, GL_FLOAT, sizeof(float));
-        layout.add(3, GL_FLOAT, sizeof(float));
-        layout.add(2, GL_FLOAT, sizeof(float));
-        mesh = Rendering::Mesh_Ptr(new Rendering::Mesh(layout, 24, 36));
-        for (int i = 0; i < 24; i++)
-        {
-            memcpy(mesh->vertex<float>(i, 0), &vertices[i], sizeof(Pos));
-            memcpy(mesh->vertex<float>(i, 1), &normals[i], sizeof(Normal));
-            memcpy(mesh->vertex<float>(i, 2), &tex_coords[i], sizeof(TexCoord));
-        }
-
-        for (int i = 0; i < 6; i++)
-        {
-            mesh->index(i * 6 + 0) = i * 4 + 0;
-            mesh->index(i * 6 + 1) = i * 4 + 1;
-            mesh->index(i * 6 + 2) = i * 4 + 2;
-            mesh->index(i * 6 + 3) = i * 4 + 0;
-            mesh->index(i * 6 + 4) = i * 4 + 2;
-            mesh->index(i * 6 + 5) = i * 4 + 3;
-        }
-        mesh->map();
-    }
-
     void Sample_OGL_Widget::set_shader(Rendering::Shader_Program *shader)
     {
         this->shader = shader;
@@ -300,26 +153,15 @@ namespace GUI
     void Sample_OGL_Widget::render()
     {
         glViewport(0, 0, width, height);
-        glEnable(GL_DEPTH_TEST);
         glClearColor(background_color[0], background_color[1], background_color[2], background_color[3]);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         Core::Matrix4 model = Core::Matrix4::identity();
         Core::Matrix4 projection = Geometry::perspective(45.0f, width / height, 0.1f, 100.0f);
-        Core::Vector3 eye(2.0f, 2.0f, 5.0f);
-        Core::Vector3 center(0.0f, 0.0f, 0.0f);
-        Core::Vector3 up(0.0f, 1.0f, 0.0f);
-        Core::Matrix4 view = Geometry::look_at(eye, center, up);
-        Core::Matrix4 view2 = camera->get_view_matrix();
-
-
         shader->activate();
-        shader->set_mat4("model", model.data());
-        shader->set_mat4("view", view2.data());
+        shader->set_mat4("view", camera->get_view_matrix().data());
         shader->set_mat4("projection", projection.data());
         shader->set_vec3("u_color", color);
-        mesh->bind();
-        glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
-        mesh->unbind();
+        cube_model->draw(shader);
     }
 
     Log_Widget::Log_Widget(const std::string &name, float x, float y, float width, float height, bool active) : IMG_Widget(name, x, y, width, height, active)

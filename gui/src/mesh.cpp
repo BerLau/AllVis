@@ -5,16 +5,11 @@
 
 namespace Rendering
 {
-    void Mesh::map()
+    void Mesh::map_buffers(GLuint vao, GLuint vbo, GLuint ebo)
     {
-        glGenVertexArrays(1, &vao);
-        glGenBuffers(1, &vbo);
-        glGenBuffers(1, &ebo);
-
         glBindVertexArray(vao);
-
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, vertex_count*layout.size, vertices, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, vertex_count * layout.size, vertices, GL_STATIC_DRAW);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, index_count * sizeof(unsigned int), indices, GL_STATIC_DRAW);
@@ -29,17 +24,6 @@ namespace Rendering
         }
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
-        mapped  = true;
-    }
-
-    void Mesh::destroy()
-    {
-        if(mapped){
-            glDeleteVertexArrays(1, &vao);
-            glDeleteBuffers(1, &vbo);
-            glDeleteBuffers(1, &ebo);
-            mapped = false;
-        }
     }
 
 };
