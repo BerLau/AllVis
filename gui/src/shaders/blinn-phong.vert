@@ -65,5 +65,4 @@ void main(){
     v_out.tspace_frag_pos = TBN * v_out.position;
 
     gl_Position = u_projection * u_view * u_model * vec4(pos, 1.0f);
-
 }

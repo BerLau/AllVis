@@ -158,11 +158,15 @@ namespace GUI
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         Core::Matrix4 projection = Geometry::perspective(45.0f, width / height, 0.1f, 100.0f);
         shader->activate();
-        shader->set_mat4("view", camera->get_view_matrix().data());
-        shader->set_mat4("projection", projection.data());
+        shader->set_mat4("u_view", camera->get_view_matrix().data());
+        shader->set_mat4("u_projection", projection.data());
         shader->set_vec3("u_color", color);
         cube_model->bind_shader(shader);
+        // set draw mode to frame
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         cube_model->draw();
+        // set draw mode to fill
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         cube_model->unbind_shader();
     }
 
@@ -381,7 +385,7 @@ namespace GUI
 
         text_render.shader->activate();
         text_render.shader->set_vec3("u_color", color);
-        text_render.shader->set_mat4("projection", Geometry::orthographic(0.0f, this->width, 0.0f, this->height, -1.0f, 1.0f).data());
+        text_render.shader->set_mat4("u_projection", Geometry::orthographic(0.0f, this->width, 0.0f, this->height, -1.0f, 1.0f).data());
 
         text_render.render_text(this->text, x, y, scale, Core::Vector3(0.0f, 0.0f, 0.0f));
     }

@@ -98,6 +98,7 @@ namespace Geometry
 
     Core::Matrix4 rotate(const Core::Matrix4 &matrix, float angle_rad, Core::Vector3 axis)
     {
+        axis = normalize(axis);
         return rotate(matrix, angle_rad, axis.x(), axis.y(), axis.z());
     }
 
@@ -105,17 +106,17 @@ namespace Geometry
     {
         Core::Matrix4 rslt = matrix;
         rslt(0, 0) *= x;
-        rslt(0, 1) *= x;
-        rslt(0, 2) *= x;
-        rslt(0, 3) *= x;
-        rslt(1, 0) *= y;
+        rslt(1, 0) *= x;
+        rslt(2, 0) *= x;
+
+        rslt(0, 1) *= y;
         rslt(1, 1) *= y;
-        rslt(1, 2) *= y;
-        rslt(1, 3) *= y;
-        rslt(2, 0) *= z;
-        rslt(2, 1) *= z;
+        rslt(2, 1) *= y;
+
+        rslt(0, 2) *= z;
+        rslt(1, 2) *= z;
         rslt(2, 2) *= z;
-        rslt(2, 3) *= z;
+
         return rslt;
     }
 

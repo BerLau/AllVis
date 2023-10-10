@@ -2,10 +2,10 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/string_cast.hpp>
-
+#include "test_utils.h"
 namespace Core
 {
-    TEST(MatrixTest, Constructor)
+    TEST(TestMatrix, Constructor)
     {
         Matrix m(2, 3);
         EXPECT_EQ(m.rows(), 2);
@@ -18,7 +18,7 @@ namespace Core
         EXPECT_EQ(m.data()[5], 0);
     }
 
-    TEST(MatrixTest, CopyConstructor)
+    TEST(TestMatrix, CopyConstructor)
     {
         Matrix m(2, 3);
         m(0, 0) = 1;
@@ -39,7 +39,7 @@ namespace Core
         EXPECT_EQ(m2.data()[5], 6);
     }
 
-    TEST(MatrixTest, CopyAssignment)
+    TEST(TestMatrix, CopyAssignment)
     {
         Matrix m(2, 3);
         m(0, 0) = 1;
@@ -60,7 +60,7 @@ namespace Core
         EXPECT_EQ(m2.data()[5], 6);
     }
 
-    TEST(MatrixTest, MoveConstructor)
+    TEST(TestMatrix, MoveConstructor)
     {
         Matrix m(2, 3);
         m(0, 0) = 1;
@@ -83,7 +83,7 @@ namespace Core
         EXPECT_EQ(m.data(), nullptr);
     }
 
-    TEST(MatrixTest, MoveAssignment)
+    TEST(TestMatrix, MoveAssignment)
     {
         Matrix m(2, 3);
         m(0, 0) = 1;
@@ -106,14 +106,14 @@ namespace Core
         EXPECT_EQ(m.data(), nullptr);
     }
 
-    TEST(MatrixTest, Destructor)
+    TEST(TestMatrix, Destructor)
     {
         Matrix *m = new Matrix(2, 3);
         m->~Matrix();
         EXPECT_EQ(m->data(), nullptr);
     }
 
-    TEST(MatrixTest, Equal)
+    TEST(TestMatrix, Equal)
     {
         Matrix m1(2, 3);
         m1.fill(1);
@@ -125,7 +125,7 @@ namespace Core
         EXPECT_TRUE(m1 == m2);
     }
 
-    TEST(MatrixTest, Fill)
+    TEST(TestMatrix, Fill)
     {
         Matrix m(2, 3);
         m.fill(1);
@@ -139,7 +139,7 @@ namespace Core
         EXPECT_EQ(m.data()[5], 1);
     }
 
-    TEST(MatrixTest, Ones)
+    TEST(TestMatrix, Ones)
     {
         Matrix m = Matrix::ones(2, 3);
         EXPECT_EQ(m.rows(), 2);
@@ -152,7 +152,7 @@ namespace Core
         EXPECT_EQ(m.data()[5], 1);
     }
 
-    TEST(MatrixTest, Zeros)
+    TEST(TestMatrix, Zeros)
     {
         Matrix m = Matrix::zeros(2, 3);
         EXPECT_EQ(m.rows(), 2);
@@ -165,7 +165,7 @@ namespace Core
         EXPECT_EQ(m.data()[5], 0);
     }
 
-    TEST(MatrixTest, Identity)
+    TEST(TestMatrix, Identity)
     {
         MatrixS m = MatrixS::identity(3);
         EXPECT_EQ(m.rows(), 3);
@@ -181,7 +181,7 @@ namespace Core
         EXPECT_EQ(m.data()[8], 1);
     }
 
-    TEST(MatrixTest, Transpose)
+    TEST(TestMatrix, Transpose)
     {
         Matrix m(2, 3);
         m(0, 0) = 1;
@@ -202,7 +202,7 @@ namespace Core
         EXPECT_EQ(m2.data()[5], 6);
     }
 
-    TEST(MatrixTest, Addition)
+    TEST(TestMatrix, Addition)
     {
         Matrix m(2, 3);
         m(0, 0) = 1;
@@ -231,7 +231,7 @@ namespace Core
         EXPECT_EQ(m3.data()[5], 12);
     }
 
-    TEST(MatrixTest, Subtraction)
+    TEST(TestMatrix, Subtraction)
     {
         Matrix m(2, 3);
         m(0, 0) = 1;
@@ -260,7 +260,7 @@ namespace Core
         EXPECT_EQ(m3.data()[5], 0);
     }
 
-    TEST(MatrixTest, ScalarMultiplication)
+    TEST(TestMatrix, ScalarMultiplication)
     {
         Matrix m(2, 3);
         m(0, 0) = 1;
@@ -281,7 +281,7 @@ namespace Core
         EXPECT_EQ(m2.data()[5], 12);
     }
 
-    TEST(MatrixTest, MatrixMultiplication)
+    TEST(TestMatrix, MatrixMultiplication)
     {
         Matrix m(2, 3);
         m(0, 0) = 1;
@@ -308,7 +308,7 @@ namespace Core
         EXPECT_EQ(m3.data()[3], 64);
     }
 
-    TEST(MatrixTest, MatrixMultiplication2)
+    TEST(TestMatrix, MatrixMultiplication2)
     {
         Matrix m(2, 3);
         m(0, 0) = 1;
@@ -340,7 +340,7 @@ namespace Core
         EXPECT_EQ(m3.data()[8], 51);
     }
 
-    TEST(MatrixTest, MatrixMultiplication3)
+    TEST(TestMatrix, MatrixMultiplication3)
     {
         Matrix m1(2, 3);
         m1(0, 0) = 1;
@@ -374,7 +374,7 @@ namespace Core
         EXPECT_EQ(m.data()[3], 354);
     }
 
-    TEST(MatrixTest, MatrixSwapRows)
+    TEST(TestMatrix, MatrixSwapRows)
     {
         Matrix m = MatrixS::identity(3);
         m.swap_rows(0, 1);
@@ -389,7 +389,7 @@ namespace Core
         EXPECT_FLOAT_EQ(m(2, 2), 1);
     }
 
-    TEST(MatrixTest, MatrixScaleRow)
+    TEST(TestMatrix, MatrixScaleRow)
     {
         Matrix m = MatrixS::identity(3);
         m.scale_row(1, 2);
@@ -404,7 +404,7 @@ namespace Core
         EXPECT_FLOAT_EQ(m(2, 2), 1);
     }
 
-    TEST(MatrixTest, MatrixAddRow)
+    TEST(TestMatrix, MatrixAddRow)
     {
         Matrix m = MatrixS::identity(3);
         m.add_row(0, 1, 2);
@@ -419,7 +419,7 @@ namespace Core
         EXPECT_FLOAT_EQ(m(2, 2), 1);
     }
 
-    TEST(MatrixTest, MatrixSubmatrix)
+    TEST(TestMatrix, MatrixSubmatrix)
     {
         Matrix m = MatrixS::identity(4);
         Matrix m2 = m.submatrix(0, 0);
@@ -437,7 +437,7 @@ namespace Core
         EXPECT_FLOAT_EQ(m2(2, 2), 1);
     }
 
-    TEST(MatrixTest, MatrixVectorMultiplication)
+    TEST(TestMatrix, MatrixVectorMultiplication)
     {
         Matrix m = MatrixS::identity(4);
         Vector v = Vector::ones(4);
@@ -450,7 +450,7 @@ namespace Core
     }
 
     // test look_at
-    TEST(MatrixTest, LookAt)
+    TEST(TestMatrix, LookAt)
     {
         Vector3 eye = {0.1f, 0.5f, 1.0f};
         Vector3 center = {0.0f, -1.0f, 0.0f};
@@ -463,29 +463,11 @@ namespace Core
         std::cout << m << std::endl;
         std::cout << glm::to_string(glm_m) << std::endl;
 
-        EXPECT_TRUE(EQUAL_F(m(0, 0), glm_m[0][0]));
-        EXPECT_TRUE(EQUAL_F(m(0, 1), glm_m[1][0]));
-        EXPECT_TRUE(EQUAL_F(m(0, 2), glm_m[2][0]));
-        EXPECT_TRUE(EQUAL_F(m(0, 3), glm_m[3][0]));
-
-        EXPECT_TRUE(EQUAL_F(m(1, 0), glm_m[0][1]));
-        EXPECT_TRUE(EQUAL_F(m(1, 1), glm_m[1][1]));
-        EXPECT_TRUE(EQUAL_F(m(1, 2), glm_m[2][1]));
-        EXPECT_TRUE(EQUAL_F(m(1, 3), glm_m[3][1]));
-
-        EXPECT_TRUE(EQUAL_F(m(2, 0), glm_m[0][2]));
-        EXPECT_TRUE(EQUAL_F(m(2, 1), glm_m[1][2]));
-        EXPECT_TRUE(EQUAL_F(m(2, 2), glm_m[2][2]));
-        EXPECT_TRUE(EQUAL_F(m(2, 3), glm_m[3][2]));
-
-        EXPECT_TRUE(EQUAL_F(m(3, 0), glm_m[0][3]));
-        EXPECT_TRUE(EQUAL_F(m(3, 1), glm_m[1][3]));
-        EXPECT_TRUE(EQUAL_F(m(3, 2), glm_m[2][3]));
-        EXPECT_TRUE(EQUAL_F(m(3, 3), glm_m[3][3]));
+        EXPECT_TRUE(Expect_Matrix_Equal(m, glm::transpose(glm_m)));
     }
 
     // test perspective
-    TEST(MatrixTest, Perspective)
+    TEST(TestMatrix, Perspective)
     {
         Matrix4 view_a = Geometry::perspective(glm::radians(45.0f), 1.0f, 0.1f, 100.0f);
         glm::mat4 view_b = glm::perspective(glm::radians(45.0f), 1.0f, 0.1f, 100.0f);
@@ -493,29 +475,11 @@ namespace Core
         std::cout << view_a << std::endl;
         std::cout << glm::to_string(view_b) << std::endl;
 
-        EXPECT_TRUE(EQUAL_F(view_a(0, 0), view_b[0][0]));
-        EXPECT_TRUE(EQUAL_F(view_a(0, 1), view_b[1][0]));
-        EXPECT_TRUE(EQUAL_F(view_a(0, 2), view_b[2][0]));
-        EXPECT_TRUE(EQUAL_F(view_a(0, 3), view_b[3][0]));
-
-        EXPECT_TRUE(EQUAL_F(view_a(1, 0), view_b[0][1]));
-        EXPECT_TRUE(EQUAL_F(view_a(1, 1), view_b[1][1]));
-        EXPECT_TRUE(EQUAL_F(view_a(1, 2), view_b[2][1]));
-        EXPECT_TRUE(EQUAL_F(view_a(1, 3), view_b[3][1]));
-
-        EXPECT_TRUE(EQUAL_F(view_a(2, 0), view_b[0][2]));
-        EXPECT_TRUE(EQUAL_F(view_a(2, 1), view_b[1][2]));
-        EXPECT_TRUE(EQUAL_F(view_a(2, 2), view_b[2][2]));
-        EXPECT_TRUE(EQUAL_F(view_a(2, 3), view_b[3][2]));
-
-        EXPECT_TRUE(EQUAL_F(view_a(3, 0), view_b[0][3]));
-        EXPECT_TRUE(EQUAL_F(view_a(3, 1), view_b[1][3]));
-        EXPECT_TRUE(EQUAL_F(view_a(3, 2), view_b[2][3]));
-        EXPECT_TRUE(EQUAL_F(view_a(3, 3), view_b[3][3]));
+        EXPECT_TRUE(Expect_Matrix_Equal(view_a, glm::transpose(view_b)));
     }
 
     // test orthographic
-    TEST(MatrixTest, Orthographic)
+    TEST(TestMatrix, Orthographic)
     {
         Matrix4 view_a = Geometry::orthographic(-1.0f, 1.0f, -1.0f, 1.0f, 0.1f, 100.0f);
         glm::mat4 view_b = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, 0.1f, 100.0f);
@@ -523,25 +487,86 @@ namespace Core
         std::cout << view_a << std::endl;
         std::cout << glm::to_string(view_b) << std::endl;
 
-        EXPECT_TRUE(EQUAL_F(view_a(0, 0), view_b[0][0]));
-        EXPECT_TRUE(EQUAL_F(view_a(0, 1), view_b[1][0]));
-        EXPECT_TRUE(EQUAL_F(view_a(0, 2), view_b[2][0]));
-        EXPECT_TRUE(EQUAL_F(view_a(0, 3), view_b[3][0]));
+        EXPECT_TRUE(Expect_Matrix_Equal(view_a, glm::transpose(view_b)));
+    }
 
-        EXPECT_TRUE(EQUAL_F(view_a(1, 0), view_b[0][1]));
-        EXPECT_TRUE(EQUAL_F(view_a(1, 1), view_b[1][1]));
-        EXPECT_TRUE(EQUAL_F(view_a(1, 2), view_b[2][1]));
-        EXPECT_TRUE(EQUAL_F(view_a(1, 3), view_b[3][1]));
+    // test inverse
+    TEST(TestMatrix, inverse)
+    {
+        Matrix4 m1 = {
+            1, 2, 3, 4,
+            0, 1, 2, 3,
+            0, 0, 1, 2,
+            0, 0, 0, 1};
 
-        EXPECT_TRUE(EQUAL_F(view_a(2, 0), view_b[0][2]));
-        EXPECT_TRUE(EQUAL_F(view_a(2, 1), view_b[1][2]));
-        EXPECT_TRUE(EQUAL_F(view_a(2, 2), view_b[2][2]));
-        EXPECT_TRUE(EQUAL_F(view_a(2, 3), view_b[3][2]));
+        auto inv_m1 = m1.inverse();
 
-        EXPECT_TRUE(EQUAL_F(view_a(3, 0), view_b[0][3]));
-        EXPECT_TRUE(EQUAL_F(view_a(3, 1), view_b[1][3]));
-        EXPECT_TRUE(EQUAL_F(view_a(3, 2), view_b[2][3]));
-        EXPECT_TRUE(EQUAL_F(view_a(3, 3), view_b[3][3]));
+        glm::mat4 glm_m1 = {
+            {1, 2, 3, 4},
+            {0, 1, 2, 3},
+            {0, 0, 1, 2},
+            {0, 0, 0, 1}};
+
+        glm::mat4 glm_inv_m1 = glm::inverse(glm_m1);
+
+        std::cout << "INVERSE: " << std::endl
+                  << inv_m1 << std::endl;
+        std::cout << "INVERSE GLM: " << std::endl
+                  << glm_inv_m1 << std::endl;
+
+        EXPECT_TRUE(Expect_Matrix_Equal(inv_m1, glm::transpose(glm_inv_m1)));
+    }
+
+    // test transpose
+    TEST(TestMatrix, transpose)
+    {
+        float v[][4] = {
+            {1, 2, 3, 4},
+            {0, 1, 2, 3},
+            {0, 0, 1, 2},
+            {0, 0, 0, 1}};
+
+        Matrix4 m;
+        glm::mat4 glm_m;
+
+        for (int i = 0; i < 4; i++)
+        {
+            for (int j = 0; j < 4; j++)
+            {
+                m(i, j) = v[i][j];
+                glm_m[i][j] = v[i][j];
+            }
+        }
+        std::cout << "m: " << std::endl
+                  << m << std::endl;
+        std::cout << "glm: " << std::endl
+                  << glm_m << std::endl;
+
+        EXPECT_TRUE(Expect_Matrix_Equal(m, glm_m));
+    }
+
+    TEST(TestMatrix, normal_matrix)
+    {
+        auto m1 = Matrix4::identity();
+        m1 = Geometry::translate(m1, {1, 2, 3});
+        m1 = Geometry::rotate(m1, glm::radians(45.0f), {1, 0, 0});
+        m1 = Geometry::scale(m1, {1, 2, 3});
+
+        auto normal_m1 = m1.inverse().transpose();
+
+        glm::mat4 glm_m1 = glm::mat4(1.0f);
+        glm_m1 = glm::translate(glm_m1, glm::vec3(1, 2, 3));
+        glm_m1 = glm::rotate(glm_m1, glm::radians(45.0f), glm::vec3(1, 0, 0));
+        glm_m1 = glm::scale(glm_m1, glm::vec3(1, 2, 3));
+
+        glm::mat4 glm_normal_m1 = glm::transpose(glm::inverse(glm_m1));
+
+        std::cout << "NORMAL: " << std::endl
+                  << m1 << std::endl;
+        std::cout << "NORMAL_GLM: " << std::endl
+                  << glm_m1 << std::endl;
+
+        EXPECT_TRUE(Expect_Matrix_Equal(normal_m1, glm_normal_m1));
     }
 
 } // namespace Core

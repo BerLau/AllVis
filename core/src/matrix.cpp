@@ -471,10 +471,10 @@ namespace Core
         (*this)(2, 2) *= scale.z();
     }
 
-    void Matrix4::rotate(float angle, const Vector3 &axis)
+    void Matrix4::rotate(float angle_rad, const Vector3 &axis)
     {
-        float c = std::cos(angle);
-        float s = std::sin(angle);
+        float c = std::cos(angle_rad);
+        float s = std::sin(angle_rad);
         float t = 1 - c;
         float x = axis.x();
         float y = axis.y();
@@ -504,10 +504,10 @@ namespace Core
         return result;
     }
 
-    Matrix4 Matrix4::rotate(float angle, const Vector3 &axis) const
+    Matrix4 Matrix4::rotate(float angle_rad, const Vector3 &axis) const
     {
         Matrix4 result(*this);
-        result.rotate(angle, axis);
+        result.rotate(angle_rad, axis);
         return result;
     }
 

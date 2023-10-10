@@ -44,6 +44,10 @@ namespace GUI
         Rendering::shader_program_factory.add_shader_from_file("./shaders/test_texture.frag", GL_FRAGMENT_SHADER, "test_texture_fragment");
         Rendering::shader_program_factory.add_shader_program("test_texture_shader", "test_texture_vertex", "test_texture_fragment");
 
+        Rendering::shader_program_factory.add_shader_from_file("./shaders/blinn-phong.vert", GL_VERTEX_SHADER, "blinn_phong_vertex");
+        Rendering::shader_program_factory.add_shader_from_file("./shaders/blinn-phong.frag", GL_FRAGMENT_SHADER, "blinn_phong_fragment");
+        Rendering::shader_program_factory.add_shader_program("blinn_phong_shader", "blinn_phong_vertex", "blinn_phong_fragment");
+
         auto w = std::unique_ptr<Sample_OGL_Widget>(new Sample_OGL_Widget("OpenGL Window", 0, 0, 800, 600, true));
         w->background_color[0] = 0.0f;
         w->background_color[1] = 0.3f;
@@ -51,8 +55,8 @@ namespace GUI
         w->set_shader(Rendering::shader_program_factory.find_shader_program("basic_shader"));
         Rendering::Texture *tex = Rendering::load_texture("./textures/box.jpeg");
         // Rendering::sampler_manager.add_sampler("default", new Rendering::Sampler());
-        Rendering::Sampler_Manager::instance().add_sampler("basic_shader", new Rendering::Sampler());
-        tex->set_sampler(Rendering::Sampler_Manager::instance().get_sampler("default"));
+        Rendering::Sampler_Manager::instance().add_sampler("basic_sampler", new Rendering::Sampler());
+        tex->set_sampler(Rendering::Sampler_Manager::instance().get_sampler("basic_sampler"));
         // check if the texture is loaded
         if (tex == nullptr)
         {

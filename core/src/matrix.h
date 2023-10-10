@@ -65,6 +65,7 @@ namespace Core
         size_t rows() const { return _rows; }
         size_t cols() const { return _cols; }
         size_t size() const { return _rows * _cols; }
+        size_t bytes() const { return size() * sizeof(float); }
         std::pair<size_t, size_t> shape() const { return std::make_pair(_rows, _cols); }
 
         float *data() const { return values; }
@@ -177,11 +178,11 @@ namespace Core
         // methods for 4x4 matrices
     public:
         void translate(const Vector3 &translation);
-        void rotate(float angle, const Vector3 &axis);
+        void rotate(float angle_rad, const Vector3 &axis);
         void scale(const Vector3 &scale);
 
         Matrix4 translate(const Vector3 &translation) const;
-        Matrix4 rotate(float angle, const Vector3 &axis) const;
+        Matrix4 rotate(float angle_rad, const Vector3 &axis) const;
         Matrix4 scale(const Vector3 &scale) const;
         // static methods
     public:

@@ -248,5 +248,3 @@ vec2 parallax_mapping(sampler2D height_map, float height_scale, vec2 texcoord, v
     }
     return current_texcoord;
 }
-
-
