@@ -2,7 +2,7 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include "transform.h"
+#include "core.h"
 
 namespace Rendering
 {

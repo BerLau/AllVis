@@ -1,5 +1,4 @@
 #include "transform.h"
-#include "lmath.h"
 
 namespace Core
 {
@@ -38,7 +37,7 @@ namespace Core
         : m_position(pos),
           m_scale(scale)
     {
-        m_orientation = Quaternion::from_basis_vector(front, up, Core::Vector3::cross(front, up));
+        set_orientation(front, up);
     }
 
     Transform::~Transform()
@@ -65,9 +64,14 @@ namespace Core
         this->m_orientation = Quaternion::from_euler_angle(euler_angle);
     }
 
-    void Transform::set_orientation(const Core::Vector3 &front, const Core::Vector3 &up, const Core::Vector3 &right)
+    void Transform::set_orientation(const Core::Vector3 &front, const Core::Vector3 &up)
     {
-        this->m_orientation = Core::Quaternion::from_basis_vector(front, up, right);
+        // normalize and orthogonalize
+        Vector3 front_ = Geometry::normalize(front);
+        Vector3 up_ = Geometry::normalize(up);
+        Vector3 right = Vector3::cross(front_, up_);
+        up_ = Vector3::cross(right, front_);
+        this->m_orientation = Quaternion::from_basis_vector(front_, up_, right);
     }
 
     void Transform::look_at(const Core::Vector3 &front, const Core::Vector3 &up)
@@ -208,20 +212,17 @@ namespace Core
 
     Vector3 Transform::get_front()
     {
-        // return glm::normalize(glm::rotate(m_orientation, WORLD_UP));
-        return m_orientation * WORLD_FRONT;
+        return Geometry::normalize(m_orientation * WORLD_FRONT);
     }
 
     Vector3 Transform::get_right()
     {
-        // return glm::normalize(glm::rotate(m_orientation, WORLD_RIGHT));
-        return m_orientation * WORLD_RIGHT;
+        return Geometry::normalize(m_orientation * WORLD_RIGHT);
     }
 
     Vector3 Transform::get_up()
     {
-        // return glm::normalize(glm::rotate(m_orientation, WORLD_UP));
-        return m_orientation * WORLD_UP;
+        return Geometry::normalize(m_orientation * WORLD_UP);
     }
 
     Core::Matrix3 Transform::get_normal_matrix()

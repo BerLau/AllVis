@@ -78,21 +78,21 @@ namespace Core
     {
         Matrix4 rslt;
         rslt(0, 0) = w * w + x * x - y * y - z * z;
-        rslt(0, 1) = 2 * x * y - 2 * w * z;
-        rslt(0, 2) = 2 * x * z + 2 * w * y;
-        rslt(0, 3) = 0;
-        rslt(1, 0) = 2 * x * y + 2 * w * z;
+        rslt(0, 1) = 2.f * x * y - 2.f * w * z;
+        rslt(0, 2) = 2.f * x * z + 2.f * w * y;
+        rslt(0, 3) = 0.f;
+        rslt(1, 0) = 2.f * x * y + 2.f * w * z;
         rslt(1, 1) = w * w - x * x + y * y - z * z;
-        rslt(1, 2) = 2 * y * z - 2 * w * x;
-        rslt(1, 3) = 0;
-        rslt(2, 0) = 2 * x * z - 2 * w * y;
-        rslt(2, 1) = 2 * y * z + 2 * w * x;
+        rslt(1, 2) = 2.f * y * z - 2.f * w * x;
+        rslt(1, 3) = 0.f;
+        rslt(2, 0) = 2.f * x * z - 2.f * w * y;
+        rslt(2, 1) = 2.f * y * z + 2.f * w * x;
         rslt(2, 2) = w * w - x * x - y * y + z * z;
-        rslt(2, 3) = 0;
-        rslt(3, 0) = 0;
-        rslt(3, 1) = 0;
-        rslt(3, 2) = 0;
-        rslt(3, 3) = 1;
+        rslt(2, 3) = 0.f;
+        rslt(3, 0) = 0.f;
+        rslt(3, 1) = 0.f;
+        rslt(3, 2) = 0.f;
+        rslt(3, 3) = 1.f;
         return rslt * matrix;
     }
 
@@ -129,17 +129,17 @@ namespace Core
         float zz = z * z;
         float zw = z * w;
 
-        rslt(0, 0) = 1 - 2 * (yy + zz);
-        rslt(0, 1) = 2 * (xy + zw);
-        rslt(0, 2) = 2 * (xz - yw);
+        rslt(0, 0) = 1.f - 2.f * (yy + zz);
+        rslt(0, 1) = 2.f * (xy + zw);
+        rslt(0, 2) = 2.f * (xz - yw);
 
-        rslt(1, 0) = 2 * (xy - zw);
-        rslt(1, 1) = 1 - 2 * (xx + zz);
-        rslt(1, 2) = 2 * (yz + xw);
+        rslt(1, 0) = 2.f * (xy - zw);
+        rslt(1, 1) = 1.f - 2.f * (xx + zz);
+        rslt(1, 2) = 2.f * (yz + xw);
 
-        rslt(2, 0) = 2 * (xz + yw);
-        rslt(2, 1) = 2 * (yz - xw);
-        rslt(2, 2) = 1 - 2 * (xx + yy);
+        rslt(2, 0) = 2.f * (xz + yw);
+        rslt(2, 1) = 2.f * (yz - xw);
+        rslt(2, 2) = 1.f - 2.f * (xx + yy);
         return rslt;
     }
 
@@ -156,27 +156,27 @@ namespace Core
         float zz = z * z;
         float zw = z * w;
 
-        rslt(0, 0) = 1 - 2 * (yy + zz);
-        rslt(0, 1) = 2 * (xy + zw);
-        rslt(0, 2) = 2 * (xz - yw);
+        rslt(0, 0) = 1.f - 2.f * (yy + zz);
+        rslt(0, 1) = 2.f * (xy + zw);
+        rslt(0, 2) = 2.f * (xz - yw);
 
-        rslt(1, 0) = 2 * (xy - zw);
-        rslt(1, 1) = 1 - 2 * (xx + zz);
-        rslt(1, 2) = 2 * (yz + xw);
+        rslt(1, 0) = 2.f * (xy - zw);
+        rslt(1, 1) = 1.f - 2.f * (xx + zz);
+        rslt(1, 2) = 2.f * (yz + xw);
 
-        rslt(2, 0) = 2 * (xz + yw);
-        rslt(2, 1) = 2 * (yz - xw);
-        rslt(2, 2) = 1 - 2 * (xx + yy);
+        rslt(2, 0) = 2.f * (xz + yw);
+        rslt(2, 1) = 2.f * (yz - xw);
+        rslt(2, 2) = 1.f - 2.f * (xx + yy);
         return rslt;
     }
 
     std::tuple<Vector3, float> Quaternion::to_axis_angle() const
     {
         float angle = 2 * acos(w);
-        float s = sqrt(1 - w * w);
-        if (s < 0.001)
+        float s = std::sqrt(1 - w * w);
+        if (s < 0.0001)
         {
-            return std::make_tuple(Vector3(1, 0, 0), 0);
+            return std::make_tuple(Vector3(1.f, 0.f, 0.f), 0);
         }
         else
         {
@@ -186,26 +186,26 @@ namespace Core
 
     float Quaternion::yaw() const
     {
-        return asin(CLAMP(2 * (w * y - x * z), -1, 1));
+        return std::asin(CLAMP(2.f * (w * y - x * z), -1, 1));
     }
 
     float Quaternion::pitch() const
     {
-        float y_ = 2 * (w * x + y * z);
+        float y_ = 2.f * (w * x + y * z);
         float x_ = w * w - x * x - y * y + z * z;
-        if (y_ == 0 && x_ == 0)
+        if (y_ == 0.f && x_ == 0.f)
         {
-            return 2 * atan2(x, w);
+            return 2.f * std::atan2(x, w);
         }
         else
         {
-            return atan2(y_, x_);
+            return std::atan2(y_, x_);
         }
     }
 
     float Quaternion::roll() const
     {
-        return atan2(2 * (w * z + x * y), w * w + x * x - y * y - z * z);
+        return std::atan2(2.f * (w * z + x * y), w * w + x * x - y * y - z * z);
     }
 
     EulerAngle Quaternion::to_euler_angle() const
@@ -215,16 +215,16 @@ namespace Core
 
     Quaternion Quaternion::from_euler_angle(float pitch, float yaw, float roll)
     {
-        float pitch_rad = Geometry::radians(pitch);
-        float yaw_rad = Geometry::radians(yaw);
-        float roll_rad = Geometry::radians(roll);
+        float pitch_rad_half = Geometry::radians(pitch) * 0.5;
+        float yaw_rad_half = Geometry::radians(yaw) * 0.5;
+        float roll_rad_half = Geometry::radians(roll) * 0.5;
 
-        float cy = cos(pitch_rad / 2);
-        float sy = sin(pitch_rad / 2);
-        float cp = cos(yaw_rad / 2);
-        float sp = sin(yaw_rad / 2);
-        float cr = cos(roll_rad / 2);
-        float sr = sin(roll_rad / 2);
+        float cy = std::cos(pitch_rad_half);
+        float sy = std::sin(pitch_rad_half);
+        float cp = std::cos(yaw_rad_half);
+        float sp = std::sin(yaw_rad_half);
+        float cr = std::cos(roll_rad_half);
+        float sr = std::sin(roll_rad_half);
 
         return Quaternion(
             cy * cp * cr + sy * sp * sr,
@@ -240,9 +240,9 @@ namespace Core
 
     Quaternion Quaternion::from_axis_angle(const Vector3 &axis, float angle_rad)
     {
-        float half_angle = angle_rad / 2;
-        float s = sin(half_angle);
-        return Quaternion(cos(half_angle), axis.x() * s, axis.y() * s, axis.z() * s);
+        float half_angle = angle_rad * 0.5f;
+        float s = std::sin(half_angle);
+        return Quaternion(std::cos(half_angle), axis.x() * s, axis.y() * s, axis.z() * s);
     }
 
     Quaternion Quaternion::from_matrix(const Matrix3 &mat)
@@ -270,8 +270,8 @@ namespace Core
             max_value = z_sq;
         }
 
-        float max_val = sqrt(max_value + 1) * 0.5;
-        float mult = 0.25 / max_val;
+        float max_val = std::sqrt(max_value + 1) * 0.5f;
+        float mult = 0.25f / max_val;
 
         switch (max_index)
         {
@@ -315,7 +315,7 @@ namespace Core
 
     Quaternion &Quaternion::normalize()
     {
-        float length = sqrt(dot(*this, *this));
+        float length = std::sqrt(dot(*this, *this));
         w /= length;
         x /= length;
         y /= length;

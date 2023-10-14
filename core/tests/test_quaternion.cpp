@@ -84,7 +84,7 @@ TEST(TestQuaternion, from_euler_angle)
     float pitch_rad = Geometry::radians(pitch);
     float roll_rad = Geometry::radians(roll);
 
-    Quaternion q = Quaternion::from_euler_angle(pitch_rad, yaw_rad, roll_rad);
+    Quaternion q = Quaternion::from_euler_angle(pitch, yaw, roll);
 
     glm::quat q_glm = glm::quat(glm::vec3(pitch_rad, yaw_rad, roll_rad));
 
@@ -174,11 +174,11 @@ TEST(TestQuaternion, to_euler_angle)
     std::cout << "yaw: " << yaw_rad << std::endl;
     std::cout << "roll: " << roll_rad << std::endl;
 
-    Quaternion q = Quaternion::from_euler_angle(pitch_rad, yaw_rad, roll_rad);
+    Quaternion q = Quaternion::from_euler_angle(pitch, yaw, roll);
     EulerAngle euler_angle = q.to_euler_angle();
 
     glm::quat q_glm = glm::quat(glm::vec3(pitch_rad, yaw_rad, roll_rad));
-    glm::vec3 euler_angle_glm = glm::eulerAngles(q_glm);
+    glm::vec3 euler_angle_glm = glm::degrees(glm::eulerAngles(q_glm));
 
     float pitch_glm = euler_angle_glm.x;
     float yaw_glm = euler_angle_glm.y;

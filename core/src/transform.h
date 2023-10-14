@@ -33,7 +33,7 @@ namespace Core
 
         void set_orientation(Core::Quaternion rotation);
         void set_orientation(const Core::EulerAngle &euler_angle);
-        void set_orientation(const Core::Vector3 &front, const Core::Vector3 &up, const Core::Vector3 &right);
+        void set_orientation(const Core::Vector3 &front, const Core::Vector3 &up);
         void look_at(const Core::Vector3 &front, const Core::Vector3 &up);
 
         void set_scale(Core::Vector3 scale);

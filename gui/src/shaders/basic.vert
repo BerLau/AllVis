@@ -20,7 +20,7 @@ void main()
 {
     texcoord = v_texcoord;
     frag_position = vec3(u_model * vec4(v_pos, 1.0));
-    frag_normal = mat3(transpose(inverse(u_model))) * v_normal;
+    frag_normal = u_normal_matrix * v_normal;
     gl_Position = u_projection * u_view * u_model * vec4(v_pos, 1.0);
     test = vec3(0,0,0);
 }

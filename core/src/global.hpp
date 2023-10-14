@@ -4,9 +4,9 @@
 
 #include <cmath>
 #define FLOAT_EPSILON 1e-6
-#define EQUAL_F(a, b) (fabsf((a) - (b)) < FLOAT_EPSILON)
+#define EQUAL_F(a, b) (fabsf((a) - (b)) <= FLOAT_EPSILON)
 #define DOUBLE_EPSILON 1e-12
-#define EQUAL_D(a, b) (fabs((a) - (b)) < DOUBLE_EPSILON)
+#define EQUAL_D(a, b) (fabs((a) - (b)) <= DOUBLE_EPSILON)
 
 #define CLAMP(x, min, max) ((x) < (min) ? (min) : ((x) > (max) ? (max) : (x)))
 

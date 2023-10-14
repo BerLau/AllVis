@@ -1,16 +1,17 @@
 #include "geometry.h"
 #include <cmath>
+#include "global.hpp"
 
 namespace Geometry
 {
     float radians(float degrees)
     {
-        return degrees * M_PI / 180;
+        return degrees * (M_PI / 180.0);
     }
 
     float degrees(float radians)
     {
-        return radians * 180 / M_PI;
+        return radians * (180.0 / M_PI);
     }
 
     Core::Vector degrees(const Core::Vector &radians)
@@ -35,20 +36,20 @@ namespace Geometry
 
     Core::Vector normalize(const Core::Vector &vector)
     {
-        float length = sqrt(Core::Vector::dot(vector, vector));
-        return vector * (1.0 / length);
+        float length = std::sqrt(Core::Vector::dot(vector, vector));
+        return vector * (1.0f / length);
     }
 
     Core::Quaternion normalize(const Core::Quaternion &quaternion)
     {
         float length = Core::Quaternion::dot(quaternion, quaternion);
-        return quaternion * (1.0 / length);
+        return quaternion * (1.0f / length);
     }
 
     Core::Quaternion angle_axis(float angle_rad, float x, float y, float z)
     {
-        float half_angle = angle_rad / 2;
-        float sin_half_angle = sin(half_angle);
+        float half_angle = angle_rad * 0.5f;
+        float sin_half_angle = std::sin(half_angle);
         return Core::Quaternion(x * sin_half_angle, y * sin_half_angle, z * sin_half_angle, cos(half_angle));
     }
 
@@ -79,8 +80,8 @@ namespace Geometry
     Core::Matrix4 rotate(const Core::Matrix4 &matrix, float angle_rad, float x, float y, float z)
     {
         Core::Matrix4 rslt = matrix;
-        float c = cos(angle_rad);
-        float s = sin(angle_rad);
+        float c = std::cos(angle_rad);
+        float s = std::sin(angle_rad);
         float t = 1 - c;
         rslt(0, 0) = t * x * x + c;
         rslt(1, 0) = t * x * y - s * z;
@@ -157,12 +158,12 @@ namespace Geometry
     Core::Matrix4 perspective(float fov_rad, float aspect, float near, float far)
     {
         Core::Matrix4 rslt = Core::Matrix4::identity();
-        float f = 1.0 / tan(fov_rad / 2);
+        float f = 1.0f / std::tan(fov_rad * 0.5f);
         rslt(0, 0) = f / aspect;
         rslt(1, 1) = f;
         rslt(2, 2) = (far + near) / (near - far);
-        rslt(2, 3) = -1;
-        rslt(3, 2) = (2 * far * near) / (near - far);
+        rslt(2, 3) = -1.0;
+        rslt(3, 2) = (2.0f * far * near) / (near - far);
         rslt(3, 3) = 0;
         return rslt;
     }
@@ -170,9 +171,9 @@ namespace Geometry
     Core::Matrix4 orthographic(float left, float right, float bottom, float top, float near, float far)
     {
         Core::Matrix4 rslt = Core::Matrix4::identity();
-        rslt(0, 0) = 2 / (right - left);
-        rslt(1, 1) = 2 / (top - bottom);
-        rslt(2, 2) = -2 / (far - near);
+        rslt(0, 0) = 2.f / (right - left);
+        rslt(1, 1) = 2.f / (top - bottom);
+        rslt(2, 2) = -2.f / (far - near);
         rslt(3, 0) = -(right + left) / (right - left);
         rslt(3, 1) = -(top + bottom) / (top - bottom);
         rslt(3, 2) = -(far + near) / (far - near);
@@ -181,20 +182,20 @@ namespace Geometry
 
     Core::Matrix4 orthographic(float left, float right, float bottom, float top)
     {
-        return orthographic(left, right, bottom, top, -1, 1);
+        return orthographic(left, right, bottom, top, -1.f, 1.f);
     }
 
     Core::Matrix4 frustum(float left, float right, float bottom, float top, float near, float far)
     {
         Core::Matrix4 rslt = Core::Matrix4::identity();
-        rslt(0, 0) = 2 * near / (right - left);
-        rslt(1, 1) = 2 * near / (top - bottom);
+        rslt(0, 0) = 2.f * near / (right - left);
+        rslt(1, 1) = 2.f * near / (top - bottom);
         rslt(2, 0) = (right + left) / (right - left);
         rslt(2, 1) = (top + bottom) / (top - bottom);
         rslt(2, 2) = -(far + near) / (far - near);
-        rslt(2, 3) = -1;
-        rslt(3, 2) = -(2 * far * near) / (far - near);
-        rslt(3, 3) = 0;
+        rslt(2, 3) = -1.f;
+        rslt(3, 2) = -(2.f * far * near) / (far - near);
+        rslt(3, 3) = 0.f;
         return rslt;
     }
 
@@ -206,7 +207,7 @@ namespace Geometry
         m(2, 1) = front.y();
         m(2, 2) = front.z();
         Core::Vector3 right = Core::Vector3::cross(up, front);
-        float inv_sqrt = 1.0 / std::sqrt(std::fmax(0.00001, Core::Vector3::dot(right, right)));
+        float inv_sqrt = 1.f / std::sqrt(std::fmax(FLOAT_EPSILON, Core::Vector3::dot(right, right)));
         right *= inv_sqrt;
         m(0, 0) = right.x();
         m(0, 1) = right.y();

@@ -5,8 +5,8 @@
 #include <glad/glad.h>
 #include <memory>
 #include "mesh.h"
-#include "transform.h"
 #include "shader.h"
+#include "core.h"
 
 namespace Rendering
 {
@@ -27,11 +27,7 @@ namespace Rendering
         Model()
             : mesh(nullptr),
               transform(Core::Transform_Ptr(
-                  new Core::Transform(
-                        Core::Vector3(0.0f, 0.0f, 0.0f),
-                        Core::Vector3(0.0f, 0.0f, 1.0f),
-                        Core::Vector3(0.0f, 1.0f, 0.0f)
-                      )))
+                  new Core::Transform()))
         {
         }
         Model(Mesh *mesh, Core::Transform *transform) : mesh(mesh), transform(transform) {}

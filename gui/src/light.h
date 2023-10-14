@@ -5,8 +5,6 @@
 #include <core.h>
 #include <memory>
 
-#include "transform.h"
-
 namespace Rendering
 {
     class Light;
@@ -24,7 +22,6 @@ namespace Rendering
         {
             unsigned int type;
             Core::Vector3 color;
-            float intensity;
         };
         // attributes
     public:
@@ -32,11 +29,21 @@ namespace Rendering
         Property property;
         // constructors and deconstructor
     public:
-        Light() : transform(nullptr) {}
-        Light(Core::Transform *transform) : transform(transform) {}
+        Light(Property property = {LIGHT_TYPE_POINT, Core::Vector3{1.0, 1.0, 1.0}})
+            : transform(Core::Transform_Ptr(new Core::Transform())),
+              property(property) {}
+        Light(Core::Transform *transform, Property property = {LIGHT_TYPE_POINT, Core::Vector3{1.0, 1.0, 1.0}})
+            : transform(transform),
+              property(property) {}
         virtual ~Light() {}
+        // methods
+    public:
+        Core::Vector3 get_position() const { return transform->get_position(); }
+        Core::Vector3 get_direction() const { return transform->get_front(); }
+        void set_position(Core::Vector3 position) { transform->set_position(position); }
+        // void set_direction(Core::Vector3 direction) { transform->set_front(direction); }
+        void set_color(Core::Vector3 color) { property.color = color; }
     };
-    // methods
 
 };
 

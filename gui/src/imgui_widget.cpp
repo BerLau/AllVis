@@ -160,10 +160,7 @@ namespace GUI
         glClearColor(background_color[0], background_color[1], background_color[2], background_color[3]);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         Core::Matrix4 projection = Geometry::perspective(45.0f, width / height, 0.1f, 100.0f);
-        Core::Matrix4 view = Geometry::look_at(Vector3(0.0f, 2.0f, 4.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 1.0f, 0.0f));
-        std::cout << view << std::endl;
-        view = camera->get_view_matrix();
-        std::cout << view << std::endl;
+        Core::Matrix4 view = camera->get_view_matrix();
         shader->activate();
         shader->set_mat4("u_view", view.data());
         shader->set_mat4("u_projection", projection.data());

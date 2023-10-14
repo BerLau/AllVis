@@ -702,7 +702,7 @@ namespace Core
     {
         float c = std::cos(angle_rad);
         float s = std::sin(angle_rad);
-        float t = 1 - c;
+        float t = 1.f - c;
         float x = center.x();
         float y = center.y();
         (*this)(0, 0) = t * x * x + c;
