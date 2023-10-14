@@ -20,18 +20,19 @@ namespace Core
     {
     public:
         Transform(const Core::Vector3 &pos = Core::Vector3(0.0f, 0.0f, 0.0f), const Core::EulerAngle &euler_angle = {0, 0, 0}, const Core::Vector3 &scale = Core::Vector3(1.0, 1.0, 1.0));
-        Transform(const Core::Vector3 &pos, const Core::Vector3 &front, const Core::Vector3 &up, const Core::Vector3 &scale = Core::Vector3(1.0, 1.0, 1.0));
         Transform(const Transform &transform);
         Transform &operator=(const Transform &transform);
         Transform(Transform &&transform);
         Transform &operator=(Transform &&transform);
+
+        Transform(const Core::Vector3 &pos, const Core::Vector3 &front, const Core::Vector3 &up, const Core::Vector3 &scale = Core::Vector3(1.0, 1.0, 1.0));
         ~Transform();
 
         void set_position(Core::Vector3 position);
         void set_position(float x, float y, float z);
 
         void set_orientation(Core::Quaternion rotation);
-        void set_orientation(const Core::EulerAngle& euler_angle);
+        void set_orientation(const Core::EulerAngle &euler_angle);
         void set_orientation(const Core::Vector3 &front, const Core::Vector3 &up, const Core::Vector3 &right);
         void look_at(const Core::Vector3 &front, const Core::Vector3 &up);
 
@@ -50,7 +51,7 @@ namespace Core
         Core::Vector3 get_position();
         Core::Quaternion get_orientation();
         Core::EulerAngle get_orientation_euler_angle();
-        Core::Matrix4 get_rotation_matrix();
+        Core::Matrix4 get_orientation_matrix();
         Core::Vector3 get_scale();
 
         void translate(Core::Vector3 translation);
@@ -69,6 +70,9 @@ namespace Core
         Core::Vector3 get_front();
         Core::Vector3 get_right();
         Core::Vector3 get_up();
+
+        Core::Matrix3 get_normal_matrix();
+        Core::Matrix4 get_model_matrix();
 
     private:
         Core::Vector3 m_position;

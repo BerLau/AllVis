@@ -42,6 +42,7 @@ namespace Rendering
         // constructors and destructor
     public:
         Camera();
+        Camera(const Core::Vector3 &position);
         Camera(const Camera &camera) : fov(camera.fov), transform(Core::Transform_Ptr(new Core::Transform(*camera.transform))), focus_distance(camera.focus_distance) { init(); }
         Camera &operator=(const Camera &camera)
         {
@@ -58,8 +59,6 @@ namespace Rendering
             focus_distance = camera.focus_distance;
             return *this;
         }
-        Camera(const Core::Vector3 &position, float pitch, float yaw, float roll);
-        Camera(const Core::Vector3 &position, const Core::Vector3 &center, const Core::Vector3 &up);
         ~Camera();
 
         // methods
@@ -67,6 +66,7 @@ namespace Rendering
         void move(CameraMovement direction, float distance);
         void move(Core::Vector3 direction, float distance);
         Core::Matrix4 get_view_matrix();
+        void focus_on(Core::Vector3 position, Core::Vector3 up = Core::Vector3(0.0f, 1.0f, 0.0f));
 
     private:
         void init();

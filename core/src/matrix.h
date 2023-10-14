@@ -2,7 +2,7 @@
 #ifndef CORE_MATRIX_H
 #define CORE_MATRIX_H
 #include <iostream>
-
+#include <cmath>
 namespace Core
 {
     class Vector;
@@ -46,19 +46,20 @@ namespace Core
     public:
         float &operator()(size_t row, size_t col);
         float operator()(size_t row, size_t col) const;
-        float &operator()(size_t index);
-        inline size_t index(size_t row, size_t col) const { return row * _cols + col; }
+        inline size_t index(size_t row, size_t col) const { return row * _cols + col;}
 
         Matrix operator+(const Matrix &other) const;
         Matrix operator-(const Matrix &other) const;
         Matrix operator*(float scalar) const;
         Matrix operator*(const Matrix &other) const;
         Vector operator*(const Vector &other) const;
+        Matrix operator-() const;
 
         Matrix &operator+=(const Matrix &other) { return *this = *this + other; }
         Matrix &operator-=(const Matrix &other) { return *this = *this - other; }
         Matrix &operator*=(float scalar) { return *this = *this * scalar; }
         Matrix &operator*=(const Matrix &other) { return *this = *this * other; }
+
 
         virtual bool operator==(const Matrix &other) const;
 
@@ -98,7 +99,6 @@ namespace Core
         // friend Matrix operator*(float scalar, const Matrix &other){ return other * scalar; }
         // format output
         friend std::ostream &operator<<(std::ostream &os, const Matrix &matrix);
-        friend Matrix operator-(const Matrix &matrix);
     };
 
     class MatrixS : public Matrix
@@ -163,18 +163,10 @@ namespace Core
     protected:
     public:
         // cast from MatrixS
-        Matrix4(const Matrix &other) : MatrixS(other) {}
-        Matrix4(Matrix &&other) : MatrixS(other) {}
-        Matrix4 &operator=(const Matrix &other)
-        {
-            MatrixS::operator=(other);
-            return *this;
-        }
-        Matrix4 &operator=(Matrix &&other)
-        {
-            MatrixS::operator=(other);
-            return *this;
-        }
+        Matrix4(const Matrix &other);
+        Matrix4(Matrix &&other);
+        Matrix4 &operator=(const Matrix &other);
+        Matrix4 &operator=(Matrix &&other);
         // methods for 4x4 matrices
     public:
         void translate(const Vector3 &translation);
@@ -198,56 +190,35 @@ namespace Core
         // Rules of five
     public:
         Matrix3() : MatrixS(3) {}
-        Matrix3(const Matrix3 &other) : MatrixS(other) {}
-        Matrix3 &operator=(const Matrix3 &other)
-        {
-            MatrixS::operator=(other);
-            return *this;
-        }
-        Matrix3(Matrix3 &&other) : MatrixS(other) {}
-        Matrix3 &operator=(Matrix3 &&other)
-        {
-            MatrixS::operator=(other);
-            return *this;
-        }
+        Matrix3(const Matrix3 &other);
+        Matrix3 &operator=(const Matrix3 &other);
+        Matrix3(Matrix3 &&other);
+        Matrix3 &operator=(Matrix3 &&other);
         ~Matrix3() {}
         Matrix3(float *values, bool duplicate) : MatrixS(values, 3, duplicate) {}
         Matrix3(float m00, float m01, float m02,
                 float m10, float m11, float m12,
-                float m20, float m21, float m22)
-        {
-            values = new float[9];
-            values[0] = m00;
-            values[1] = m01;
-            values[2] = m02;
-            values[3] = m10;
-            values[4] = m11;
-            values[5] = m12;
-            values[6] = m20;
-            values[7] = m21;
-            values[8] = m22;
-            _rows = 3;
-            _cols = 3;
-        }
+                float m20, float m21, float m22);
 
         // methods
     private:
     protected:
     public:
         // cast from MatrixS
-        Matrix3(const Matrix &other) : MatrixS(other) {}
-        Matrix3(Matrix &&other) : MatrixS(other) {}
-        Matrix3 &operator=(const Matrix &other)
-        {
-            MatrixS::operator=(other);
-            return *this;
-        }
-        Matrix3 &operator=(Matrix &&other)
-        {
-            MatrixS::operator=(other);
-            return *this;
-        }
+        Matrix3(const Matrix &other);
+        Matrix3(Matrix &&other);
+        Matrix3 &operator=(const Matrix &other);
+        Matrix3 &operator=(Matrix &&other);
         // methods for 3x3 matrices
+
+        void translate(const Vector2 &translation);
+        void rotate(float angle_rad, const Vector2 &center);
+        void scale(const Vector2 &scale);
+
+        Matrix3 translate(const Vector2 &translation) const;
+        Matrix3 rotate(float angle_rad, const Vector2 &center) const;
+        Matrix3 scale(const Vector2 &scale) const;
+
     public:
         // static methods
         static Matrix3 identity() { return Matrix3(MatrixS::identity(3)); }

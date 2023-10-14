@@ -40,13 +40,6 @@ namespace GUI
         Rendering::shader_program_factory.add_shader_from_file("./shaders/text.frag", GL_FRAGMENT_SHADER, "text_fragment_shader");
         Rendering::shader_program_factory.add_shader_program("text_shader", "text_vertex_shader", "text_fragment_shader");
 
-        Rendering::shader_program_factory.add_shader_from_file("./shaders/test_texture.vert", GL_VERTEX_SHADER, "test_texture_vertex");
-        Rendering::shader_program_factory.add_shader_from_file("./shaders/test_texture.frag", GL_FRAGMENT_SHADER, "test_texture_fragment");
-        Rendering::shader_program_factory.add_shader_program("test_texture_shader", "test_texture_vertex", "test_texture_fragment");
-
-        Rendering::shader_program_factory.add_shader_from_file("./shaders/blinn-phong.vert", GL_VERTEX_SHADER, "blinn_phong_vertex");
-        Rendering::shader_program_factory.add_shader_from_file("./shaders/blinn-phong.frag", GL_FRAGMENT_SHADER, "blinn_phong_fragment");
-        Rendering::shader_program_factory.add_shader_program("blinn_phong_shader", "blinn_phong_vertex", "blinn_phong_fragment");
 
         auto w = std::unique_ptr<Sample_OGL_Widget>(new Sample_OGL_Widget("OpenGL Window", 0, 0, 800, 600, true));
         w->background_color[0] = 0.0f;
@@ -232,6 +225,11 @@ namespace GUI
         glEnable(GL_DEPTH_TEST);
         // enable multisampling
         glEnable(GL_MULTISAMPLE);
+        // enable face culling
+        glEnable(GL_CULL_FACE);
+        // enable blending
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
 
     void Window::load_layout(const std::string &filename)

@@ -17,10 +17,10 @@ namespace Geometry
     Core::Vector normalize(const Core::Vector &vector);
     Core::Quaternion normalize(const Core::Quaternion &quaternion);
 
-    float dot(const Core::Quaternion &a, const Core::Quaternion &b);
-
     Core::Quaternion angle_axis(float angle_rad, float x, float y, float z);
     Core::Quaternion angle_axis(float angle_rad, const Core::Vector3 &axis);
+
+    float distance(const Core::Vector &v1, const Core::Vector &v2);
 
     Core::Matrix4 translate(const Core::Matrix4 &matrix, float x, float y, float z);
 
@@ -44,8 +44,9 @@ namespace Geometry
 
     Core::Matrix4 orthographic(float left, float right, float bottom, float top);
 
-    Core::Quaternion quat_look_at(const Core::Vector3 &direction, const Core::Vector3 &up, bool right_handed = true);
-    Core::Quaternion quat_look_at(const Core::Vector3 &direction, const Core::Vector3 &up, const Core::Vector3 &right);
+    Core::Matrix4 frustum(float left, float right, float bottom, float top, float near, float far);
+
+    Core::Quaternion quat_look_at(const Core::Vector3 &direction, const Core::Vector3 &up);
 
     // schmidt Orthonormalization
     void orthonomalize(Core::Vector3 &up, Core::Vector3 &front, Core::Vector3 &right);

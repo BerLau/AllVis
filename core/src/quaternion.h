@@ -9,7 +9,9 @@ namespace Core
 {
     struct EulerAngle
     {
-        float yaw, pitch, roll;
+        float pitch;
+        float yaw;
+        float roll;
     };
     class Quaternion
     {
@@ -44,23 +46,27 @@ namespace Core
         Vector4 operator*(const Vector4 &vector) const;
         Matrix4 operator*(const Matrix4 &matrix) const;
 
-
         // quaternion operations
         Quaternion &normalize();
         Quaternion conjugate() const;
         Quaternion inverse() const;
 
         // conversion
-        Matrix4 get_matrix() const;
-        std::tuple<Vector3, float> get_axis_angle() const;
-        EulerAngle get_euler_angle() const;
+        Matrix4 to_matrix4() const;
+        Matrix3 to_matrix3() const;
+        std::tuple<Vector3, float> to_axis_angle() const;
+        float yaw() const;
+        float pitch() const;
+        float roll() const;
+        EulerAngle to_euler_angle() const;
 
         // static methods
     public:
         static float dot(const Quaternion &a, const Quaternion &b);
-        static Quaternion identity(){ return Quaternion(1, 0, 0, 0);}
-        static Quaternion from_euler_angle(const EulerAngle& euler_angle);
-        static Quaternion from_axis_angle(const Vector3 &axis, float angle);
+        static Quaternion identity() { return Quaternion(1, 0, 0, 0); }
+        static Quaternion from_euler_angle(float pitch, float yaw, float roll);
+        static Quaternion from_euler_angle(const EulerAngle &euler_angle);
+        static Quaternion from_axis_angle(const Vector3 &axis, float angle_rad);
         static Quaternion from_matrix(const Matrix4 &mat);
         static Quaternion from_matrix(const Matrix3 &mat);
         static Quaternion from_basis_vector(const Vector3 &front, const Vector3 &up, const Vector3 &right);

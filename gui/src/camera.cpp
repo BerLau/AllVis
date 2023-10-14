@@ -9,18 +9,9 @@ namespace Rendering
         init();
     }
 
-    Camera::Camera(const Core::Vector3 &position, float pitch, float yaw, float roll)
+    Camera::Camera(const Core::Vector3 &position)
+        : fov(default_fov), transform(Core::Transform_Ptr(new Core::Transform(position))), focus_distance(default_focus_distance)
     {
-        transform = Core::Transform_Ptr(new Core::Transform(position, Core::EulerAngle{pitch, yaw, roll}));
-        init();
-    }
-
-    Camera::Camera(const Core::Vector3 &position, const Core::Vector3 &center, const Core::Vector3 &up) : fov(default_fov)
-    {
-        Core::Vector3 front = Geometry::normalize(center - position);
-        transform = Core::Transform_Ptr(new Core::Transform(position, front, up));
-        focus_distance = static_cast<Core::Vector>(center - position).length();
-        init();
     }
 
     Camera::~Camera()
@@ -68,7 +59,15 @@ namespace Rendering
         Core::Vector3 pos = transform->get_position();
         Core::Vector3 front = transform->get_front();
         Core::Vector3 up = transform->get_up();
-        return Geometry::look_at(pos, pos + front, up);
+        Core::Vector3 center = pos + front * focus_distance;
+        return Geometry::look_at(pos, center, up);
+    }
+
+    void Camera::focus_on(Core::Vector3 target, Core::Vector3 up)
+    {
+        Core::Vector3 front = Geometry::normalize(transform->get_position() - target);
+        up = Geometry::normalize(up);
+        transform->look_at(front, up);
     }
 
     void Camera::move_forward(float distance)

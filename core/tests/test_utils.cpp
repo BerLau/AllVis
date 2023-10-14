@@ -16,7 +16,25 @@ bool Expect_Matrix_Equal(const Core::Matrix4 &m1, const glm::mat4 &m2)
     {
         for (int j = 0; j < 4; j++)
         {
-            if (EQUAL_F(m1(i, j), m2[i][j]) == false){
+            if (EQUAL_F(m1(i, j), m2[i][j]) == false)
+            {
+                std::cout << "m1(" << i << ", " << j << ") = " << m1(i, j) << ", m2(" << i << ", " << j << ") = " << m2[i][j] << std::endl;
+                rslt = false;
+            }
+        }
+    }
+    return rslt;
+}
+
+bool Expect_Matrix_Equal(const Core::Matrix3 &m1, const glm::mat3 &m2)
+{
+    bool rslt = true;
+    for (int i = 0; i < 3; i++)
+    {
+        for (int j = 0; j < 3; j++)
+        {
+            if (EQUAL_F(m1(i, j), m2[i][j]) == false)
+            {
                 std::cout << "m1(" << i << ", " << j << ") = " << m1(i, j) << ", m2(" << i << ", " << j << ") = " << m2[i][j] << std::endl;
                 rslt = false;
             }

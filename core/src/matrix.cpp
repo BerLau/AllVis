@@ -148,11 +148,6 @@ namespace Core
         return values[index(row, col)];
     }
 
-    float &Matrix::operator()(size_t index)
-    {
-        return values[index * _cols];
-    }
-    
     Matrix Matrix::operator+(const Matrix &other) const
     {
         Matrix result(_rows, _cols);
@@ -208,6 +203,16 @@ namespace Core
             {
                 result[i] += (*this)(i, j) * other[j];
             }
+        }
+        return result;
+    }
+
+    Matrix Matrix::operator-() const
+    {
+        Matrix result(_rows, _cols);
+        for (size_t i = 0; i < size(); ++i)
+        {
+            result.values[i] = -values[i];
         }
         return result;
     }
@@ -277,7 +282,8 @@ namespace Core
         {
             for (size_t j = 0; j < _cols; ++j)
             {
-                result(j, i) = (*this)(i, j);
+                float v = values[index(i, j)];
+                result(j, i) = v;
             }
         }
         return result;
@@ -369,15 +375,15 @@ namespace Core
 
     MatrixS MatrixS::inverse() const
     {
-        MatrixS result(dim());
         float det = determinant();
-        if (det == 0)
-            throw std::runtime_error("Matrix is not invertible");
+        if (EQUAL_F(det, 0))
+            throw std::runtime_error("MatrixS::inverse: determinant is zero");
+        MatrixS result(dim());
         for (size_t i = 0; i < _rows; ++i)
         {
             for (size_t j = 0; j < _cols; ++j)
             {
-                result(i, j) = std::pow(-1, i + j) * MatrixS(submatrix(i, j)).determinant() / det;
+                result(i, j) = std::pow(-1, i + j) * MatrixS(submatrix(j, i)).determinant() / det;
             }
         }
         return result;
@@ -457,6 +463,56 @@ namespace Core
         (*this)(3, 3) = m33;
     }
 
+    Matrix4::Matrix4(const Matrix &other) : MatrixS(4)
+    {
+        fill(0.0f);
+        int row = std::min(4, (int)other.rows());
+        int col = std::min(4, (int)other.cols());
+        for (int i = 0; i < row; i++)
+        {
+            for (int j = 0; j < col; j++)
+                (*this)(i, j) = other(i, j);
+        }
+    }
+
+    Matrix4::Matrix4(Matrix &&other) : MatrixS(4)
+    {
+        fill(0.0f);
+        int row = std::min(4, (int)other.rows());
+        int col = std::min(4, (int)other.cols());
+        for (int i = 0; i < row; i++)
+        {
+            for (int j = 0; j < col; j++)
+                (*this)(i, j) = other(i, j);
+        }
+    }
+
+    Matrix4 &Matrix4::operator=(const Matrix &other)
+    {
+        fill(0.0f);
+        int row = std::min(4, (int)other.rows());
+        int col = std::min(4, (int)other.cols());
+        for (int i = 0; i < row; i++)
+        {
+            for (int j = 0; j < col; j++)
+                (*this)(i, j) = other(i, j);
+        }
+        return *this;
+    }
+
+    Matrix4 &Matrix4::operator=(Matrix &&other)
+    {
+        fill(0.0f);
+        int row = std::min(4, (int)other.rows());
+        int col = std::min(4, (int)other.cols());
+        for (int i = 0; i < row; i++)
+        {
+            for (int j = 0; j < col; j++)
+                (*this)(i, j) = other(i, j);
+        }
+        return *this;
+    }
+
     void Matrix4::translate(const Vector3 &translation)
     {
         (*this)(0, 3) += translation.x();
@@ -533,13 +589,154 @@ namespace Core
         return os;
     }
 
-    Matrix operator-(const Matrix &matrix)
+    Matrix3::Matrix3(const Matrix3 &other) : MatrixS(3)
     {
-        Matrix result(matrix._rows, matrix._cols);
-        for (size_t i = 0; i < matrix.size(); ++i)
+        for (size_t i = 0; i < size(); ++i)
         {
-            result.values[i] = -matrix.values[i];
+            values[i] = other.values[i];
         }
+    }
+
+    Matrix3 &Matrix3::operator=(const Matrix3 &other)
+    {
+        if (this != &other)
+        {
+            for (size_t i = 0; i < size(); ++i)
+            {
+                values[i] = other.values[i];
+            }
+        }
+        return *this;
+    }
+
+    Matrix3::Matrix3(Matrix3 &&other) : MatrixS(3)
+    {
+        for (size_t i = 0; i < size(); ++i)
+        {
+            values[i] = other.values[i];
+        }
+    }
+
+    Matrix3 &Matrix3::operator=(Matrix3 &&other)
+    {
+        if (this != &other)
+        {
+            for (size_t i = 0; i < size(); ++i)
+            {
+                values[i] = other.values[i];
+            }
+        }
+        return *this;
+    }
+
+    Matrix3::Matrix3(float m00, float m01, float m02, float m10, float m11, float m12, float m20, float m21, float m22) : MatrixS(3)
+    {
+        (*this)(0, 0) = m00;
+        (*this)(0, 1) = m01;
+        (*this)(0, 2) = m02;
+        (*this)(1, 0) = m10;
+        (*this)(1, 1) = m11;
+        (*this)(1, 2) = m12;
+        (*this)(2, 0) = m20;
+        (*this)(2, 1) = m21;
+        (*this)(2, 2) = m22;
+    }
+
+    Matrix3::Matrix3(const Matrix &other) : MatrixS(3)
+    {
+        fill(0.0f);
+        int row = std::min(3, (int)other.rows());
+        int col = std::min(3, (int)other.cols());
+        for (int i = 0; i < row; i++)
+        {
+            for (int j = 0; j < col; j++)
+                (*this)(i, j) = other(i, j);
+        }
+    }
+
+    Matrix3::Matrix3(Matrix &&other) : MatrixS(3)
+    {
+        fill(0.0f);
+        int row = std::min(3, (int)other.rows());
+        int col = std::min(3, (int)other.cols());
+        for (int i = 0; i < row; i++)
+        {
+            for (int j = 0; j < col; j++)
+                (*this)(i, j) = other(i, j);
+        }
+    }
+
+    Matrix3 &Matrix3::operator=(const Matrix &other)
+    {
+        fill(0.0f);
+        int row = std::min(3, (int)other.rows());
+        int col = std::min(3, (int)other.cols());
+        for (int i = 0; i < row; i++)
+        {
+            for (int j = 0; j < col; j++)
+                (*this)(i, j) = other(i, j);
+        }
+        return *this;
+    }
+
+    Matrix3 &Matrix3::operator=(Matrix &&other)
+    {
+        fill(0.0f);
+        int row = std::min(3, (int)other.rows());
+        int col = std::min(3, (int)other.cols());
+        for (int i = 0; i < row; i++)
+        {
+            for (int j = 0; j < col; j++)
+                (*this)(i, j) = other(i, j);
+        }
+        return *this;
+    }
+
+    void Matrix3::translate(const Vector2 &translation)
+    {
+        (*this)(0, 2) += translation.x();
+        (*this)(1, 2) += translation.y();
+    }
+
+    void Matrix3::rotate(float angle_rad, const Vector2 &center)
+    {
+        float c = std::cos(angle_rad);
+        float s = std::sin(angle_rad);
+        float t = 1 - c;
+        float x = center.x();
+        float y = center.y();
+        (*this)(0, 0) = t * x * x + c;
+        (*this)(0, 1) = t * x * y - s * y;
+        (*this)(0, 2) = x - (*this)(0, 0) * x - (*this)(0, 1) * y;
+        (*this)(1, 0) = t * x * y + s * y;
+        (*this)(1, 1) = t * y * y + c;
+        (*this)(1, 2) = y - (*this)(1, 0) * x - (*this)(1, 1) * y;
+    }
+
+    void Matrix3::scale(const Vector2 &scale)
+    {
+        (*this)(0, 0) *= scale.x();
+        (*this)(1, 1) *= scale.y();
+    }
+
+    Matrix3 Matrix3::translate(const Vector2 &translation) const
+    {
+        Matrix3 result(*this);
+        result.translate(translation);
+        return result;
+    }
+
+    Matrix3 Matrix3::rotate(float angle_rad, const Vector2 &center) const
+    {
+        Matrix3 result(*this);
+        result.rotate(angle_rad, center);
+        return result;
+    }
+
+    Matrix3 Matrix3::scale(const Vector2 &scale) const
+    {
+        Matrix3 result(*this);
+        result.scale(scale);
         return result;
     }
 }

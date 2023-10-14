@@ -150,17 +150,17 @@ namespace Rendering
 
     void Shader_Program::set_mat2(const std::string &name, const float *mat) const
     {
-        glUniformMatrix2fv(glGetUniformLocation(program_id, name.c_str()), 1, GL_TRUE, mat);
+        glUniformMatrix2fv(glGetUniformLocation(program_id, name.c_str()), 1, GL_FALSE, mat);
     }
 
     void Shader_Program::set_mat3(const std::string &name, const float *mat) const
     {
-        glUniformMatrix3fv(glGetUniformLocation(program_id, name.c_str()), 1, GL_TRUE, mat);
+        glUniformMatrix3fv(glGetUniformLocation(program_id, name.c_str()), 1, GL_FALSE, mat);
     }
 
     void Shader_Program::set_mat4(const std::string &name, const float *mat) const
     {
-        glUniformMatrix4fv(glGetUniformLocation(program_id, name.c_str()), 1, GL_TRUE, mat);
+        glUniformMatrix4fv(glGetUniformLocation(program_id, name.c_str()), 1, GL_FALSE, mat);
     }
 
     Shader *Shader_Program_Factory::find_shader(const std::string &name)

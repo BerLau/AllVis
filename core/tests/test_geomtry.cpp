@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "test_utils.h"
+#include <glm/gtx/quaternion.hpp>
 
 TEST(TestGeometry, radians)
 {
@@ -26,25 +27,10 @@ TEST(TestGeometry, look_at)
     glm::vec3 up_glm = glm::vec3(0.0f, 1.0f, 0.0f);
     glm::mat4 r_glm = glm::lookAt(pos_glm, center_glm, up_glm);
 
-    EXPECT_FLOAT_EQ(r(0, 0), r_glm[0][0]);
-    EXPECT_FLOAT_EQ(r(0, 1), r_glm[1][0]);
-    EXPECT_FLOAT_EQ(r(0, 2), r_glm[2][0]);
-    EXPECT_FLOAT_EQ(r(0, 3), r_glm[3][0]);
+    std::cout << r << std::endl;
+    std::cout << r_glm << std::endl;
 
-    EXPECT_FLOAT_EQ(r(1, 0), r_glm[0][1]);
-    EXPECT_FLOAT_EQ(r(1, 1), r_glm[1][1]);
-    EXPECT_FLOAT_EQ(r(1, 2), r_glm[2][1]);
-    EXPECT_FLOAT_EQ(r(1, 3), r_glm[3][1]);
-
-    EXPECT_FLOAT_EQ(r(2, 0), r_glm[0][2]);
-    EXPECT_FLOAT_EQ(r(2, 1), r_glm[1][2]);
-    EXPECT_FLOAT_EQ(r(2, 2), r_glm[2][2]);
-    EXPECT_FLOAT_EQ(r(2, 3), r_glm[3][2]);
-
-    EXPECT_FLOAT_EQ(r(3, 0), r_glm[0][3]);
-    EXPECT_FLOAT_EQ(r(3, 1), r_glm[1][3]);
-    EXPECT_FLOAT_EQ(r(3, 2), r_glm[2][3]);
-    EXPECT_FLOAT_EQ(r(3, 3), r_glm[3][3]);
+    EXPECT_TRUE(Expect_Matrix_Equal(r, r_glm));
 }
 
 TEST(TestGeometry, translate)
@@ -58,7 +44,7 @@ TEST(TestGeometry, translate)
     std::cout << m << std::endl;
     std::cout << m_glm << std::endl;
 
-    EXPECT_TRUE(Expect_Matrix_Equal(m, glm::transpose(m_glm)));
+    EXPECT_TRUE(Expect_Matrix_Equal(m, m_glm));
 }
 
 TEST(TestGeometry, rotate)
@@ -74,7 +60,7 @@ TEST(TestGeometry, rotate)
     std::cout << m << std::endl;
     std::cout << m_glm << std::endl;
 
-    EXPECT_TRUE(Expect_Matrix_Equal(m, glm::transpose(m_glm)));
+    EXPECT_TRUE(Expect_Matrix_Equal(m, m_glm));
 }
 
 TEST(TestGeometry, scale)
@@ -90,7 +76,83 @@ TEST(TestGeometry, scale)
     m_glm = glm::scale(m_glm, glm::vec3(1.0f, 2.0f, 3.0f));
 
     std::cout << m << std::endl;
-    std::cout << glm::transpose(m_glm) << std::endl;
+    std::cout << m_glm << std::endl;
 
-    EXPECT_TRUE(Expect_Matrix_Equal(m, glm::transpose(m_glm)));
+    EXPECT_TRUE(Expect_Matrix_Equal(m, m_glm));
+}
+
+TEST(TestGeometry, ortho)
+{
+    Core::Matrix4 m = Geometry::orthographic(0.0f, 800.0f, 0.0f, 600.0f, 0.0f, 100.0f);
+
+    glm::mat4 m_glm = glm::ortho(0.0f, 800.0f, 0.0f, 600.0f, 0.0f, 100.0f);
+
+    std::cout << m << std::endl;
+    std::cout << m_glm << std::endl;
+
+    EXPECT_TRUE(Expect_Matrix_Equal(m, m_glm));
+}
+
+TEST(TestGeometry, perspective)
+{
+    Core::Matrix4 m = Geometry::perspective(Geometry::radians(45.f), 800.0f / 600.0f, 0.1f, 100.0f);
+
+    glm::mat4 m_glm = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+
+    std::cout << m << std::endl;
+    std::cout << m_glm << std::endl;
+
+    EXPECT_TRUE(Expect_Matrix_Equal(m, m_glm));
+}
+
+TEST(TestGeometry, frustum)
+{
+    Core::Matrix4 m = Geometry::frustum(-1.0f, 1.0f, -1.0f, 1.0f, 0.1f, 100.0f);
+
+    glm::mat4 m_glm = glm::frustum(-1.0f, 1.0f, -1.0f, 1.0f, 0.1f, 100.0f);
+
+    std::cout << m << std::endl;
+    std::cout << m_glm << std::endl;
+
+    EXPECT_TRUE(Expect_Matrix_Equal(m, m_glm));
+}
+
+TEST(TestGeometry, quat_look_at)
+{
+    Core::Vector3 direction = Core::Vector3(0.0f, 0.0f, -1.0f);
+    Core::Vector3 up = Core::Vector3(0.0f, 2.0f, 2.0f);
+    Core::Quaternion q = Geometry::quat_look_at(direction, up);
+
+    glm::vec3 direction_glm = glm::vec3(0.0f, 0.0f, -1.0f);
+    glm::vec3 up_glm = glm::vec3(0.0f, 2.0f, 2.0f);
+    glm::quat q_glm = glm::quatLookAt(direction_glm, up_glm);
+
+    std::cout << "q: " << q.w << ", " << q.x << ", " << q.y << ", " << q.z << std::endl;
+    std::cout << "q_glm: " << q_glm.w << ", " << q_glm.x << ", " << q_glm.y << ", " << q_glm.z << std::endl;
+
+    EXPECT_FLOAT_EQ(q.w, q_glm.w);
+    EXPECT_FLOAT_EQ(q.x, q_glm.x);
+    EXPECT_FLOAT_EQ(q.y, q_glm.y);
+    EXPECT_FLOAT_EQ(q.z, q_glm.z);
+}
+
+TEST(TestGeometry, quat_matrix_look_at)
+{
+    Core::Vector3 center = Core::Vector3(0.0f, 0.0f, 0.0f);
+    Core::Vector3 up = Core::Vector3(0.0f, 2.0f, 2.0f);
+    Core::Vector3 pos = Core::Vector3(0.0f, 0.0f, 4.0f);
+    Core::Vector3 direction = pos - center;
+    Core::Quaternion q = Geometry::quat_look_at(direction, up);
+    Core::Vector3 up_ = q * Core::Vector3(0.0f, 1.0f, 0.0f);
+    Core::Matrix4 m1 = Geometry::look_at(pos, center, up_);
+
+
+    Core::Matrix4 m2 = Geometry::look_at(pos, center, up);
+
+    std::cout << "m1" << std::endl
+              << m1 << std::endl;
+    std::cout << "m2" << std::endl
+              << m2 << std::endl;
+
+    EXPECT_TRUE(m1 == m2);
 }

@@ -116,8 +116,9 @@ namespace Core
         return conjugate() * (1.0f / dot(*this, *this));
     }
 
-    Matrix4 Quaternion::get_matrix() const
+    Matrix4 Quaternion::to_matrix4() const
     {
+        Matrix4 rslt = Matrix4::identity();
         float xx = x * x;
         float xy = x * y;
         float xz = x * z;
@@ -128,14 +129,48 @@ namespace Core
         float zz = z * z;
         float zw = z * w;
 
-        return Matrix4(
-            1 - 2 * (yy + zz), 2 * (xy - zw), 2 * (xz + yw), 0,
-            2 * (xy + zw), 1 - 2 * (xx + zz), 2 * (yz - xw), 0,
-            2 * (xz - yw), 2 * (yz + xw), 1 - 2 * (xx + yy), 0,
-            0, 0, 0, 1);
+        rslt(0, 0) = 1 - 2 * (yy + zz);
+        rslt(0, 1) = 2 * (xy + zw);
+        rslt(0, 2) = 2 * (xz - yw);
+
+        rslt(1, 0) = 2 * (xy - zw);
+        rslt(1, 1) = 1 - 2 * (xx + zz);
+        rslt(1, 2) = 2 * (yz + xw);
+
+        rslt(2, 0) = 2 * (xz + yw);
+        rslt(2, 1) = 2 * (yz - xw);
+        rslt(2, 2) = 1 - 2 * (xx + yy);
+        return rslt;
     }
 
-    std::tuple<Vector3, float> Quaternion::get_axis_angle() const
+    Matrix3 Quaternion::to_matrix3() const
+    {
+        Matrix3 rslt = Matrix3::identity();
+        float xx = x * x;
+        float xy = x * y;
+        float xz = x * z;
+        float xw = x * w;
+        float yy = y * y;
+        float yz = y * z;
+        float yw = y * w;
+        float zz = z * z;
+        float zw = z * w;
+
+        rslt(0, 0) = 1 - 2 * (yy + zz);
+        rslt(0, 1) = 2 * (xy + zw);
+        rslt(0, 2) = 2 * (xz - yw);
+
+        rslt(1, 0) = 2 * (xy - zw);
+        rslt(1, 1) = 1 - 2 * (xx + zz);
+        rslt(1, 2) = 2 * (yz + xw);
+
+        rslt(2, 0) = 2 * (xz + yw);
+        rslt(2, 1) = 2 * (yz - xw);
+        rslt(2, 2) = 1 - 2 * (xx + yy);
+        return rslt;
+    }
+
+    std::tuple<Vector3, float> Quaternion::to_axis_angle() const
     {
         float angle = 2 * acos(w);
         float s = sqrt(1 - w * w);
@@ -149,145 +184,113 @@ namespace Core
         }
     }
 
-    EulerAngle Quaternion::get_euler_angle() const
+    float Quaternion::yaw() const
     {
-        // reference: https://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToEuler/index.htm
-        double sqw = w * w;
-        double sqx = x * x;
-        double sqy = y * y;
-        double sqz = z * z;
-        double unit = sqx + sqy + sqz + sqw; // if normalised is one, otherwise is correction factor
-        double test = x * y + z * w;
-        float yaw, pitch, roll;
-        if (test > 0.49999 * unit)
-        { // singularity at north pole
-            yaw = 2 * atan2(x, w);
-            pitch = M_PI / 2;
-            roll = 0;
-        }
-        else if (test < -0.49999 * unit)
-        { // singularity at south pole
-            yaw = -2 * atan2(x, w);
-            pitch = -M_PI / 2;
-            roll = 0;
+        return asin(CLAMP(2 * (w * y - x * z), -1, 1));
+    }
+
+    float Quaternion::pitch() const
+    {
+        float y_ = 2 * (w * x + y * z);
+        float x_ = w * w - x * x - y * y + z * z;
+        if (y_ == 0 && x_ == 0)
+        {
+            return 2 * atan2(x, w);
         }
         else
         {
-            yaw = atan2(2 * y * w - 2 * x * z, sqx - sqy - sqz + sqw);
-            pitch = asin(2 * test / unit);
-            roll = atan2(2 * x * w - 2 * y * z, -sqx + sqy - sqz + sqw);
+            return atan2(y_, x_);
         }
-        return {Geometry::degrees(yaw), Geometry::degrees(pitch), Geometry::degrees(roll)};
+    }
+
+    float Quaternion::roll() const
+    {
+        return atan2(2 * (w * z + x * y), w * w + x * x - y * y - z * z);
+    }
+
+    EulerAngle Quaternion::to_euler_angle() const
+    {
+        return EulerAngle({Geometry::degrees(pitch()), Geometry::degrees(yaw()), Geometry::degrees(roll())});
+    }
+
+    Quaternion Quaternion::from_euler_angle(float pitch, float yaw, float roll)
+    {
+        float pitch_rad = Geometry::radians(pitch);
+        float yaw_rad = Geometry::radians(yaw);
+        float roll_rad = Geometry::radians(roll);
+
+        float cy = cos(pitch_rad / 2);
+        float sy = sin(pitch_rad / 2);
+        float cp = cos(yaw_rad / 2);
+        float sp = sin(yaw_rad / 2);
+        float cr = cos(roll_rad / 2);
+        float sr = sin(roll_rad / 2);
+
+        return Quaternion(
+            cy * cp * cr + sy * sp * sr,
+            sy * cp * cr - cy * sp * sr,
+            sy * cp * sr + cy * sp * cr,
+            cy * cp * sr - sy * sp * cr);
     }
 
     Quaternion Quaternion::from_euler_angle(const EulerAngle &euler_angle)
     {
-        // reference: https://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/index.htm
-        float yaw = Geometry::radians(euler_angle.yaw);
-        float pitch = Geometry::radians(euler_angle.pitch);
-        float roll = Geometry::radians(euler_angle.roll);
-
-        float c1 = cos(yaw / 2);
-        float c2 = cos(pitch / 2);
-        float c3 = cos(roll / 2);
-        float s1 = sin(yaw / 2);
-        float s2 = sin(pitch / 2);
-        float s3 = sin(roll / 2);
-
-        return Quaternion(
-            c1 * c2 * c3 - s1 * s2 * s3,
-            s1 * s2 * c3 + c1 * c2 * s3,
-            s1 * c2 * c3 + c1 * s2 * s3,
-            c1 * s2 * c3 - s1 * c2 * s3);
+        return from_euler_angle(euler_angle.pitch, euler_angle.yaw, euler_angle.roll);
     }
 
-    Quaternion Quaternion::from_axis_angle(const Vector3 &axis, float angle)
+    Quaternion Quaternion::from_axis_angle(const Vector3 &axis, float angle_rad)
     {
-        float half_angle = angle / 2;
+        float half_angle = angle_rad / 2;
         float s = sin(half_angle);
-        return Quaternion(axis.x() * s, axis.y() * s, axis.z() * s, cos(half_angle));
-    }
-
-    Quaternion Quaternion::from_matrix(const Matrix4 &mat)
-    {
-        float trace = mat.trace();
-        if (trace > 0)
-        {
-            float s = sqrt(trace + 1.0f) * 2;
-            return Quaternion(
-                0.25f * s,
-                (mat(2, 1) - mat(1, 2)) / s,
-                (mat(0, 2) - mat(2, 0)) / s,
-                (mat(1, 0) - mat(0, 1)) / s);
-        }
-        else if (mat(0, 0) > mat(1, 1) && mat(0, 0) > mat(2, 2))
-        {
-            float s = sqrt(1.0f + mat(0, 0) - mat(1, 1) - mat(2, 2)) * 2;
-            return Quaternion(
-                (mat(2, 1) - mat(1, 2)) / s,
-                0.25f * s,
-                (mat(0, 1) + mat(1, 0)) / s,
-                (mat(0, 2) + mat(2, 0)) / s);
-        }
-        else if (mat(1, 1) > mat(2, 2))
-        {
-            float s = sqrt(1.0f + mat(1, 1) - mat(0, 0) - mat(2, 2)) * 2;
-            return Quaternion(
-                (mat(0, 2) - mat(2, 0)) / s,
-                (mat(0, 1) + mat(1, 0)) / s,
-                0.25f * s,
-                (mat(1, 2) + mat(2, 1)) / s);
-        }
-        else
-        {
-            float s = sqrt(1.0f + mat(2, 2) - mat(0, 0) - mat(1, 1)) * 2;
-            return Quaternion(
-                (mat(1, 0) - mat(0, 1)) / s,
-                (mat(0, 2) + mat(2, 0)) / s,
-                (mat(1, 2) + mat(2, 1)) / s,
-                0.25f * s);
-        }
+        return Quaternion(cos(half_angle), axis.x() * s, axis.y() * s, axis.z() * s);
     }
 
     Quaternion Quaternion::from_matrix(const Matrix3 &mat)
     {
-        float trace = mat.trace();
-        if (trace > 0)
+        float x_sq = mat(0, 0) - mat(1, 1) - mat(2, 2);
+        float y_sq = -mat(0, 0) + mat(1, 1) - mat(2, 2);
+        float z_sq = -mat(0, 0) - mat(1, 1) + mat(2, 2);
+        float w_sq = mat(0, 0) + mat(1, 1) + mat(2, 2);
+
+        int max_index = 0;
+        float max_value = w_sq;
+        if (x_sq > max_value)
         {
-            float s = sqrt(trace + 1.0f) * 2;
-            return Quaternion(
-                0.25f * s,
-                (mat(2, 1) - mat(1, 2)) / s,
-                (mat(0, 2) - mat(2, 0)) / s,
-                (mat(1, 0) - mat(0, 1)) / s);
+            max_index = 1;
+            max_value = x_sq;
         }
-        else if (mat(0, 0) > mat(1, 1) && mat(0, 0) > mat(2, 2))
+        if (y_sq > max_value)
         {
-            float s = sqrt(1.0f + mat(0, 0) - mat(1, 1) - mat(2, 2)) * 2;
-            return Quaternion(
-                (mat(2, 1) - mat(1, 2)) / s,
-                0.25f * s,
-                (mat(0, 1) + mat(1, 0)) / s,
-                (mat(0, 2) + mat(2, 0)) / s);
+            max_index = 2;
+            max_value = y_sq;
         }
-        else if (mat(1, 1) > mat(2, 2))
+        if (z_sq > max_value)
         {
-            float s = sqrt(1.0f + mat(1, 1) - mat(0, 0) - mat(2, 2)) * 2;
-            return Quaternion(
-                (mat(0, 2) - mat(2, 0)) / s,
-                (mat(0, 1) + mat(1, 0)) / s,
-                0.25f * s,
-                (mat(1, 2) + mat(2, 1)) / s);
+            max_index = 3;
+            max_value = z_sq;
         }
-        else
+
+        float max_val = sqrt(max_value + 1) * 0.5;
+        float mult = 0.25 / max_val;
+
+        switch (max_index)
         {
-            float s = sqrt(1.0f + mat(2, 2) - mat(0, 0) - mat(1, 1)) * 2;
-            return Quaternion(
-                (mat(1, 0) - mat(0, 1)) / s,
-                (mat(0, 2) + mat(2, 0)) / s,
-                (mat(1, 2) + mat(2, 1)) / s,
-                0.25f * s);
+        case 0:
+            return Quaternion(max_val, (mat(1, 2) - mat(2, 1)) * mult, (mat(2, 0) - mat(0, 2)) * mult, (mat(0, 1) - mat(1, 0)) * mult);
+        case 1:
+            return Quaternion((mat(1, 2) - mat(2, 1)) * mult, max_val, (mat(0, 1) + mat(1, 0)) * mult, (mat(2, 0) + mat(0, 2)) * mult);
+        case 2:
+            return Quaternion((mat(2, 0) - mat(0, 2)) * mult, (mat(0, 1) + mat(1, 0)) * mult, max_val, (mat(1, 2) + mat(2, 1)) * mult);
+        case 3:
+            return Quaternion((mat(0, 1) - mat(1, 0)) * mult, (mat(2, 0) + mat(0, 2)) * mult, (mat(1, 2) + mat(2, 1)) * mult, max_val);
+        default:
+            return Quaternion(1, 0, 0, 0);
         }
+    }
+
+    Quaternion Quaternion::from_matrix(const Matrix4 &mat)
+    {
+        return from_matrix(Matrix3(mat));
     }
 
     Quaternion Quaternion::from_basis_vector(const Vector3 &front, const Vector3 &up, const Vector3 &right)

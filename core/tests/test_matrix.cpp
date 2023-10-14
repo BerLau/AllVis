@@ -3,6 +3,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/string_cast.hpp>
 #include "test_utils.h"
+#include <glm/gtc/type_ptr.hpp>
 namespace Core
 {
     TEST(TestMatrix, Constructor)
@@ -449,47 +450,6 @@ namespace Core
         EXPECT_FLOAT_EQ(v2[3], 1);
     }
 
-    // test look_at
-    TEST(TestMatrix, LookAt)
-    {
-        Vector3 eye = {0.1f, 0.5f, 1.0f};
-        Vector3 center = {0.0f, -1.0f, 0.0f};
-        Vector3 up = {0.0f, 1.0f, 0.0f};
-
-        Matrix4 m = Geometry::look_at(eye, center, up);
-
-        glm::mat4 glm_m = glm::lookAt(glm::vec3(eye[0], eye[1], eye[2]), glm::vec3(center[0], center[1], center[2]), glm::vec3(up[0], up[1], up[2]));
-
-        std::cout << m << std::endl;
-        std::cout << glm::to_string(glm_m) << std::endl;
-
-        EXPECT_TRUE(Expect_Matrix_Equal(m, glm::transpose(glm_m)));
-    }
-
-    // test perspective
-    TEST(TestMatrix, Perspective)
-    {
-        Matrix4 view_a = Geometry::perspective(glm::radians(45.0f), 1.0f, 0.1f, 100.0f);
-        glm::mat4 view_b = glm::perspective(glm::radians(45.0f), 1.0f, 0.1f, 100.0f);
-
-        std::cout << view_a << std::endl;
-        std::cout << glm::to_string(view_b) << std::endl;
-
-        EXPECT_TRUE(Expect_Matrix_Equal(view_a, glm::transpose(view_b)));
-    }
-
-    // test orthographic
-    TEST(TestMatrix, Orthographic)
-    {
-        Matrix4 view_a = Geometry::orthographic(-1.0f, 1.0f, -1.0f, 1.0f, 0.1f, 100.0f);
-        glm::mat4 view_b = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, 0.1f, 100.0f);
-
-        std::cout << view_a << std::endl;
-        std::cout << glm::to_string(view_b) << std::endl;
-
-        EXPECT_TRUE(Expect_Matrix_Equal(view_a, glm::transpose(view_b)));
-    }
-
     // test inverse
     TEST(TestMatrix, inverse)
     {
@@ -502,10 +462,10 @@ namespace Core
         auto inv_m1 = m1.inverse();
 
         glm::mat4 glm_m1 = {
-            {1, 2, 3, 4},
-            {0, 1, 2, 3},
-            {0, 0, 1, 2},
-            {0, 0, 0, 1}};
+            1, 2, 3, 4,
+            0, 1, 2, 3,
+            0, 0, 1, 2,
+            0, 0, 0, 1};
 
         glm::mat4 glm_inv_m1 = glm::inverse(glm_m1);
 
@@ -514,35 +474,31 @@ namespace Core
         std::cout << "INVERSE GLM: " << std::endl
                   << glm_inv_m1 << std::endl;
 
-        EXPECT_TRUE(Expect_Matrix_Equal(inv_m1, glm::transpose(glm_inv_m1)));
+        EXPECT_TRUE(Expect_Matrix_Equal(inv_m1, glm_inv_m1));
     }
 
     // test transpose
     TEST(TestMatrix, transpose)
     {
-        float v[][4] = {
-            {1, 2, 3, 4},
-            {0, 1, 2, 3},
-            {0, 0, 1, 2},
-            {0, 0, 0, 1}};
+        float v[16] = {
+            1, 2, 3, 4,
+            0, 1, 2, 3,
+            0, 0, 1, 2,
+            0, 0, 0, 1};
 
-        Matrix4 m;
-        glm::mat4 glm_m;
+        Matrix4 m(v,true);
 
-        for (int i = 0; i < 4; i++)
-        {
-            for (int j = 0; j < 4; j++)
-            {
-                m(i, j) = v[i][j];
-                glm_m[i][j] = v[i][j];
-            }
-        }
+        Matrix4 mt = m.transpose();
+        glm::mat4 glm_m = glm::make_mat4(v);
+
+        auto glmt = glm::transpose(glm_m);
+
         std::cout << "m: " << std::endl
-                  << m << std::endl;
+                  << mt << std::endl;
         std::cout << "glm: " << std::endl
-                  << glm_m << std::endl;
+                  << glmt << std::endl;
 
-        EXPECT_TRUE(Expect_Matrix_Equal(m, glm_m));
+        EXPECT_TRUE(Expect_Matrix_Equal(mt, glmt));
     }
 
     TEST(TestMatrix, normal_matrix)
@@ -552,21 +508,44 @@ namespace Core
         m1 = Geometry::rotate(m1, glm::radians(45.0f), {1, 0, 0});
         m1 = Geometry::scale(m1, {1, 2, 3});
 
-        auto normal_m1 = m1.inverse().transpose();
+        Matrix3 normal_mat = m1.inverse().transpose();
 
         glm::mat4 glm_m1 = glm::mat4(1.0f);
         glm_m1 = glm::translate(glm_m1, glm::vec3(1, 2, 3));
         glm_m1 = glm::rotate(glm_m1, glm::radians(45.0f), glm::vec3(1, 0, 0));
         glm_m1 = glm::scale(glm_m1, glm::vec3(1, 2, 3));
 
-        glm::mat4 glm_normal_m1 = glm::transpose(glm::inverse(glm_m1));
+        glm::mat3 glm_normal_mat = glm::transpose(glm::inverse(glm_m1));
 
         std::cout << "NORMAL: " << std::endl
-                  << m1 << std::endl;
+                  << normal_mat << std::endl;
         std::cout << "NORMAL_GLM: " << std::endl
-                  << glm_m1 << std::endl;
+                  << glm_normal_mat << std::endl;
 
-        EXPECT_TRUE(Expect_Matrix_Equal(normal_m1, glm_normal_m1));
+        EXPECT_TRUE(Expect_Matrix_Equal(normal_mat, glm_normal_mat));
+    }
+
+    TEST(TestMatrix, construction)
+    {
+        glm::vec4 col_0 = {1, 2, 3, 4};
+        glm::vec4 col_1 = {5, 6, 7, 8};
+        glm::vec4 col_2 = {9, 10, 11, 12};
+        glm::vec4 col_3 = {13, 14, 15, 16};
+
+        glm::mat4 m(col_0, col_1, col_2, col_3);
+
+        float *values = glm::value_ptr(m);
+
+        for (int i = 0; i < 16; i++)
+        {
+            if (i % 4 == 0)
+                std::cout << std::endl;
+
+            std::cout << values[i] << " ";
+        }
+
+        std::cout << "m: " << std::endl
+                  << m << std::endl;
     }
 
 } // namespace Core

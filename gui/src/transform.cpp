@@ -3,21 +3,11 @@
 
 namespace Core
 {
-    Transform::Transform(const Core::Vector3 &pos, const EulerAngle& euler_angle,  const Core::Vector3 &scale)
+    Transform::Transform(const Core::Vector3 &pos, const EulerAngle &euler_angle, const Core::Vector3 &scale)
         : m_position(pos),
           m_scale(scale),
-          m_orientation(Quaternion::from_euler_angle(euler_angle))
+          m_orientation(Quaternion::from_euler_angle(euler_angle.yaw, euler_angle.pitch, euler_angle.roll))
     {
-    }
-
-    Transform::Transform(const Core::Vector3 &pos, const Core::Vector3 &front, const Core::Vector3 &up, const Core::Vector3 &scale)
-        : m_position(pos),
-          m_scale(scale)
-    {
-        Vector3 f = Geometry::normalize(front);
-        Vector3 r = Geometry::normalize(Core::Vector3::cross(f, up));
-        Vector3 u = Geometry::normalize(Core::Vector3::cross(r, f));
-        m_orientation = Geometry::quat_look_at(f, u, r);
     }
 
     Transform::Transform(const Transform &transform) : m_position(transform.m_position), m_scale(transform.m_scale), m_orientation(transform.m_orientation)
@@ -42,6 +32,13 @@ namespace Core
         m_scale = transform.m_scale;
         m_orientation = transform.m_orientation;
         return *this;
+    }
+
+    Transform::Transform(const Core::Vector3 &pos, const Core::Vector3 &front, const Core::Vector3 &up, const Core::Vector3 &scale)
+        : m_position(pos),
+          m_scale(scale)
+    {
+        m_orientation = Quaternion::from_basis_vector(front, up, Core::Vector3::cross(front, up));
     }
 
     Transform::~Transform()
@@ -75,7 +72,7 @@ namespace Core
 
     void Transform::look_at(const Core::Vector3 &front, const Core::Vector3 &up)
     {
-        this->m_orientation = Geometry::quat_look_at(-front, up, false);
+        this->m_orientation = Geometry::quat_look_at(front, up);
     }
 
     void Transform::set_scale(Vector3 scale)
@@ -141,12 +138,12 @@ namespace Core
 
     EulerAngle Transform::get_orientation_euler_angle()
     {
-        return m_orientation.get_euler_angle();
+        return m_orientation.to_euler_angle();
     }
 
-    Matrix4 Transform::get_rotation_matrix()
+    Matrix4 Transform::get_orientation_matrix()
     {
-        return m_orientation.get_matrix();
+        return m_orientation.to_matrix4();
     }
 
     Vector3 Transform::get_scale()
@@ -225,5 +222,19 @@ namespace Core
     {
         // return glm::normalize(glm::rotate(m_orientation, WORLD_UP));
         return m_orientation * WORLD_UP;
+    }
+
+    Core::Matrix3 Transform::get_normal_matrix()
+    {
+        return m_orientation.to_matrix4().inverse().transpose();
+    }
+
+    Core::Matrix4 Transform::get_model_matrix()
+    {
+        Core::Matrix4 model = Core::Matrix4::identity();
+        model = Geometry::translate(model, m_position);
+        model = model * m_orientation.to_matrix4();
+        model = Geometry::scale(model, m_scale);
+        return model;
     }
 }; // namespace Core
