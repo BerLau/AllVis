@@ -92,7 +92,6 @@ namespace GUI
         // attributes
     public:
         Rendering::Shader_Program *shader;
-        float color[3] = {0.5f, 0.1f, 0.2f};
         // constructors and deconstructor
         Rendering::Texture_Ptr sample_texture;
         Rendering::Camera_Ptr camera;
@@ -124,22 +123,25 @@ namespace GUI
         // void update();
     };
 
-    class Transform_Widget : public IMG_Widget
+    class Property_Widget : public IMG_Widget
     {
         // attributes
     public:
-        Core::Transform *transform;
         // constructors and deconstructor
     public:
-        Transform_Widget(const std::string &name = "Transform_Widget", float x = 0, float y = 0, float width = 0, float height = 0, bool active = true) : IMG_Widget(name, x, y, width, height, active), transform(nullptr){};
-        ~Transform_Widget(){};
+        Property_Widget(const std::string &name = "Property_Widget", float x = 0, float y = 0, float width = 0, float height = 0, bool active = true):IMG_Widget(name, x, y, width, height, active){};
+        ~Property_Widget(){};
         // methods
     public:
-        void show();
-        void bind_transform(Core::Transform *transform)
-        {
-            this->transform = transform;
-        }
+        void show(){};
+        // void update();
+        void show_model_property(Rendering::Model *model);
+        void show_ogl_model_property(Rendering::OGL_Model *model);
+        void show_light_property(Rendering::Light *light);
+        void show_camera_property(Rendering::Camera *camera);
+    protected:
+        void show_material_property(Rendering::Material *material);
+        void show_transform_property(Core::Transform *transform);
     };
 
     struct UI_Settings
@@ -150,7 +152,7 @@ namespace GUI
         bool show_OpenGL_window = false;
         bool show_Log_window = false;
         bool show_Text_window = true;
-        bool show_Transform_window = false;
+        bool show_Properties_window = false;
         float clear_color[4] = {0.45f, 0.55f, 0.60f, 1.00f};
 
         void save_to_file();

@@ -22,7 +22,7 @@ namespace Rendering
             POINT_LIGHT,
             SPOT_LIGHT
         };
-        struct Property
+        struct Properties
         {
             Light_Type type;
             Core::Vector3 color;
@@ -30,26 +30,26 @@ namespace Rendering
         // attributes
     public:
         Core::Transform_Ptr transform;
-        Property property;
+        Properties properties;
         // constructors and deconstructor
     public:
-        Light(Property property = {POINT_LIGHT, Core::Vector3{1.0, 1.0, 1.0}})
+        Light(Properties properties = {POINT_LIGHT, Core::Vector3{1.0, 1.0, 1.0}})
             : transform(Core::Transform_Ptr(new Core::Transform())),
-              property(property) {}
-        Light(Core::Transform *transform, Property property = {POINT_LIGHT, Core::Vector3{1.0, 1.0, 1.0}})
+              properties(properties) {}
+        Light(Core::Transform *transform, Properties properties = {POINT_LIGHT, Core::Vector3{1.0, 1.0, 1.0}})
             : transform(transform),
-              property(property) {}
+              properties(properties) {}
         virtual ~Light() {}
         // methods
     public:
         Core::Vector3 get_position() const { return transform->get_position(); }
         Core::Vector3 get_direction() const { return transform->get_front(); }
-        Core::Vector3 get_color() const { return property.color; }
-        unsigned int get_type() const { return property.type; }
+        Core::Vector3 get_color() const { return properties.color; }
+        unsigned int get_type() const { return properties.type; }
         void set_position(Core::Vector3 position) { transform->set_position(position); }
         void set_direction(Core::Vector3 direction) { transform->set_front(direction); }
-        void set_color(Core::Vector3 color) { property.color = color; }
-        void set_type(Light_Type type) { property.type = type; }
+        void set_color(Core::Vector3 color) { properties.color = color; }
+        void set_type(Light_Type type) { properties.type = type; }
     };
 
 };

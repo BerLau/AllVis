@@ -280,9 +280,9 @@ namespace Core
     Core::Matrix4 Transform::get_model_matrix()
     {
         Core::Matrix4 model = Core::Matrix4::identity();
-        model = Geometry::translate(model, m_position);
         model = model * m_orientation.to_matrix4();
         model = Geometry::scale(model, m_scale);
+        model = Geometry::translate(model, m_position);
         return model;
     }
 }; // namespace Core

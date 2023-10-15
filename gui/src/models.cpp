@@ -55,6 +55,7 @@ namespace Rendering
         Core::Matrix4 model = get_model_matrix();
         Core::Matrix3 normal_matrix = transform->get_normal_matrix();
         shader->activate();
+        shader->set_material("u_material", *material.get());
         shader->set_mat4("u_model", model.data());
         shader->set_mat3("u_normal_matrix", normal_matrix.data());
         bind_buffer();
@@ -71,6 +72,7 @@ namespace Rendering
 
     void Cube_Model::init()
     {
+        material = Rendering::Material_Ptr(new Rendering::Material(Core::Vector3(1.0f, 1.0f, 1.0f), 0.0f, 0.0f, 1.0f));
         create_mesh();
         create_vao();
         create_vbo();

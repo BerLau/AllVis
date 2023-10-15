@@ -17,15 +17,22 @@ struct Light{
     int type;
 };
 
+struct Material{
+    vec3 albedo;
+    float metallic;
+    float roughness;
+    float ao;
+};
+
 uniform Light u_light;
 uniform vec3 u_view_position;
-uniform vec3 u_color;
+uniform Material u_material;
 
 
 void main()
 {
     // ambient
-    float ambientStrength = 0.15;
+    float ambientStrength = u_material.ao;
     vec3 ambient = ambientStrength * u_light.color;
 
     // diffuse 
@@ -35,12 +42,13 @@ void main()
     vec3 diffuse = diff * u_light.color;
 
     // specular
-    float specularStrength = 0.5;
+    float specularStrength = u_material.metallic;
     vec3 viewDir = normalize(u_view_position - frag_position);
+    vec3 halfwayDir = normalize(lightDir + viewDir);
     vec3 reflectDir = reflect(-lightDir, norm);
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
     vec3 specular = specularStrength * spec * u_light.color;  
 
-    vec3 result = (ambient + diffuse + specular) * u_color;
+    vec3 result = (ambient + diffuse + specular) * u_material.albedo;
     frag_color = vec4(result, 1.0);
 }

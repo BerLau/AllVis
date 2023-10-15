@@ -7,6 +7,7 @@
 #include <memory>
 #include <map>
 #include "light.h"
+#include "material.h"
 
 namespace Rendering
 {
@@ -85,7 +86,10 @@ namespace Rendering
         void set_mat4(const std::string &name, const float *mat) const;
 
         void set_light(const std::string &name, const Rendering::Light &light) const;
-        void set_light(const std::string &name, size_t index, const Rendering::Light_Ptr &light) const;
+        void set_light(const std::string &name, size_t index, const Rendering::Light &light) const;
+
+        void set_material(const std::string &name, const Rendering::Material &material) const;
+        void set_material(const std::string &name, size_t index, const Rendering::Material &material) const;
     };
 
     class Shader_Program_Factory

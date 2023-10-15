@@ -6,13 +6,10 @@
 
 namespace Rendering
 {
-    const float default_pitch = 0.0f;
-    const float default_yaw = -90.0f;
-    const float default_roll = 0.0f;
-    const float default_fov = 60.0f;
-    const float default_mouse_sensitivity_unit = 0.001f;
-    const float default_movement_speed_unit = 0.001f;
-    const float default_focus_distance = 2.0f;
+    const float default_fov = 45.0f;
+    const float default_focus_distance = 1.0f;
+    const float default_near = 0.1f;
+    const float default_far = 100.0f;
 
     class Camera;
 
@@ -33,30 +30,36 @@ namespace Rendering
 
     class Camera
     {
+    public:
+        struct Properties
+        {
+            float fov = default_fov;
+            float near = default_near;
+            float far = default_far;
+            float focus_distance = default_focus_distance;
+        };
+
         // attributes
     public:
-        float fov;
         Core::Transform_Ptr transform;
-        float focus_distance;
+        Properties properties;
 
         // constructors and destructor
     public:
         Camera();
         Camera(const Core::Vector3 &position);
-        Camera(const Camera &camera) : fov(camera.fov), transform(Core::Transform_Ptr(new Core::Transform(*camera.transform))), focus_distance(camera.focus_distance) { init(); }
+        Camera(const Camera &camera) :transform(Core::Transform_Ptr(new Core::Transform(*camera.transform))),properties(Properties()) { init(); }
         Camera &operator=(const Camera &camera)
         {
-            fov = camera.fov;
             transform = Core::Transform_Ptr(new Core::Transform(*camera.transform));
-            focus_distance = camera.focus_distance;
+            properties = camera.properties;
             return *this;
         }
-        Camera(Camera &&camera) : fov(camera.fov), transform(std::move(camera.transform)), focus_distance(camera.focus_distance) { init(); }
+        Camera(Camera &&camera) : transform(std::move(camera.transform)),properties(camera.properties){ init(); }
         Camera &operator=(Camera &&camera)
         {
-            fov = camera.fov;
             transform = std::move(camera.transform);
-            focus_distance = camera.focus_distance;
+            properties = camera.properties;
             return *this;
         }
         ~Camera();

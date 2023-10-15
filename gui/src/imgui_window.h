@@ -22,7 +22,7 @@ namespace GUI
         IMGWidget_Ptr log_widget;
         IMGWidget_Ptr settings_widget;
         IMGWidget_Ptr text_widget;
-        IMGWidget_Ptr transform_widget;
+        IMGWidget_Ptr properties_Widget;
 
     private:
         GLFWwindow *handle;

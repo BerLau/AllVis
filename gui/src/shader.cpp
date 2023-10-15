@@ -171,12 +171,89 @@ namespace Rendering
         set_int(name + ".type", light.get_type());
     }
 
-    void Shader_Program::set_light(const std::string &name, size_t index, const Rendering::Light_Ptr &light) const
+    void Shader_Program::set_light(const std::string &name, size_t index, const Rendering::Light &light) const
     {
-        set_vec3(name + "[" + std::to_string(index) + "].position", light->get_position().data());
-        set_vec3(name + "[" + std::to_string(index) + "].direction", light->get_direction().data());
-        set_vec3(name + "[" + std::to_string(index) + "].color", light->get_color().data());
-        set_int(name + "[" + std::to_string(index) + "].type", light->get_type());
+        set_vec3(name + "[" + std::to_string(index) + "].position", light.get_position().data());
+        set_vec3(name + "[" + std::to_string(index) + "].direction", light.get_direction().data());
+        set_vec3(name + "[" + std::to_string(index) + "].color", light.get_color().data());
+        set_int(name + "[" + std::to_string(index) + "].type", light.get_type());
+    }
+
+    void Shader_Program::set_material(const std::string &name, const Rendering::Material &material) const
+    {
+        set_vec3(name + ".albedo", material.get_albedo().data());
+        set_float(name + ".metallic", material.get_metallic());
+        set_float(name + ".roughness", material.get_roughness());
+        set_float(name + ".ao", material.get_ao());
+        set_vec3(name + ".emissive", material.get_emissive().data());
+
+        if (material.get_albedo_map() != nullptr)
+        {
+            set_int(name + ".albedo_map", 0);
+        }
+        if (material.get_metallic_map() != nullptr)
+        {
+            set_int(name + ".metallic_map", 1);
+        }
+        if (material.get_roughness_map() != nullptr)
+        {
+            set_int(name + ".roughness_map", 2);
+        }
+        if (material.get_ao_map() != nullptr)
+        {
+            set_int(name + ".ao_map", 3);
+        }
+        if (material.get_emissive_map() != nullptr)
+        {
+            set_int(name + ".emissive_map", 4);
+        }
+        if (material.get_normal_map() != nullptr)
+        {
+            set_int(name + ".normal_map", 5);
+        }
+        if (material.get_height_map() != nullptr)
+        {
+            set_int(name + ".height_map", 6);
+        }
+    }
+
+    void Shader_Program::set_material(const std::string &name, size_t index, const Rendering::Material &material) const
+    {
+        set_vec3(name + "[" + std::to_string(index) + "].albedo", material.get_albedo().data());
+        set_float(name + "[" + std::to_string(index) + "].metallic", material.get_metallic());
+        set_float(name + "[" + std::to_string(index) + "].roughness", material.get_roughness());
+        set_float(name + "[" + std::to_string(index) + "].ao", material.get_ao());
+        set_vec3(name + "[" + std::to_string(index) + "].emissive", material.get_emissive().data());
+
+        if (material.get_albedo_map() != nullptr)
+        {
+            set_int(name + "[" + std::to_string(index) + "].albedo_map", 0);
+        }
+        if (material.get_metallic_map() != nullptr)
+        {
+            set_int(name + "[" + std::to_string(index) + "].metallic_map", 1);
+        }
+        if (material.get_roughness_map() != nullptr)
+        {
+            set_int(name + "[" + std::to_string(index) + "].roughness_map", 2);
+        }
+        if (material.get_ao_map() != nullptr)
+        {
+            set_int(name + "[" + std::to_string(index) + "].ao_map", 3);
+        }
+        if (material.get_emissive_map() != nullptr)
+        {
+            set_int(name + "[" + std::to_string(index) + "].emissive_map", 4);
+        }
+        if (material.get_normal_map() != nullptr)
+        {
+            set_int(name + "[" + std::to_string(index) + "].normal_map", 5);
+        }
+        if (material.get_height_map() != nullptr)
+        {
+            set_int(name + "[" + std::to_string(index) + "].height_map", 6);
+        }
+        
     }
 
     Shader *Shader_Program_Factory::find_shader(const std::string &name)

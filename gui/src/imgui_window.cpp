@@ -40,7 +40,6 @@ namespace GUI
         Rendering::shader_program_factory.add_shader_from_file("./shaders/text.frag", GL_FRAGMENT_SHADER, "text_fragment_shader");
         Rendering::shader_program_factory.add_shader_program("text_shader", "text_vertex_shader", "text_fragment_shader");
 
-
         auto w = std::unique_ptr<Sample_OGL_Widget>(new Sample_OGL_Widget("OpenGL Window", 0, 0, 800, 600, true));
         w->background_color[0] = 0.0f;
         w->background_color[1] = 0.3f;
@@ -66,8 +65,6 @@ namespace GUI
         text_widget->background_color[1] = 1.0;
         text_widget->background_color[2] = 1.0;
         dynamic_cast<UI_Settings_Widget *>(this->settings_widget.get())->bind_settings(&this->settings);
-
-        this->transform_widget = std::unique_ptr<Transform_Widget>(new Transform_Widget("Transform", 0, 0, 800, 600, true));
     }
 
     void Window::show(bool maximized)
@@ -89,15 +86,31 @@ namespace GUI
             settings_widget->show();
             if (settings.show_OpenGL_window)
             {
-                ogl_widget_test->show();
-                if (settings.show_Transform_window)
+                auto cube_widget = dynamic_cast<Sample_OGL_Widget *>(this->ogl_widget_test.get());
+                cube_widget->show();
+                if (settings.show_Properties_window)
                 {
-                    Sample_OGL_Widget *ogl_widget_ = dynamic_cast<Sample_OGL_Widget *>(ogl_widget_test.get());
-                    Rendering::Cube_Model *cube_ = dynamic_cast<Rendering::Cube_Model *>(ogl_widget_->cube_model.get());
-                    Core::Transform *transform = cube_->transform.get();
-                    auto *transform_widget_ = dynamic_cast<Transform_Widget *>(this->transform_widget.get());
-                    transform_widget_->bind_transform(transform);
-                    transform_widget_->show();
+                    const int model_idx = 0;
+                    const int light_idx = 1;
+                    const int camera_idx = 2;
+                    ImGui::Begin("Properties");
+                    ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.5f);
+                    static int selected = 0;
+                    ImGui::Combo("Object Type", &selected, "Model\0Light\0Camera\0");
+                    auto props_widget = dynamic_cast<Property_Widget *>(this->properties_Widget.get());
+                    if (selected == model_idx)
+                    {
+                        props_widget->show_ogl_model_property(cube_widget->cube_model.get());
+                    }
+                    else if (selected == light_idx)
+                    {
+                        props_widget->show_light_property(cube_widget->light.get());
+                    }
+                    else if (selected == camera_idx)
+                    {
+                        props_widget->show_camera_property(cube_widget->camera.get());
+                    }
+                    ImGui::End();
                 }
             }
 
@@ -136,6 +149,7 @@ namespace GUI
 
                 text_widget->show();
             }
+
             if (settings.show_Log_window)
             {
                 log_widget->show();

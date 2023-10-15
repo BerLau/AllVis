@@ -49,19 +49,22 @@ namespace Rendering
     class OGL_Model : public Model
     {
         // attributes
-    public:
     protected:
         GLuint vao;
         GLuint vbo;
         GLuint ebo;
         Shader_Program *shader;
+
+    public:
+        Rendering::Material_Ptr material;
+
         // constructors and deconstructor
     public:
         OGL_Model() : Model(), vao(0), vbo(0), ebo(0)
         {
             init();
         }
-        OGL_Model(Mesh *mesh, Core::Transform *transform) : Model(mesh, transform), vao(0), vbo(0), ebo(0) {}
+        OGL_Model(Mesh *mesh, Core::Transform *transform, Rendering::Material *material) : Model(mesh, transform), vao(0), vbo(0), ebo(0), material(material) {}
         virtual ~OGL_Model() { destroy(); }
         // methods
     public:

@@ -4,13 +4,15 @@
 namespace Rendering
 {
     Camera::Camera()
-        : fov(default_fov), transform(Core::Transform_Ptr(new Core::Transform())), focus_distance(default_focus_distance)
+        : transform(Core::Transform_Ptr(new Core::Transform())),
+          properties(Properties())
     {
         init();
     }
 
     Camera::Camera(const Core::Vector3 &position)
-        : fov(default_fov), transform(Core::Transform_Ptr(new Core::Transform(position))), focus_distance(default_focus_distance)
+        : transform(Core::Transform_Ptr(new Core::Transform(position))),
+          properties(Properties())
     {
     }
 
@@ -59,7 +61,7 @@ namespace Rendering
         Core::Vector3 pos = transform->get_position();
         Core::Vector3 front = transform->get_front();
         Core::Vector3 up = transform->get_up();
-        Core::Vector3 center = pos + front * focus_distance;
+        Core::Vector3 center = pos + front * properties.focus_distance;
         return Geometry::look_at(pos, center, up);
     }
 

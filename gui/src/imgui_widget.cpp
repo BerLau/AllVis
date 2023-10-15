@@ -130,7 +130,8 @@ namespace GUI
         // set light
         light = Rendering::Light_Ptr(new Rendering::Light());
         light->set_position(Core::Vector3(2.0f, 3.0f, 3.0f));
-        light->set_color(Core::Vector3(0.0f, 1.0f, 1.0f));
+        // light->set_direction(Core::Vector3(-1.0f, -1.0f, -1.0f));
+        light->set_color(Core::Vector3(0.75f, 0.75f, 0.75f));
         light->set_type(Rendering::Light::POINT_LIGHT);
     }
 
@@ -168,7 +169,6 @@ namespace GUI
         shader->activate();
         shader->set_mat4("u_view", view.data());
         shader->set_mat4("u_projection", projection.data());
-        shader->set_vec3("u_color", color);
         shader->set_light("u_light", *light.get());
         shader->set_vec3("u_view_position", Vector3(0.0f, 2.0f, 4.0f).data());
 
@@ -228,7 +228,7 @@ namespace GUI
         file << "show_OpenGL_window " << show_OpenGL_window << std::endl;
         file << "show_Log_window " << show_Log_window << std::endl;
         file << "show_Text_window " << show_Text_window << std::endl;
-        file << "show_Transform_window " << show_Transform_window << std::endl;
+        file << "show_Properties_window " << show_Properties_window << std::endl;
         file << "clear_color " << clear_color[0] << " " << clear_color[1] << " " << clear_color[2] << " " << clear_color[3] << std::endl;
         // close file
         file.close();
@@ -273,9 +273,9 @@ namespace GUI
             {
                 ss >> show_Text_window;
             }
-            else if (key == "show_Transform_window")
+            else if (key == "show_Properties_window")
             {
-                ss >> show_Transform_window;
+                ss >> show_Properties_window;
             }
             else if (key == "clear_color")
             {
@@ -293,7 +293,7 @@ namespace GUI
                 ImGui::Checkbox("Show OpenGL Window", &this->settings->show_OpenGL_window);
                 ImGui::Checkbox("Show Log Window", &this->settings->show_Log_window);
                 ImGui::Checkbox("Show Text Window", &this->settings->show_Text_window);
-                ImGui::Checkbox("Show Transform Window", &this->settings->show_Transform_window);
+                ImGui::Checkbox("Show Properties Window", &this->settings->show_Properties_window);
                 ImGui::ColorEdit3("Clear Color", (float *)&this->settings->clear_color);
                 if (ImGui::Button("Save Layout"))
                 {
@@ -419,10 +419,77 @@ namespace GUI
         return height;
     }
 
-    void Transform_Widget::show()
+    void Property_Widget::show_model_property(Rendering::Model *model)
+    {
+        if (model != nullptr)
+        {
+            ImGui::Text("Model");
+            show_transform_property(model->transform.get());
+        }
+    }
+
+    void Property_Widget::show_ogl_model_property(Rendering::OGL_Model *model)
     {
 
-        ImGui::Begin(name.c_str(), &active);
+        if (model != nullptr)
+        {
+            ImGui::Text("Model");
+            show_transform_property(model->transform.get());
+            show_material_property(model->material.get());
+        }
+    }
+
+    void Property_Widget::show_light_property(Rendering::Light *light)
+    {
+        if (light != nullptr)
+        {
+            auto& light_prop = light->properties;
+            ImGui::Text("Light");
+            ImGui::Text("Type");
+            ImGui::SameLine();
+            ImGui::Text("Color");
+            ImGui::ColorEdit3("##color", light_prop.color.data());
+            show_transform_property(light->transform.get());
+        }
+    }
+
+    void Property_Widget::show_camera_property(Rendering::Camera *camera)
+    {
+        if (camera != nullptr)
+        {
+            ImGui::Text("Camera");
+            show_transform_property(camera->transform.get());
+            auto& camera_props = camera->properties;
+            ImGui::Text("FOV");
+            ImGui::DragFloat("##fov", &camera_props.fov, 0.1f, 0.1f, 180.0f);
+            ImGui::Text("Near");
+            ImGui::DragFloat("##near", &camera_props.near, 0.1f, 0.1f, 100.0f);
+            ImGui::Text("Far");
+            ImGui::DragFloat("##far", &camera_props.far, 0.1f, 0.1f, 100.0f);
+            ImGui::Text("Focus Distance");
+            ImGui::DragFloat("##focus_distance", &camera_props.focus_distance, 0.1f, 0.1f, 100.0f);
+        }
+    }
+
+    void Property_Widget::show_material_property(Rendering::Material *material)
+    {
+        if (material != nullptr)
+        {
+            ImGui::Text("Albedo");
+            ImGui::ColorEdit3("##albedo", material->albedo.data());
+            ImGui::Text("Metallic");
+            ImGui::DragFloat("##metallic", &material->metallic, 0.001f, 0.0f, 1.0f);
+            ImGui::Text("Roughness");
+            ImGui::DragFloat("##roughness", &material->roughness, 0.001f, 0.0f, 1.0f);
+            ImGui::Text("AO");
+            ImGui::DragFloat("##ao", &material->ao, 0.001f, 0.0f, 1.0f);
+            ImGui::Text("Emissive");
+            ImGui::ColorEdit3("##emissive", material->emissive.data());
+        }
+    }
+
+    void Property_Widget::show_transform_property(Core::Transform *transform)
+    {
         if (transform != nullptr)
         {
             auto pos = transform->get_position();
@@ -449,12 +516,9 @@ namespace GUI
                 ImGui::Text("Scale");
                 ImGui::DragFloat3("##scale", scale.data(), 0.01f, 0.01f, 100.0f);
             }
-            ImGui::SameLine();
             ImGui::Checkbox("Lock Proportion", &lock_proportion);
             transform->set_scale(scale);
         }
-
-        ImGui::End();
     }
 
 }; // namespace GUI
