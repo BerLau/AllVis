@@ -127,7 +127,11 @@ namespace GUI
     void Sample_OGL_Widget::init()
     {
         cube_model = Rendering::OGL_Model_U_Ptr(new Rendering::Cube_Model());
-        cube_model->transform->set_position(Core::Vector3(0.0f, 0.0f, 0.0f));
+        // set light
+        light = Rendering::Light_Ptr(new Rendering::Light());
+        light->set_position(Core::Vector3(2.0f, 3.0f, 3.0f));
+        light->set_color(Core::Vector3(0.0f, 1.0f, 1.0f));
+        light->set_type(Rendering::Light::POINT_LIGHT);
     }
 
     void Sample_OGL_Widget::destroy()
@@ -165,8 +169,7 @@ namespace GUI
         shader->set_mat4("u_view", view.data());
         shader->set_mat4("u_projection", projection.data());
         shader->set_vec3("u_color", color);
-        shader->set_vec3("u_light_position", Core::Vector3(2.0f, 3.0f, 3.0f).data());
-        shader->set_vec3("u_light_color", Core::Vector3(1.0f, 1.0f, 1.0f).data());
+        shader->set_light("u_light", *light.get());
         shader->set_vec3("u_view_position", Vector3(0.0f, 2.0f, 4.0f).data());
 
         cube_model->bind_shader(shader);

@@ -7,10 +7,9 @@
 namespace Core
 {
     Matrix::Matrix(size_t rows, size_t cols)
+        : own_data(true), _rows(rows), _cols(cols)
     {
-        this->own_data = true;
-        this->_rows = rows;
-        this->_cols = cols;
+
         if (rows > 0 && cols > 0)
         {
             values = new float[rows * cols];
@@ -21,10 +20,8 @@ namespace Core
     }
 
     Matrix::Matrix(const Matrix &other)
+        : own_data(true), _rows(other._rows), _cols(other._cols)
     {
-        own_data = true;
-        _rows = other._rows;
-        _cols = other._cols;
         values = new float[size()];
         for (size_t i = 0; i < size(); ++i)
         {
@@ -50,11 +47,8 @@ namespace Core
     }
 
     Matrix::Matrix(Matrix &&other)
+        : own_data(other.own_data), _rows(other._rows), _cols(other._cols), values(other.values)
     {
-        own_data = other.own_data;
-        _rows = other._rows;
-        _cols = other._cols;
-        values = other.values;
         other.values = nullptr;
     }
 
@@ -78,10 +72,8 @@ namespace Core
     }
 
     Matrix::Matrix(float *values, size_t rows, size_t cols, bool duplicate)
+        : own_data(duplicate), _rows(rows), _cols(cols)
     {
-        own_data = duplicate;
-        _rows = rows;
-        _cols = cols;
         if (duplicate)
         {
             this->values = new float[size()];
@@ -97,9 +89,8 @@ namespace Core
     }
 
     Matrix::Matrix(const Vector &other)
+        : own_data(true), _rows(other._rows), _cols(other._cols)
     {
-        _rows = other._rows;
-        _cols = other._cols;
         values = new float[size()];
         for (size_t i = 0; i < size(); ++i)
         {
@@ -110,6 +101,7 @@ namespace Core
     Matrix &Matrix::operator=(const Vector &other)
     {
         delete[] values;
+        own_data = true;
         _rows = other._rows;
         _cols = other._cols;
         values = new float[size()];
@@ -121,16 +113,15 @@ namespace Core
     }
 
     Matrix::Matrix(Vector &&other)
+        : own_data(other.own_data), _rows(other._rows), _cols(other._cols), values(other.values)
     {
-        _rows = other._rows;
-        _cols = other._cols;
-        values = other.values;
         other.values = nullptr;
     }
 
     Matrix &Matrix::operator=(Vector &&other)
     {
         delete[] values;
+        own_data = other.own_data;
         _rows = other._rows;
         _cols = other._cols;
         values = other.values;

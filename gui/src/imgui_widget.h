@@ -97,6 +97,7 @@ namespace GUI
         Rendering::Texture_Ptr sample_texture;
         Rendering::Camera_Ptr camera;
         Rendering::OGL_Model_U_Ptr cube_model;
+        Rendering::Light_Ptr light;
 
     public:
         Sample_OGL_Widget(const std::string &name = "OpenGL IMG_Widget", float x = 0, float y = 0, float width = 0, float height = 0, bool active = true);

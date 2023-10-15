@@ -79,6 +79,53 @@ namespace Core
         this->m_orientation = Geometry::quat_look_at(front, up);
     }
 
+    void Transform::look_at(const Core::Vector3 &target)
+    {
+        this->m_orientation = Geometry::quat_look_at(target - m_position, get_up());
+    }
+
+    void Transform::set_front(Core::Vector3 front)
+    {
+        Vector3 front_ = Geometry::normalize(front);
+        Vector3 up_ = Geometry::normalize(get_up());
+        Vector3 right = Vector3::cross(front_, up_);
+        up_ = Vector3::cross(right, front_);
+        this->m_orientation = Quaternion::from_basis_vector(front_, up_, right);
+    }
+
+    void Transform::set_front(float x, float y, float z)
+    {
+        set_front(Vector3(x, y, z));
+    }
+
+    void Transform::set_up(Core::Vector3 up)
+    {
+        Vector3 up_ = Geometry::normalize(up);
+        Vector3 front_ = Geometry::normalize(get_front());
+        Vector3 right = Vector3::cross(front_, up_);
+        front_ = Vector3::cross(up_, right);
+        this->m_orientation = Quaternion::from_basis_vector(front_, up_, right);
+    }
+
+    void Transform::set_up(float x, float y, float z)
+    {
+        set_up(Vector3(x, y, z));
+    }
+
+    void Transform::set_right(Core::Vector3 right)
+    {
+        Vector3 right_ = Geometry::normalize(right);
+        Vector3 front_ = Geometry::normalize(get_front());
+        Vector3 up_ = Vector3::cross(right_, front_);
+        front_ = Vector3::cross(up_, right_);
+        this->m_orientation = Quaternion::from_basis_vector(front_, up_, right_);
+    }
+
+    void Transform::set_right(float x, float y, float z)
+    {
+        set_right(Vector3(x, y, z));
+    }
+
     void Transform::set_scale(Vector3 scale)
     {
         this->m_scale = scale;

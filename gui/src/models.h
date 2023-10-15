@@ -61,7 +61,7 @@ namespace Rendering
         {
             init();
         }
-        OGL_Model(Mesh *mesh, Core::Transform *transform) : Model(), vao(0), vbo(0), ebo(0) {}
+        OGL_Model(Mesh *mesh, Core::Transform *transform) : Model(mesh, transform), vao(0), vbo(0), ebo(0) {}
         virtual ~OGL_Model() { destroy(); }
         // methods
     public:

@@ -163,6 +163,22 @@ namespace Rendering
         glUniformMatrix4fv(glGetUniformLocation(program_id, name.c_str()), 1, GL_FALSE, mat);
     }
 
+    void Shader_Program::set_light(const std::string &name, const Rendering::Light &light) const
+    {
+        set_vec3(name + ".position", light.get_position().data());
+        set_vec3(name + ".direction", light.get_direction().data());
+        set_vec3(name + ".color", light.get_color().data());
+        set_int(name + ".type", light.get_type());
+    }
+
+    void Shader_Program::set_light(const std::string &name, size_t index, const Rendering::Light_Ptr &light) const
+    {
+        set_vec3(name + "[" + std::to_string(index) + "].position", light->get_position().data());
+        set_vec3(name + "[" + std::to_string(index) + "].direction", light->get_direction().data());
+        set_vec3(name + "[" + std::to_string(index) + "].color", light->get_color().data());
+        set_int(name + "[" + std::to_string(index) + "].type", light->get_type());
+    }
+
     Shader *Shader_Program_Factory::find_shader(const std::string &name)
     {
         if (shaders.find(name) != shaders.end())
@@ -240,7 +256,7 @@ namespace Rendering
         return nullptr;
     }
 
-    Shader_Program * Shader_Program_Factory::add_shader_program(const std::string &name, Shader *vertex_shader, Shader *fragment_shader, Shader *geometry_shader)
+    Shader_Program *Shader_Program_Factory::add_shader_program(const std::string &name, Shader *vertex_shader, Shader *fragment_shader, Shader *geometry_shader)
     {
         Shader_Program_Ptr shader_program = Shader_Program_Ptr(new Shader_Program(name));
         if (shader_program->link(vertex_shader, fragment_shader, geometry_shader) == 0)

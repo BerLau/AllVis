@@ -35,6 +35,16 @@ namespace Core
         void set_orientation(const Core::EulerAngle &euler_angle);
         void set_orientation(const Core::Vector3 &front, const Core::Vector3 &up);
         void look_at(const Core::Vector3 &front, const Core::Vector3 &up);
+        void look_at(const Core::Vector3 &target);
+
+        void set_front(Core::Vector3 front);
+        void set_front(float x, float y, float z);
+
+        void set_up(Core::Vector3 up);
+        void set_up(float x, float y, float z);
+
+        void set_right(Core::Vector3 right);
+        void set_right(float x, float y, float z);
 
         void set_scale(Core::Vector3 scale);
         void set_scale(float x, float y, float z);
