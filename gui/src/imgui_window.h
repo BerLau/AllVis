@@ -21,7 +21,7 @@ namespace GUI
         IMGWidget_Ptr ogl_widget_test;
         IMGWidget_Ptr log_widget;
         IMGWidget_Ptr settings_widget;
-        IMGWidget_Ptr text_widget;
+        // IMGWidget_Ptr text_widget;
         IMGWidget_Ptr properties_Widget;
 
     private:

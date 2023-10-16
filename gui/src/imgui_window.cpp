@@ -44,7 +44,7 @@ namespace GUI
         w->background_color[0] = 0.0f;
         w->background_color[1] = 0.3f;
         w->background_color[2] = 0.7f;
-        w->set_shader(Rendering::shader_program_factory.find_shader_program("basic_shader"));
+        w->scene->set_shader(Rendering::shader_program_factory.find_shader_program("basic_shader"));
         Rendering::Texture *tex = Rendering::load_texture("./textures/box.jpeg");
         // Rendering::sampler_manager.add_sampler("default", new Rendering::Sampler());
         Rendering::Sampler_Manager::instance().add_sampler("basic_sampler", new Rendering::Sampler());
@@ -54,16 +54,15 @@ namespace GUI
         {
             throw std::runtime_error("Failed to load texture");
         }
-        w->sample_texture = Rendering::Texture_Ptr(tex);
         this->ogl_widget_test = std::move(w);
         this->log_widget = std::unique_ptr<Log_Widget>(new Log_Widget("Log", 0, 0, 800, 600, true));
         this->settings_widget = std::unique_ptr<UI_Settings_Widget>(new UI_Settings_Widget("Settings", 0, 0, 800, 600, true));
 
-        this->text_widget = std::unique_ptr<Text_Widget>(new Text_Widget("Text", 0, 0, 800, 600, true));
-        dynamic_cast<Text_Widget *>(this->text_widget.get())->text = "Hello World";
-        text_widget->background_color[0] = 1.0;
-        text_widget->background_color[1] = 1.0;
-        text_widget->background_color[2] = 1.0;
+        // this->text_widget = std::unique_ptr<Text_Widget>(new Text_Widget("Text", 0, 0, 800, 600, true));
+        // dynamic_cast<Text_Widget *>(this->text_widget.get())->text = "Hello World";
+        // text_widget->background_color[0] = 1.0;
+        // text_widget->background_color[1] = 1.0;
+        // text_widget->background_color[2] = 1.0;
         dynamic_cast<UI_Settings_Widget *>(this->settings_widget.get())->bind_settings(&this->settings);
     }
 
@@ -87,6 +86,7 @@ namespace GUI
             if (settings.show_OpenGL_window)
             {
                 auto cube_widget = dynamic_cast<Sample_OGL_Widget *>(this->ogl_widget_test.get());
+                auto scene = cube_widget->scene.get();
                 cube_widget->show();
                 if (settings.show_Properties_window)
                 {
@@ -100,15 +100,15 @@ namespace GUI
                     auto props_widget = dynamic_cast<Property_Widget *>(this->properties_Widget.get());
                     if (selected == model_idx)
                     {
-                        props_widget->show_ogl_model_property(cube_widget->cube_model.get());
+                        props_widget->show_ogl_model_property(scene->cube_model.get());
                     }
                     else if (selected == light_idx)
                     {
-                        props_widget->show_light_property(cube_widget->light.get());
+                        props_widget->show_light_property(scene->light.get());
                     }
                     else if (selected == camera_idx)
                     {
-                        props_widget->show_camera_property(cube_widget->camera.get());
+                        props_widget->show_camera_property(scene->camera.get());
                     }
                     ImGui::End();
                 }
@@ -144,10 +144,10 @@ namespace GUI
                     // strftime(buffer, 80, "%H:%M:%S", time_info);
 
                     // update the text
-                    dynamic_cast<Text_Widget *>(this->text_widget.get())->text = std::to_string(random_number);
+                    // dynamic_cast<Text_Widget *>(this->text_widget.get())->text = std::to_string(random_number);
                 }
 
-                text_widget->show();
+                // text_widget->show();
             }
 
             if (settings.show_Log_window)

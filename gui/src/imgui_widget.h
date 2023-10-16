@@ -13,10 +13,9 @@
 #include "ui_log.h"
 #include <map>
 #include "shader.h"
-#include "texture.h"
 #include "text_render.h"
-#include "camera.h"
-#include "models.h"
+
+#include "scene.h"
 
 #include <freetype2/ft2build.h>
 #include FT_FREETYPE_H
@@ -62,7 +61,6 @@ namespace GUI
     {
         // attributes
     public:
-        GLuint fbo, fb_tex;
         // constructors and deconstructor
     public:
         OGL_Widget(const std::string &name = "OGL_Widget", float x = 0, float y = 0, float width = 800, float height = 600, bool active = true);
@@ -73,12 +71,7 @@ namespace GUI
         virtual void destroy();
         virtual void show() = 0;
         virtual void resize(float width, float height);
-        void create_framebuffer();
-        void resize_framebuffer();
-        void bind_framebuffer();
-        void unbind_framebuffer();
-        void release_framebuffer();
-        void show_framebuffer();
+        void show_framebuffer(GLuint tex, float x, float y, float width, float height);
     };
 
     class Sample_OGL_Widget : public OGL_Widget
@@ -91,19 +84,12 @@ namespace GUI
         virtual void destroy();
         // attributes
     public:
-        Rendering::Shader_Program *shader;
-        // constructors and deconstructor
-        Rendering::Texture_Ptr sample_texture;
-        Rendering::Camera_Ptr camera;
-        Rendering::OGL_Model_U_Ptr cube_model;
-        Rendering::Light_Ptr light;
-
+        Rendering::OGL_Scene_3D_Ptr scene;
     public:
         Sample_OGL_Widget(const std::string &name = "OpenGL IMG_Widget", float x = 0, float y = 0, float width = 0, float height = 0, bool active = true);
         ~Sample_OGL_Widget();
         // methods
     public:
-        void set_shader(Rendering::Shader_Program *shader);
         void render();
     };
 
@@ -129,7 +115,7 @@ namespace GUI
     public:
         // constructors and deconstructor
     public:
-        Property_Widget(const std::string &name = "Property_Widget", float x = 0, float y = 0, float width = 0, float height = 0, bool active = true):IMG_Widget(name, x, y, width, height, active){};
+        Property_Widget(const std::string &name = "Property_Widget", float x = 0, float y = 0, float width = 0, float height = 0, bool active = true) : IMG_Widget(name, x, y, width, height, active){};
         ~Property_Widget(){};
         // methods
     public:
@@ -139,6 +125,7 @@ namespace GUI
         void show_ogl_model_property(Rendering::OGL_Model *model);
         void show_light_property(Rendering::Light *light);
         void show_camera_property(Rendering::Camera *camera);
+
     protected:
         void show_material_property(Rendering::Material *material);
         void show_transform_property(Core::Transform *transform);
@@ -178,28 +165,28 @@ namespace GUI
         void save_layout(const std::string &filename);
     };
 
-    class Text_Widget : public OGL_Widget
-    {
-        // attributes
-    public:
-        std::string text;
-        float color[3] = {0.3f, 0.0f, 0.7f};
-        Rendering::Text_Render text_render;
-        // constructors and deconstructor
-    public:
-        Text_Widget(const std::string &name = "Text_Widget", float x = 0, float y = 0, float width = 0, float height = 0, bool active = true);
-        ~Text_Widget();
-        // methods
-    public:
-        void init();
-        void destroy();
-        void show();
-        void render();
+    // class Text_Widget : public OGL_Widget
+    // {
+    //     // attributes
+    // public:
+    //     std::string text;
+    //     float color[3] = {0.3f, 0.0f, 0.7f};
+    //     Rendering::Text_Render text_render;
+    //     // constructors and deconstructor
+    // public:
+    //     Text_Widget(const std::string &name = "Text_Widget", float x = 0, float y = 0, float width = 0, float height = 0, bool active = true);
+    //     ~Text_Widget();
+    //     // methods
+    // public:
+    //     void init();
+    //     void destroy();
+    //     void show();
+    //     void render();
 
-    private:
-        float get_text_width(const std::string &text, float scale);
-        float get_text_height(const std::string &text, float scale);
-    };
+    // private:
+    //     float get_text_width(const std::string &text, float scale);
+    //     float get_text_height(const std::string &text, float scale);
+    // };
 
 };
 #endif

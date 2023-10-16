@@ -19,14 +19,25 @@ namespace Rendering
 
     class Scene
     {
+    public:
+        class Properties
+        {
+        public:
+            float width = 0.f;
+            float height = 0.f;
+            float aspect = 0.f;
+            virtual bool is_accessible() { return true; }
+        };
+        using Properties_Ptr = std::unique_ptr<Properties>;
         // attributes
     public:
-        float width;
-        float height;
-        float aspect;
+        Properties_Ptr properties;
         // constructors and deconstructor
     public:
-        Scene(float width, float height) : width(width), height(height), aspect(width / height) {}
+        Scene(float width, float height, Properties *properties) : properties(properties)
+        {
+            this->resize(width, height);
+        }
         virtual ~Scene() {}
         // methods
     public:
@@ -35,60 +46,128 @@ namespace Rendering
         virtual void destroy() = 0;
         virtual void render() = 0;
 
-        void resize(float width, float height)
+        virtual void resize(float width, float height)
         {
-            this->width = width;
-            this->height = height;
-            this->aspect = width / height;
+            properties->width = width;
+            properties->height = height;
+            properties->aspect = width / height;
         }
+        virtual Properties *get_properties() { return properties.get(); }
     };
+
+    class OGL_Scene;
+    using OGL_Scene_U_Ptr = std::unique_ptr<OGL_Scene>;
+    using OGL_Scene_S_Ptr = std::shared_ptr<OGL_Scene>;
+    using OGL_Scene_W_Ptr = std::weak_ptr<OGL_Scene>;
+    using OGL_Scene_Ptr = OGL_Scene_U_Ptr;
 
     class OGL_Scene : public Scene
     {
+        // structures
+    public:
+        class Properties : public Scene::Properties
+        {
+        public:
+            float near = 0.1f;
+            float far = 100.f;
+            float fov = 45.f;
+        };
         // attributes
     public:
-        float near;
-        float far;
+        GLuint fbo, fb_tex;
         std::vector<OGL_Model_Ptr> models;
         // constructors and deconstructor
     public:
-        OGL_Scene(float width, float height, float near = 0.1f, float far = 100.f) : Scene(height, width) {}
-        virtual ~OGL_Scene() {}
+        // cast properties to OGL_Scene::Properties
+        OGL_Scene(float width, float height, Properties *properties)
+            : Scene(height, width, properties)
+        {
+            init();
+        }
+        virtual ~OGL_Scene()
+        {
+            destroy();
+        }
         // methods
     public:
-        virtual void init() override = 0;
+        virtual void init()
+        {
+            create_framebuffer();
+        }
         virtual void update() override = 0;
-        virtual void destroy() override = 0;
+        virtual void destroy()
+        {
+            unbind_framebuffer();
+            release_framebuffer();
+        }
         virtual void render() override = 0;
+        virtual void resize(float width, float height) override
+        {
+            if (EQUAL_F(width, properties->width) && EQUAL_F(height, properties->height))
+            {
+                return;
+            }
+            else
+            {
+                Scene::resize(width, height);
+                this->resize_framebuffer();
+            }
+        }
+
+        Properties *get_properties()
+        {
+            return dynamic_cast<Properties *>(properties.get());
+        }
+        void create_framebuffer();
+        void resize_framebuffer();
+        void bind_framebuffer();
+        void unbind_framebuffer();
+        void release_framebuffer();
     };
 
-    struct Rendering_Style
-    {
-        float exposure = 1.0f;
-        float gamma = 2.2f;
-    };
+    class OGL_Scene_3D;
+    using OGL_Scene_3D_U_Ptr = std::unique_ptr<OGL_Scene_3D>;
+    using OGL_Scene_3D_S_Ptr = std::shared_ptr<OGL_Scene_3D>;
+    using OGL_Scene_3D_W_Ptr = std::weak_ptr<OGL_Scene_3D>;
+    using OGL_Scene_3D_Ptr = OGL_Scene_3D_U_Ptr;
 
     class OGL_Scene_3D : public OGL_Scene
     {
+        // structures
+    public:
+        class Properties : public OGL_Scene::Properties
+        {
+            float gamma = 2.2f;
+            float exposure = 1.f;
+        };
         // attributes
     public:
-        Rendering::Camera_Ptr camera_pos;
-        Rendering::Camera_Ptr camera_front;
-        Rendering::Camera_Ptr camera_up;
-        Rendering::Camera_Ptr camera_right;
-
-        Rendering_Style style;
-        std::vector<OGL_Model_Ptr> models;
+        Rendering::Shader_Program *shader;
+        // constructors and deconstructor
+        Rendering::Texture_Ptr sample_texture;
+        Rendering::Camera_Ptr camera;
+        Rendering::OGL_Model_U_Ptr cube_model;
+        Rendering::Light_Ptr light;
         // constructors and deconstructor
     public:
-        OGL_Scene_3D(float width, float height, float near = 0.1f, float far = 100.f) : OGL_Scene(width, height, near, far) {}
-        virtual ~OGL_Scene_3D() {}
+        OGL_Scene_3D(float width, float height, Properties *properties);
+        virtual ~OGL_Scene_3D();
+
         // methods
     public:
-        virtual void init() override = 0;
-        virtual void update() override = 0;
-        virtual void destroy() override = 0;
-        virtual void render() override = 0;
+        virtual void init();
+        virtual void update();
+        virtual void destroy();
+        virtual void render();
+        virtual Properties *get_properties()
+        {
+            return dynamic_cast<Properties *>(properties.get());
+        }
+
+        void set_shader(Rendering::Shader_Program *shader)
+        {
+            this->shader = shader;
+        }
     };
 
 } // namespace scene

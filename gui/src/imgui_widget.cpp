@@ -49,73 +49,26 @@ namespace GUI
     {
         this->width = width;
         this->height = height;
-        this->resize_framebuffer();
     }
 
-    void OGL_Widget::create_framebuffer()
+    void OGL_Widget::show_framebuffer(GLuint tex, float x, float y, float width, float height)
     {
-        glGenFramebuffers(1, &this->fbo);
-        glBindFramebuffer(GL_FRAMEBUFFER, this->fbo);
-
-        glGenTextures(1, &this->fb_tex);
-        glBindTexture(GL_TEXTURE_2D, this->fb_tex);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, this->width, this->height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // GL_NEAREST
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // GL_NEAREST
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->fb_tex, 0);
-
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        {
-            Log::get().error("FRAMEBUFFER:: Framebuffer is not complete!");
-        }
-
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glBindTexture(GL_TEXTURE_2D, 0);
-    }
-
-    void OGL_Widget::bind_framebuffer()
-    {
-        glBindFramebuffer(GL_FRAMEBUFFER, this->fbo);
-    }
-
-    void OGL_Widget::unbind_framebuffer()
-    {
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    }
-
-    void OGL_Widget::resize_framebuffer()
-    {
-        glBindTexture(GL_TEXTURE_2D, this->fb_tex);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-        glBindTexture(GL_TEXTURE_2D, 0);
-    }
-
-    void OGL_Widget::release_framebuffer()
-    {
-        glDeleteFramebuffers(1, &this->fbo);
-        glDeleteTextures(1, &this->fb_tex);
-    }
-
-    void OGL_Widget::show_framebuffer()
-    {
-        GLuint textureID = this->fb_tex;
-        ImGui::Image((void *)(intptr_t)textureID, ImVec2(width, height), ImVec2(0, 1), ImVec2(1, 0));
+        ImGui::SetCursorPos(ImVec2(x, y));
+        ImGui::Image((void *)tex, ImVec2(width, height), ImVec2(0, 1), ImVec2(1, 0));
     }
 
     void OGL_Widget::init()
     {
-        this->create_framebuffer();
     }
 
     void OGL_Widget::destroy()
     {
-        this->release_framebuffer();
     }
 
-    Sample_OGL_Widget::Sample_OGL_Widget(const std::string &name, float x, float y, float width, float height, bool active) : OGL_Widget(name, x, y, width, height, active), shader(nullptr), cube_model(nullptr)
+    Sample_OGL_Widget::Sample_OGL_Widget(const std::string &name, float x, float y, float width, float height, bool active) : OGL_Widget(name, x, y, width, height, active)
     {
-        camera = Rendering::Camera_Ptr(new Rendering::Camera(Core::Vector3(0.0f, 2.0f, 4.0f)));
-        camera->focus_on(Core::Vector3(0.f, 0.0f, 0.0f), Core::Vector3(0.0f, 1.0f, 0.0f));
+        Rendering::OGL_Scene_3D::Properties *properties = new Rendering::OGL_Scene_3D::Properties();
+        scene = Rendering::OGL_Scene_3D_Ptr(new Rendering::OGL_Scene_3D(width, height, properties));
         init();
     }
 
@@ -126,13 +79,6 @@ namespace GUI
 
     void Sample_OGL_Widget::init()
     {
-        cube_model = Rendering::OGL_Model_U_Ptr(new Rendering::Cube_Model());
-        // set light
-        light = Rendering::Light_Ptr(new Rendering::Light());
-        light->set_position(Core::Vector3(2.0f, 3.0f, 3.0f));
-        // light->set_direction(Core::Vector3(-1.0f, -1.0f, -1.0f));
-        light->set_color(Core::Vector3(0.75f, 0.75f, 0.75f));
-        light->set_type(Rendering::Light::POINT_LIGHT);
     }
 
     void Sample_OGL_Widget::destroy()
@@ -144,37 +90,19 @@ namespace GUI
         ImGui::Begin(name.c_str());
         {
             update();
-            this->bind_framebuffer();
+            scene->resize(width, height);
             this->render();
-            this->unbind_framebuffer();
-            this->show_framebuffer();
+            this->show_framebuffer(scene->fb_tex, 0, 0, width, height);
             ImGui::End();
         }
-    }
-
-    void Sample_OGL_Widget::set_shader(Rendering::Shader_Program *shader)
-    {
-        this->shader = shader;
     }
 
     void Sample_OGL_Widget::render()
     {
         using namespace Core;
         // temporarily set the light properties
-        glViewport(0, 0, width, height);
         glClearColor(background_color[0], background_color[1], background_color[2], background_color[3]);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        Core::Matrix4 projection = Geometry::perspective(45.0f, width / height, 0.1f, 100.0f);
-        Core::Matrix4 view = camera->get_view_matrix();
-        shader->activate();
-        shader->set_mat4("u_view", view.data());
-        shader->set_mat4("u_projection", projection.data());
-        shader->set_light("u_light", *light.get());
-        shader->set_vec3("u_view_position", Vector3(0.0f, 2.0f, 4.0f).data());
-
-        cube_model->bind_shader(shader);
-        cube_model->draw();
-        cube_model->unbind_shader();
+        scene->render();
     }
 
     Log_Widget::Log_Widget(const std::string &name, float x, float y, float width, float height, bool active) : IMG_Widget(name, x, y, width, height, active)
@@ -339,85 +267,85 @@ namespace GUI
         this->settings->save_to_file();
     }
 
-    Text_Widget::Text_Widget(const std::string &name, float x, float y, float width, float height, bool active)
-        : OGL_Widget(name, x, y, width, height, active),
-          text_render(Rendering::Text_Render("./fonts/NotoSansSC-VariableFont_wght.ttf"))
+    // Text_Widget::Text_Widget(const std::string &name, float x, float y, float width, float height, bool active)
+    //     : OGL_Widget(name, x, y, width, height, active),
+    //       text_render(Rendering::Text_Render("./fonts/NotoSansSC-VariableFont_wght.ttf"))
 
-    {
-        init();
-        create_framebuffer();
-    }
+    // {
+    //     init();
+    //     create_framebuffer();
+    // }
 
-    Text_Widget::~Text_Widget()
-    {
-        destroy();
-    }
+    // Text_Widget::~Text_Widget()
+    // {
+    //     destroy();
+    // }
 
-    void Text_Widget::init()
-    {
-    }
+    // void Text_Widget::init()
+    // {
+    // }
 
-    void Text_Widget::destroy()
-    {
-        glDeleteFramebuffers(1, &this->fbo);
-        glDeleteTextures(1, &this->fb_tex);
-    }
+    // void Text_Widget::destroy()
+    // {
+    //     glDeleteFramebuffers(1, &this->fbo);
+    //     glDeleteTextures(1, &this->fb_tex);
+    // }
 
-    void Text_Widget::show()
-    {
-        ImGui::Begin(name.c_str());
-        {
-            update();
-            this->bind_framebuffer();
-            glViewport(0, 0, width, height);
-            glClearColor(background_color[0], background_color[1], background_color[2], background_color[3]);
-            this->render();
-            this->unbind_framebuffer();
-            this->show_framebuffer();
-            ImGui::End();
-        }
-    }
+    // void Text_Widget::show()
+    // {
+    //     ImGui::Begin(name.c_str());
+    //     {
+    //         update();
+    //         this->bind_framebuffer();
+    //         glViewport(0, 0, width, height);
+    //         glClearColor(background_color[0], background_color[1], background_color[2], background_color[3]);
+    //         this->render();
+    //         this->unbind_framebuffer();
+    //         this->show_framebuffer();
+    //         ImGui::End();
+    //     }
+    // }
 
-    void Text_Widget::render()
-    {
-        glClear(GL_COLOR_BUFFER_BIT);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        // center align
-        float scale = 1.0f;
-        float text_width = this->get_text_width(this->text, scale);
-        float text_height = this->get_text_height(this->text, scale);
-        float x = (this->width - text_width) / 2;
-        float y = (this->height - text_height) / 2;
+    // void Text_Widget::render()
+    // {
+    //     glClear(GL_COLOR_BUFFER_BIT);
+    //     glEnable(GL_BLEND);
+    //     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    //     // center align
+    //     float scale = 1.0f;
+    //     float text_width = this->get_text_width(this->text, scale);
+    //     float text_height = this->get_text_height(this->text, scale);
+    //     float x = (this->width - text_width) / 2;
+    //     float y = (this->height - text_height) / 2;
 
-        text_render.shader->activate();
-        text_render.shader->set_vec3("u_color", color);
-        text_render.shader->set_mat4("u_projection", Geometry::orthographic(0.0f, this->width, 0.0f, this->height, -1.0f, 1.0f).data());
+    //     text_render.shader->activate();
+    //     text_render.shader->set_vec3("u_color", color);
+    //     text_render.shader->set_mat4("u_projection", Geometry::orthographic(0.0f, this->width, 0.0f, this->height, -1.0f, 1.0f).data());
 
-        text_render.render_text(this->text, x, y, scale, Core::Vector3(0.0f, 0.0f, 0.0f));
-    }
+    //     text_render.render_text(this->text, x, y, scale, Core::Vector3(0.0f, 0.0f, 0.0f));
+    // }
 
-    float Text_Widget::get_text_width(const std::string &text, float scale)
-    {
-        float width = 0.f;
-        for (auto c = text.begin(); c != text.end(); c++)
-        {
-            auto ch = text_render.characters[*c];
-            width += (ch.advance >> 6) * scale;
-        }
-        return width;
-    }
+    // float Text_Widget::get_text_width(const std::string &text, float scale)
+    // {
+    //     float width = 0.f;
+    //     for (auto c = text.begin(); c != text.end(); c++)
+    //     {
+    //         auto ch = text_render.characters[*c];
+    //         width += (ch.advance >> 6) * scale;
+    //     }
+    //     return width;
+    // }
 
-    float Text_Widget::get_text_height(const std::string &text, float scale)
-    {
-        float height = 0.f;
-        for (auto c = text.begin(); c != text.end(); c++)
-        {
-            auto ch = text_render.characters[*c];
-            height = std::max(height, ch.size.y() * scale);
-        }
-        return height;
-    }
+    // float Text_Widget::get_text_height(const std::string &text, float scale)
+    // {
+    //     float height = 0.f;
+    //     for (auto c = text.begin(); c != text.end(); c++)
+    //     {
+    //         auto ch = text_render.characters[*c];
+    //         height = std::max(height, ch.size.y() * scale);
+    //     }
+    //     return height;
+    // }
 
     void Property_Widget::show_model_property(Rendering::Model *model)
     {
@@ -443,7 +371,7 @@ namespace GUI
     {
         if (light != nullptr)
         {
-            auto& light_prop = light->properties;
+            auto &light_prop = light->properties;
             ImGui::Text("Light");
             ImGui::Text("Type");
             ImGui::SameLine();
@@ -459,7 +387,7 @@ namespace GUI
         {
             ImGui::Text("Camera");
             show_transform_property(camera->transform.get());
-            auto& camera_props = camera->properties;
+            auto &camera_props = camera->properties;
             ImGui::Text("FOV");
             ImGui::DragFloat("##fov", &camera_props.fov, 0.1f, 0.1f, 180.0f);
             ImGui::Text("Near");
