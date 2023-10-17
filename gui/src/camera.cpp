@@ -72,9 +72,9 @@ namespace Rendering
 
     void Camera::focus_on(Core::Vector3 target, Core::Vector3 up)
     {
-        Core::Vector3 front = Geometry::normalize(transform->get_position() - target);
+        Core::Vector3 front = Geometry::normalize(target - transform->get_position());
         up = Geometry::normalize(up);
-        transform->look_at(front, up);
+        transform->look_at(-front, up);
     }
 
     void Camera::move_forward(float distance)

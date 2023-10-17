@@ -65,11 +65,11 @@ namespace Rendering
     }
 
     OGL_Scene_3D::OGL_Scene_3D(float width, float height, Properties *properties)
-        : OGL_Scene(width, height, properties)
+        : OGL_Scene(width, height, properties),
+          lights(),
+          cameras(),
+          active_camera_index(-1)
     {
-        auto camera = Rendering::Camera_Ptr(new Rendering::Camera(Core::Vector3(0.0f, 2.0f, 4.0f)));
-        camera->focus_on(Core::Vector3(0.f, 0.0f, 0.0f), Core::Vector3(0.0f, 1.0f, 0.0f));
-        cameras.push_back({std::move(camera), true});
         init();
     }
 
@@ -90,11 +90,31 @@ namespace Rendering
         models.push_back({std::move(cube_mode_2), true});
         // set light
         auto light = Rendering::Light_Ptr(new Rendering::Light());
+        light->name = "light 1";
         light->set_position(Core::Vector3(2.0f, 3.0f, 3.0f));
         // light->set_direction(Core::Vector3(-1.0f, -1.0f, -1.0f));
         light->set_color(Core::Vector3(0.75f, 0.75f, 0.75f));
         light->set_type(Rendering::Light::POINT_LIGHT);
         lights.push_back({std::move(light), true});
+
+        auto light_2 = Rendering::Light_Ptr(new Rendering::Light());
+        light_2->name = "light 2";
+        light_2->set_position(Core::Vector3(-2.0f, 3.0f, 3.0f));
+        // light_2->set_direction(Core::Vector3(-1.0f, -1.0f, -1.0f));
+        light_2->set_color(Core::Vector3(0.75f, 0.75f, 0.75f));
+        light_2->set_type(Rendering::Light::POINT_LIGHT);
+        lights.push_back({std::move(light_2), true});
+
+        auto camera = Rendering::Camera_Ptr(new Rendering::Camera(Core::Vector3(0.0f, 2.0f, 4.0f)));
+        camera->name = "camera 1";
+        camera->focus_on(Core::Vector3(0.f, 0.0f, 0.0f), Core::Vector3(0.0f, 1.0f, 0.0f));
+        cameras.push_back({std::move(camera), true});
+        active_camera_index = 0;
+
+        auto camera_2 = Rendering::Camera_Ptr(new Rendering::Camera(Core::Vector3(3.0f, 0.0f, 0.0f)));
+        camera_2->focus_on(Core::Vector3(0.f, 0.0f, 0.0f), Core::Vector3(0.0f, 1.0f, 0.0f));
+        camera_2->name = "camera 2";
+        cameras.push_back({std::move(camera_2), false});
     }
     void OGL_Scene_3D::update()
     {
@@ -114,20 +134,25 @@ namespace Rendering
         glViewport(0, 0, props->width, props->height);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         Core::Matrix4 projection = Geometry::perspective(Geometry::radians(props->fov), props->width / props->height, props->near, props->far);
-        auto &camera = cameras[0];
-        Core::Matrix4 view = Geometry::look_at(camera.value->get_position(), camera.value->get_focus(), camera.value->get_up());
+        Core::Matrix4 view = Core::Matrix4::identity();
+        Core::Vector3 view_position = Core::Vector3(0.0f, 0.0f, 0.0f);
+        if (active_camera_index >= 0)
+        {
+            auto &active_camera = cameras[active_camera_index].value;
+            view = Geometry::look_at(active_camera->get_position(), active_camera->get_focus(), active_camera->get_up());
+            view_position = active_camera->get_position();
+        }
 
         shader->activate();
         shader->set_mat4("u_view", view.data());
         shader->set_mat4("u_projection", projection.data());
-        shader->set_vec3("u_view_position", camera.value->get_position().data());
+        shader->set_vec3("u_view_position", view_position.data());
         int active_light_num = 0;
-        for (int i = 0; i < lights.size(); i++)
+        for (auto &light : lights)
         {
-            if (lights[i].is_active)
+            if (light.is_active)
             {
-                shader->set_light("u_lights", i, *lights[i].value);
-                active_light_num++;
+                shader->set_light("u_lights[" + std::to_string(active_light_num++) + "]", *light.value);
             }
         }
         shader->set_int("u_light_num", active_light_num);

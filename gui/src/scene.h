@@ -84,8 +84,8 @@ namespace Rendering
         // attributes
     public:
         GLuint fbo, fb_tex, rbo;
-        std::vector<OGL_Model_Item> models;
         Rendering::Shader_Program *shader;
+        std::vector<OGL_Model_Item> models;
         // constructors and deconstructor
     public:
         // cast properties to OGL_Scene::Properties
@@ -167,6 +167,7 @@ namespace Rendering
         Rendering::Texture_Ptr sample_texture;
 
         std::vector<Camera_Item> cameras;
+        int active_camera_index;
         // Rendering::OGL_Model_U_Ptr cube_model;
         std::vector<Light_Item> lights;
         // constructors and deconstructor

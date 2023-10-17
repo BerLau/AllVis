@@ -536,12 +536,12 @@ namespace GUI
                 {
                     if (ImGui::TreeNode("Models"))
                     {
-                        int idx = 0;
-                        for (auto &model : ogl_scene->models)
+                        for (int i = 0; i < ogl_scene->models.size(); i++)
                         {
-                            ImGui::Checkbox(("##" + model.value->name).c_str(), &model.is_active);
+                            auto &model = ogl_scene->models[i];
+                            const std::string &label = model.value->name + "##model" + std::to_string(i);
+                            ImGui::Checkbox(("##" + label).c_str(), &model.is_active);
                             ImGui::SameLine();
-                            const std::string &label = model.value->name + "##model" + std::to_string(idx++);
                             if (ImGui::Selectable(label.c_str(), selected_object == model.value.get()))
                             {
                                 selected_object = model.value.get();
@@ -556,13 +556,12 @@ namespace GUI
 
                     if (ImGui::TreeNode("Lights"))
                     {
-                        int idx = 0;
-                        for (auto &light : ogl_scene_3d->lights)
+                        for (int i = 0; i < ogl_scene_3d->lights.size(); i++)
                         {
-                            ImGui::Checkbox(("##" + light.value->name).c_str(), &light.is_active);
+                            auto &light = ogl_scene_3d->lights[i];
+                            const std::string &label = light.value->name + "##light" + std::to_string(i);
+                            ImGui::Checkbox(("##" + label).c_str(), &light.is_active);
                             ImGui::SameLine();
-                            const std::string &label = light.value->name + "##light" + std::to_string(idx++);
-
                             if (ImGui::Selectable(label.c_str(), selected_object == light.value.get()))
                             {
                                 selected_object = light.value.get();
@@ -573,13 +572,12 @@ namespace GUI
 
                     if (ImGui::TreeNode("Cameras"))
                     {
-                        int idx = 0;
-                        for (auto &camera : ogl_scene_3d->cameras)
+                        for (int i = 0; i < ogl_scene_3d->cameras.size(); i++)
                         {
-                            ImGui::Checkbox(("##" + camera.value->name).c_str(), &camera.is_active);
+                            auto &camera = ogl_scene_3d->cameras[i];
+                            const std::string &label = camera.value->name + "##camera" + std::to_string(i);
+                            ImGui::RadioButton(("##"+label).c_str(),&(ogl_scene_3d->active_camera_index),i);
                             ImGui::SameLine();
-                            const std::string &label = camera.value->name + "##camera" + std::to_string(idx++);
-
                             if (ImGui::Selectable(label.c_str(), selected_object == camera.value.get()))
                             {
                                 selected_object = camera.value.get();
