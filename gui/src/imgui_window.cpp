@@ -41,9 +41,6 @@ namespace GUI
         Rendering::shader_program_factory.add_shader_program("text_shader", "text_vertex_shader", "text_fragment_shader");
 
         auto w = std::unique_ptr<Sample_OGL_Widget>(new Sample_OGL_Widget("OpenGL Window", 0, 0, 800, 600, true));
-        w->background_color[0] = 0.0f;
-        w->background_color[1] = 0.3f;
-        w->background_color[2] = 0.7f;
         w->scene->set_shader(Rendering::shader_program_factory.find_shader_program("basic_shader"));
         Rendering::Texture *tex = Rendering::load_texture("./textures/box.jpeg");
         // Rendering::sampler_manager.add_sampler("default", new Rendering::Sampler());
@@ -63,7 +60,12 @@ namespace GUI
         // text_widget->background_color[0] = 1.0;
         // text_widget->background_color[1] = 1.0;
         // text_widget->background_color[2] = 1.0;
-        dynamic_cast<UI_Settings_Widget *>(this->settings_widget.get())->bind_settings(&this->settings);
+        settings_widget->bind_settings(&this->settings);
+
+        this->scene_widget = std::unique_ptr<Scene_Widget>(new Scene_Widget("Scene", 0, 0, 800, 600, true));
+        this->scene_widget->bind_scene(ogl_widget_test->scene.get());
+
+        this->properties_Widget = std::unique_ptr<Properties_Widget>(new Properties_Widget("Properties", 0, 0, 800, 600, true));
     }
 
     void Window::show(bool maximized)
@@ -80,37 +82,21 @@ namespace GUI
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
 
+            // ImGui::ShowDemoWindow();
+
             auto viewport = ImGui::GetMainViewport();
             ImGui::DockSpaceOverViewport(viewport);
             settings_widget->show();
             if (settings.show_OpenGL_window)
             {
-                auto cube_widget = dynamic_cast<Sample_OGL_Widget *>(this->ogl_widget_test.get());
-                auto scene = cube_widget->scene.get();
-                cube_widget->show();
+                auto scene = ogl_widget_test->scene.get();
+                ogl_widget_test->show();
+                scene_widget->bind_scene(scene);
+                scene_widget->show();
                 if (settings.show_Properties_window)
                 {
-                    const int model_idx = 0;
-                    const int light_idx = 1;
-                    const int camera_idx = 2;
-                    ImGui::Begin("Properties");
-                    ImGui::SetNextItemWidth(ImGui::GetWindowWidth() * 0.5f);
-                    static int selected = 0;
-                    ImGui::Combo("Object Type", &selected, "Model\0Light\0Camera\0");
-                    auto props_widget = dynamic_cast<Property_Widget *>(this->properties_Widget.get());
-                    if (selected == model_idx)
-                    {
-                        props_widget->show_ogl_model_property(scene->cube_model.get());
-                    }
-                    else if (selected == light_idx)
-                    {
-                        props_widget->show_light_property(scene->light.get());
-                    }
-                    else if (selected == camera_idx)
-                    {
-                        props_widget->show_camera_property(scene->camera.get());
-                    }
-                    ImGui::End();
+                    properties_Widget->bind_object(scene_widget->selected_object);
+                    properties_Widget->show();
                 }
             }
 

@@ -18,11 +18,12 @@ namespace GUI
         int height;
         int x;
         int y;
-        IMGWidget_Ptr ogl_widget_test;
-        IMGWidget_Ptr log_widget;
-        IMGWidget_Ptr settings_widget;
+        Sample_OGL_Widget_Ptr ogl_widget_test;
+        Log_Widget_Ptr log_widget;
+        UI_Settings_Widget_Ptr settings_widget;
         // IMGWidget_Ptr text_widget;
-        IMGWidget_Ptr properties_Widget;
+        Properties_Widget_Ptr properties_Widget;
+        Scene_Widget_Ptr scene_widget;
 
     private:
         GLFWwindow *handle;

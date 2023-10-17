@@ -65,6 +65,11 @@ namespace Rendering
         return Geometry::look_at(pos, center, up);
     }
 
+    Core::Vector3 Camera::get_position() const
+    {
+        return transform->get_position();
+    }
+
     void Camera::focus_on(Core::Vector3 target, Core::Vector3 up)
     {
         Core::Vector3 front = Geometry::normalize(transform->get_position() - target);

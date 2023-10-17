@@ -38,8 +38,6 @@ namespace GUI
         float height;
         bool active;
         std::string name;
-        float background_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
-
         // constructors and deconstructor
     public:
         IMG_Widget(const std::string &name = "IMG_Widget", float x = 0, float y = 0, float width = 0, float height = 0, bool active = true);
@@ -50,13 +48,20 @@ namespace GUI
         virtual void update();
         virtual void init(){};
         virtual void destroy(){};
-        virtual void resize(float width, float height)
+        virtual void resize(float width, float height, float pos_x, float pos_y)
         {
             this->width = width;
             this->height = height;
+            this->x = pos_x;
+            this->y = pos_y;
         }
     };
 
+    class OGL_Widget;
+    using OGL_Widget_U_Ptr = std::unique_ptr<OGL_Widget>;
+    using OGL_Widget_S_Ptr = std::shared_ptr<OGL_Widget>;
+    using OGL_Widget_W_Ptr = std::weak_ptr<OGL_Widget>;
+    using OGL_Widget_Ptr = OGL_Widget_U_Ptr;
     class OGL_Widget : public IMG_Widget
     {
         // attributes
@@ -74,6 +79,11 @@ namespace GUI
         void show_framebuffer(GLuint tex, float x, float y, float width, float height);
     };
 
+    class Sample_OGL_Widget;
+    using Sample_OGL_Widget_U_Ptr = std::unique_ptr<Sample_OGL_Widget>;
+    using Sample_OGL_Widget_S_Ptr = std::shared_ptr<Sample_OGL_Widget>;
+    using Sample_OGL_Widget_W_Ptr = std::weak_ptr<Sample_OGL_Widget>;
+    using Sample_OGL_Widget_Ptr = Sample_OGL_Widget_U_Ptr;
     class Sample_OGL_Widget : public OGL_Widget
     {
         // inherit from OGL_Widget
@@ -85,6 +95,7 @@ namespace GUI
         // attributes
     public:
         Rendering::OGL_Scene_3D_Ptr scene;
+
     public:
         Sample_OGL_Widget(const std::string &name = "OpenGL IMG_Widget", float x = 0, float y = 0, float width = 0, float height = 0, bool active = true);
         ~Sample_OGL_Widget();
@@ -93,6 +104,11 @@ namespace GUI
         void render();
     };
 
+    class Log_Widget;
+    using Log_Widget_U_Ptr = std::unique_ptr<Log_Widget>;
+    using Log_Widget_S_Ptr = std::shared_ptr<Log_Widget>;
+    using Log_Widget_W_Ptr = std::weak_ptr<Log_Widget>;
+    using Log_Widget_Ptr = Log_Widget_U_Ptr;
     class Log_Widget : public IMG_Widget
     {
         // attributes
@@ -109,22 +125,32 @@ namespace GUI
         // void update();
     };
 
-    class Property_Widget : public IMG_Widget
+    class Properties_Widget;
+    using Properties_Widget_U_Ptr = std::unique_ptr<Properties_Widget>;
+    using Properties_Widget_S_Ptr = std::shared_ptr<Properties_Widget>;
+    using Properties_Widget_W_Ptr = std::weak_ptr<Properties_Widget>;
+    using Properties_Widget_Ptr = Properties_Widget_U_Ptr;
+    class Properties_Widget : public IMG_Widget
     {
         // attributes
     public:
+        Core::Configurable *selected_object;
         // constructors and deconstructor
     public:
-        Property_Widget(const std::string &name = "Property_Widget", float x = 0, float y = 0, float width = 0, float height = 0, bool active = true) : IMG_Widget(name, x, y, width, height, active){};
-        ~Property_Widget(){};
+        Properties_Widget(const std::string &name = "Properties_Widget", float x = 0, float y = 0, float width = 0, float height = 0, bool active = true)
+            : IMG_Widget(name, x, y, width, height, active),
+              selected_object(nullptr){};
+        ~Properties_Widget(){};
         // methods
     public:
-        void show(){};
+        void bind_object(Core::Configurable *object) { selected_object = object; }
+        void show();
         // void update();
         void show_model_property(Rendering::Model *model);
         void show_ogl_model_property(Rendering::OGL_Model *model);
         void show_light_property(Rendering::Light *light);
         void show_camera_property(Rendering::Camera *camera);
+        void show_scene_property(Rendering::Scene *scene);
 
     protected:
         void show_material_property(Rendering::Material *material);
@@ -140,13 +166,17 @@ namespace GUI
         bool show_Log_window = false;
         bool show_Text_window = true;
         bool show_Properties_window = false;
-        float clear_color[4] = {0.45f, 0.55f, 0.60f, 1.00f};
 
         void save_to_file();
 
         void load_from_file();
     };
 
+    class UI_Settings_Widget;
+    using UI_Settings_Widget_U_Ptr = std::unique_ptr<UI_Settings_Widget>;
+    using UI_Settings_Widget_S_Ptr = std::shared_ptr<UI_Settings_Widget>;
+    using UI_Settings_Widget_W_Ptr = std::weak_ptr<UI_Settings_Widget>;
+    using UI_Settings_Widget_Ptr = UI_Settings_Widget_U_Ptr;
     class UI_Settings_Widget : public IMG_Widget
     {
         // attributes
@@ -163,6 +193,30 @@ namespace GUI
 
     private:
         void save_layout(const std::string &filename);
+    };
+
+    class Scene_Widget;
+    using Scene_Widget_U_Ptr = std::unique_ptr<Scene_Widget>;
+    using Scene_Widget_S_Ptr = std::shared_ptr<Scene_Widget>;
+    using Scene_Widget_W_Ptr = std::weak_ptr<Scene_Widget>;
+    using Scene_Widget_Ptr = Scene_Widget_U_Ptr;
+    class Scene_Widget : public IMG_Widget
+    {
+        // attributes
+    public:
+        Rendering::Scene *scene;
+        Core::Configurable *selected_object;
+        // constructors and deconstructor
+    public:
+        Scene_Widget(const std::string &name = "Scene_Widget", float x = 0, float y = 0, float width = 0, float height = 0, bool active = true)
+            : IMG_Widget(name, x, y, width, height, active),
+              scene(nullptr),
+              selected_object(nullptr){};
+        ~Scene_Widget(){};
+        // methods
+    public:
+        void show();
+        void bind_scene(Rendering::Scene *scene) { this->scene = scene; }
     };
 
     // class Text_Widget : public OGL_Widget

@@ -12,7 +12,7 @@ namespace Rendering
     using Material_Ptr_W = std::weak_ptr<Material>;
     using Material_Ptr = Material_Ptr_S;
 
-    class Material
+    class Material: public Core::Configurable
     {
         // attributes
     public:

@@ -28,7 +28,7 @@ namespace Rendering
         DEPRESS
     };
 
-    class Camera
+    class Camera : public Core::Configurable
     {
     public:
         struct Properties
@@ -48,14 +48,14 @@ namespace Rendering
     public:
         Camera();
         Camera(const Core::Vector3 &position);
-        Camera(const Camera &camera) :transform(Core::Transform_Ptr(new Core::Transform(*camera.transform))),properties(Properties()) { init(); }
+        Camera(const Camera &camera) : transform(Core::Transform_Ptr(new Core::Transform(*camera.transform))), properties(Properties()) { init(); }
         Camera &operator=(const Camera &camera)
         {
             transform = Core::Transform_Ptr(new Core::Transform(*camera.transform));
             properties = camera.properties;
             return *this;
         }
-        Camera(Camera &&camera) : transform(std::move(camera.transform)),properties(camera.properties){ init(); }
+        Camera(Camera &&camera) : transform(std::move(camera.transform)), properties(camera.properties) { init(); }
         Camera &operator=(Camera &&camera)
         {
             transform = std::move(camera.transform);
@@ -69,6 +69,11 @@ namespace Rendering
         void move(CameraMovement direction, float distance);
         void move(Core::Vector3 direction, float distance);
         Core::Matrix4 get_view_matrix();
+        Core::Vector3 get_position() const;
+        Core::Vector3 get_up() const { return transform->get_up(); }
+        Core::Vector3 get_front() const { return transform->get_front(); }
+        Core::Vector3 get_right() const { return transform->get_right(); }
+        Core::Vector3 get_focus() const { return transform->get_position() + transform->get_front() * properties.focus_distance; }
         void focus_on(Core::Vector3 position, Core::Vector3 up = Core::Vector3(0.0f, 1.0f, 0.0f));
 
     private:

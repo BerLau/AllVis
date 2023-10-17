@@ -16,7 +16,7 @@ namespace Rendering
     using Model_S_Ptr = std::shared_ptr<Model>;
     using Model_W_Ptr = std::weak_ptr<Model>;
 
-    class Model
+    class Model : public Core::Configurable
     {
         // attributes
     public:

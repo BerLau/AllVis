@@ -18,12 +18,12 @@ TEST(TestGeometry, radians)
 TEST(TestGeometry, look_at)
 {
     Core::Vector3 pos = Core::Vector3(3.f, 1.0f, 1.0f);
-    Core::Vector3 center = Core::Vector3(0.0f, 0.0f, 0.0f);
+    Core::Vector3 center = Core::Vector3(0.0f, 0.0f, 1.0f);
     Core::Vector3 up = Core::Vector3(0.0f, 1.0f, 0.0f);
     Core::Matrix4 r = Geometry::look_at(pos, center, up);
 
     glm::vec3 pos_glm = glm::vec3(3.f, 1.0f, 1.0f);
-    glm::vec3 center_glm = glm::vec3(0.0f, 0.0f, 0.0f);
+    glm::vec3 center_glm = glm::vec3(0.0f, 0.0f, 1.0f);
     glm::vec3 up_glm = glm::vec3(0.0f, 1.0f, 0.0f);
     glm::mat4 r_glm = glm::lookAt(pos_glm, center_glm, up_glm);
 

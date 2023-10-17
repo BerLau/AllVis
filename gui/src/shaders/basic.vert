@@ -22,5 +22,4 @@ void main()
     frag_position = vec3(u_model * vec4(v_pos, 1.0));
     frag_normal = u_normal_matrix * v_normal;
     gl_Position = u_projection * u_view * u_model * vec4(v_pos, 1.0);
-    test = vec3(0,0,0);
 }

@@ -1,5 +1,4 @@
 #include "scene.h"
-
 namespace Rendering
 {
     void OGL_Scene::create_framebuffer()
@@ -18,6 +17,13 @@ namespace Rendering
         {
             std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
         }
+
+        // add depth buffer
+
+        glGenRenderbuffers(1, &rbo);
+        glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, properties->width, properties->height);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glBindTexture(GL_TEXTURE_2D, 0);
     }
@@ -27,6 +33,9 @@ namespace Rendering
         glBindTexture(GL_TEXTURE_2D, this->fb_tex);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, properties->width, properties->height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
         glBindTexture(GL_TEXTURE_2D, 0);
+        glBindBuffer(GL_RENDERBUFFER, this->rbo);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, properties->width, properties->height);
+        glBindBuffer(GL_RENDERBUFFER, 0);
     }
 
     void OGL_Scene::bind_framebuffer()
@@ -49,14 +58,18 @@ namespace Rendering
         {
             glDeleteTextures(1, &this->fb_tex);
         }
+        if (this->rbo)
+        {
+            glDeleteRenderbuffers(1, &this->rbo);
+        }
     }
 
     OGL_Scene_3D::OGL_Scene_3D(float width, float height, Properties *properties)
         : OGL_Scene(width, height, properties)
     {
-        camera = Rendering::Camera_Ptr(new Rendering::Camera(Core::Vector3(0.0f, 2.0f, 4.0f)));
+        auto camera = Rendering::Camera_Ptr(new Rendering::Camera(Core::Vector3(0.0f, 2.0f, 4.0f)));
         camera->focus_on(Core::Vector3(0.f, 0.0f, 0.0f), Core::Vector3(0.0f, 1.0f, 0.0f));
-
+        cameras.push_back({std::move(camera), true});
         init();
     }
 
@@ -67,13 +80,21 @@ namespace Rendering
 
     void OGL_Scene_3D::init()
     {
-        cube_model = Rendering::OGL_Model_U_Ptr(new Rendering::Cube_Model());
+        auto cube_model = Rendering::OGL_Model_U_Ptr(new Rendering::Cube_Model());
+        cube_model->name = "cube 1";
+
+        auto cube_mode_2 = Rendering::OGL_Model_U_Ptr(new Rendering::Cube_Model());
+        cube_mode_2->name = "cube 2";
+        cube_mode_2->transform->set_position(Core::Vector3(-1.f, 0.0f, 0.0f));
+        models.push_back({std::move(cube_model), true});
+        models.push_back({std::move(cube_mode_2), true});
         // set light
-        light = Rendering::Light_Ptr(new Rendering::Light());
+        auto light = Rendering::Light_Ptr(new Rendering::Light());
         light->set_position(Core::Vector3(2.0f, 3.0f, 3.0f));
         // light->set_direction(Core::Vector3(-1.0f, -1.0f, -1.0f));
         light->set_color(Core::Vector3(0.75f, 0.75f, 0.75f));
         light->set_type(Rendering::Light::POINT_LIGHT);
+        lights.push_back({std::move(light), true});
     }
     void OGL_Scene_3D::update()
     {
@@ -89,18 +110,36 @@ namespace Rendering
         bind_framebuffer();
         auto props = get_properties();
         // temporarily set the light properties
-        glViewport(0, 0, properties->width, properties->height);
+        glClearColor(props->bg_color[0], props->bg_color[1], props->bg_color[2], props->bg_color[3]);
+        glViewport(0, 0, props->width, props->height);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        Core::Matrix4 projection = Geometry::perspective(props->fov, properties->width / properties->height, props->near, props->far);
-        Core::Matrix4 view = camera->get_view_matrix();
+        Core::Matrix4 projection = Geometry::perspective(Geometry::radians(props->fov), props->width / props->height, props->near, props->far);
+        auto &camera = cameras[0];
+        Core::Matrix4 view = Geometry::look_at(camera.value->get_position(), camera.value->get_focus(), camera.value->get_up());
+
         shader->activate();
         shader->set_mat4("u_view", view.data());
         shader->set_mat4("u_projection", projection.data());
-        shader->set_light("u_light", *light.get());
-        shader->set_vec3("u_view_position", Vector3(0.0f, 2.0f, 4.0f).data());
-        cube_model->bind_shader(shader);
-        cube_model->draw();
+        shader->set_vec3("u_view_position", camera.value->get_position().data());
+        int active_light_num = 0;
+        for (int i = 0; i < lights.size(); i++)
+        {
+            if (lights[i].is_active)
+            {
+                shader->set_light("u_lights", i, *lights[i].value);
+                active_light_num++;
+            }
+        }
+        shader->set_int("u_light_num", active_light_num);
+        for (auto &model : models)
+        {
+            if (model.is_active)
+            {
+                model.value->bind_shader(shader);
+                model.value->draw();
+                model.value->unbind_shader();
+            }
+        }
         unbind_framebuffer();
-        cube_model->unbind_shader();
     }
 };

@@ -5,7 +5,7 @@ namespace Rendering
     Material::Material(Core::Vector3 color, float metallic, float roughness, float ao, Core::Vector3 emissive)
         : albedo(color),
           metallic(metallic),
-          roughness(roughness),
+          roughness(std::fmax(roughness,0.00001)),
           ao(ao),
           emissive(emissive),
           albedo_map(nullptr),
@@ -20,7 +20,7 @@ namespace Rendering
     Material::Material(Texture_Ptr albedo_map, Texture_Ptr metallic_map, Texture_Ptr roughness_map, Texture_Ptr ao_map, Texture_Ptr emissive_map, Texture_Ptr normal_map, Texture_Ptr height_map)
         : albedo(Core::Vector3(1.0f, 1.0f, 1.0f)),
           metallic(0.0f),
-          roughness(0.0f),
+          roughness(0.00001f),
           ao(1.0f),
           emissive(Core::Vector3(0.0f, 0.0f, 0.0f)),
           albedo_map(albedo_map),

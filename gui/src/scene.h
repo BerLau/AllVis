@@ -17,8 +17,10 @@ namespace Rendering
     using Scene_W_Ptr = std::weak_ptr<Scene>;
     using Scene_Ptr = Scene_U_Ptr;
 
-    class Scene
+    class Scene : public Core::Configurable
     {
+        // structures
+
     public:
         class Properties
         {
@@ -65,22 +67,31 @@ namespace Rendering
     {
         // structures
     public:
+        struct OGL_Model_Item
+        {
+            OGL_Model_Ptr value = nullptr;
+            bool is_active = true;
+        };
+
         class Properties : public Scene::Properties
         {
         public:
             float near = 0.1f;
             float far = 100.f;
             float fov = 45.f;
+            float bg_color[4] = {0.f, 0.f, 0.f, 1.f};
         };
         // attributes
     public:
-        GLuint fbo, fb_tex;
-        std::vector<OGL_Model_Ptr> models;
+        GLuint fbo, fb_tex, rbo;
+        std::vector<OGL_Model_Item> models;
+        Rendering::Shader_Program *shader;
         // constructors and deconstructor
     public:
         // cast properties to OGL_Scene::Properties
         OGL_Scene(float width, float height, Properties *properties)
-            : Scene(height, width, properties)
+            : fb_tex(0), fbo(0), rbo(0), shader(nullptr),
+              Scene(height, width, properties)
         {
             init();
         }
@@ -133,21 +144,31 @@ namespace Rendering
 
     class OGL_Scene_3D : public OGL_Scene
     {
-        // structures
-    public:
+    public: // structures
+        struct Camera_Item
+        {
+            Camera_Ptr value = nullptr;
+            bool is_active = true;
+        };
+        struct Light_Item
+        {
+            Light_Ptr value = nullptr;
+            bool is_active = true;
+        };
         class Properties : public OGL_Scene::Properties
         {
+        public:
             float gamma = 2.2f;
             float exposure = 1.f;
         };
         // attributes
     public:
-        Rendering::Shader_Program *shader;
         // constructors and deconstructor
         Rendering::Texture_Ptr sample_texture;
-        Rendering::Camera_Ptr camera;
-        Rendering::OGL_Model_U_Ptr cube_model;
-        Rendering::Light_Ptr light;
+
+        std::vector<Camera_Item> cameras;
+        // Rendering::OGL_Model_U_Ptr cube_model;
+        std::vector<Light_Item> lights;
         // constructors and deconstructor
     public:
         OGL_Scene_3D(float width, float height, Properties *properties);
@@ -159,6 +180,7 @@ namespace Rendering
         virtual void update();
         virtual void destroy();
         virtual void render();
+
         virtual Properties *get_properties()
         {
             return dynamic_cast<Properties *>(properties.get());

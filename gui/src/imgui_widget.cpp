@@ -26,12 +26,9 @@ namespace GUI
 
     void IMG_Widget::update()
     {
-        // get size
         ImVec2 rect = ImGui::GetContentRegionAvail();
-        if (!EQUAL_F(rect.x, this->width) || !EQUAL_F(rect.y, this->height))
-        {
-            this->resize(rect.x, rect.y);
-        }
+        ImVec2 pos = ImGui::GetCursorScreenPos();
+        this->resize(rect.x, rect.y, pos.x, pos.y);
     }
 
     OGL_Widget::OGL_Widget(const std::string &name, float x, float y, float width, float height, bool active)
@@ -53,7 +50,6 @@ namespace GUI
 
     void OGL_Widget::show_framebuffer(GLuint tex, float x, float y, float width, float height)
     {
-        ImGui::SetCursorPos(ImVec2(x, y));
         ImGui::Image((void *)tex, ImVec2(width, height), ImVec2(0, 1), ImVec2(1, 0));
     }
 
@@ -92,16 +88,13 @@ namespace GUI
             update();
             scene->resize(width, height);
             this->render();
-            this->show_framebuffer(scene->fb_tex, 0, 0, width, height);
+            this->show_framebuffer(scene->fb_tex, x, y, width, height);
             ImGui::End();
         }
     }
 
     void Sample_OGL_Widget::render()
     {
-        using namespace Core;
-        // temporarily set the light properties
-        glClearColor(background_color[0], background_color[1], background_color[2], background_color[3]);
         scene->render();
     }
 
@@ -157,7 +150,6 @@ namespace GUI
         file << "show_Log_window " << show_Log_window << std::endl;
         file << "show_Text_window " << show_Text_window << std::endl;
         file << "show_Properties_window " << show_Properties_window << std::endl;
-        file << "clear_color " << clear_color[0] << " " << clear_color[1] << " " << clear_color[2] << " " << clear_color[3] << std::endl;
         // close file
         file.close();
     }
@@ -205,10 +197,6 @@ namespace GUI
             {
                 ss >> show_Properties_window;
             }
-            else if (key == "clear_color")
-            {
-                ss >> clear_color[0] >> clear_color[1] >> clear_color[2] >> clear_color[3];
-            }
         }
     }
 
@@ -222,7 +210,6 @@ namespace GUI
                 ImGui::Checkbox("Show Log Window", &this->settings->show_Log_window);
                 ImGui::Checkbox("Show Text Window", &this->settings->show_Text_window);
                 ImGui::Checkbox("Show Properties Window", &this->settings->show_Properties_window);
-                ImGui::ColorEdit3("Clear Color", (float *)&this->settings->clear_color);
                 if (ImGui::Button("Save Layout"))
                 {
                     // Open Popup Modal to get filename
@@ -347,27 +334,64 @@ namespace GUI
     //     return height;
     // }
 
-    void Property_Widget::show_model_property(Rendering::Model *model)
+    void Properties_Widget::show()
+    {
+        ImGui::Begin(name.c_str());
+        {
+            update();
+            if (selected_object == nullptr)
+            {
+                ImGui::End();
+                return;
+            }
+            // show scene configuration if it can be casted to scene
+            auto scene = dynamic_cast<Rendering::Scene *>(this->selected_object);
+            if (scene)
+            {
+                show_scene_property(scene);
+            }
+
+            // show model configuration if it can be casted to model
+            auto model = dynamic_cast<Rendering::Model *>(this->selected_object);
+            if (model)
+            {
+                show_model_property(model);
+            }
+
+            // show camera configuration if it can be casted to camera
+            auto camera = dynamic_cast<Rendering::Camera *>(this->selected_object);
+            if (camera)
+            {
+                show_camera_property(camera);
+            }
+
+            // show light configuration if it can be casted to light
+            auto light = dynamic_cast<Rendering::Light *>(this->selected_object);
+            if (light)
+            {
+                show_light_property(light);
+            }
+            ImGui::End();
+        }
+    }
+
+    void Properties_Widget::show_model_property(Rendering::Model *model)
     {
         if (model != nullptr)
         {
             ImGui::Text("Model");
             show_transform_property(model->transform.get());
         }
-    }
 
-    void Property_Widget::show_ogl_model_property(Rendering::OGL_Model *model)
-    {
-
-        if (model != nullptr)
+        auto ogl_model = dynamic_cast<Rendering::OGL_Model *>(model);
+        if (ogl_model)
         {
-            ImGui::Text("Model");
-            show_transform_property(model->transform.get());
-            show_material_property(model->material.get());
+            // show material properties
+            show_material_property(ogl_model->material.get());
         }
     }
 
-    void Property_Widget::show_light_property(Rendering::Light *light)
+    void Properties_Widget::show_light_property(Rendering::Light *light)
     {
         if (light != nullptr)
         {
@@ -381,7 +405,7 @@ namespace GUI
         }
     }
 
-    void Property_Widget::show_camera_property(Rendering::Camera *camera)
+    void Properties_Widget::show_camera_property(Rendering::Camera *camera)
     {
         if (camera != nullptr)
         {
@@ -399,24 +423,65 @@ namespace GUI
         }
     }
 
-    void Property_Widget::show_material_property(Rendering::Material *material)
+    void Properties_Widget::show_scene_property(Rendering::Scene *scene)
+    {
+        if (scene != nullptr)
+        {
+
+            auto props = scene->get_properties();
+            ImGui::Text("Scene");
+            ImGui::Text("Rect");
+            ImGui::Text("width: %.1f", props->width);
+            ImGui::SameLine();
+            ImGui::Text("height: %.1f", props->height);
+            auto ogl_scene = dynamic_cast<Rendering::OGL_Scene *>(scene);
+            if (ogl_scene)
+            {
+                // show the ogl_scene properties
+                auto props = ogl_scene->get_properties();
+                ImGui::Text("OGL_Scene");
+                ImGui::Text("background color");
+                ImGui::ColorEdit4("##bg_color", props->bg_color);
+                ImGui::Text("fov");
+                ImGui::DragFloat("##fov", &props->fov, 0.1f, 0.1f, 180.0f);
+                ImGui::Text("near");
+                ImGui::DragFloat("##near", &props->near, 0.1f, 0.1f, 100.0f);
+                ImGui::Text("far");
+                ImGui::DragFloat("##far", &props->far, 0.1f, 0.1f, 100.0f);
+            }
+
+            auto ogl_3d = dynamic_cast<Rendering::OGL_Scene_3D *>(scene);
+            if (ogl_3d)
+            {
+                // show the ogl_scene properties
+                auto props = ogl_3d->get_properties();
+                ImGui::Text("OGL_Scene_3D");
+                ImGui::Text("gamma");
+                ImGui::DragFloat("##gamma", &props->gamma, 0.1f, 0.01f, 10.0f);
+                ImGui::Text("exposure");
+                ImGui::DragFloat("##exposure", &props->exposure, 0.1f, 0.01f, 10.0f);
+            }
+        }
+    }
+
+    void Properties_Widget::show_material_property(Rendering::Material *material)
     {
         if (material != nullptr)
         {
             ImGui::Text("Albedo");
             ImGui::ColorEdit3("##albedo", material->albedo.data());
             ImGui::Text("Metallic");
-            ImGui::DragFloat("##metallic", &material->metallic, 0.001f, 0.0f, 1.0f);
+            ImGui::SliderFloat("##metallic", &material->metallic, 0.0f, 1.0f, "%.3f");
             ImGui::Text("Roughness");
-            ImGui::DragFloat("##roughness", &material->roughness, 0.001f, 0.0f, 1.0f);
+            ImGui::SliderFloat("##roughness", &material->roughness, 0.001f, 1.0f, "%.3f");
             ImGui::Text("AO");
-            ImGui::DragFloat("##ao", &material->ao, 0.001f, 0.0f, 1.0f);
+            ImGui::SliderFloat("##ao", &material->ao, 0.001f, 1.0f, "%.3f");
             ImGui::Text("Emissive");
             ImGui::ColorEdit3("##emissive", material->emissive.data());
         }
     }
 
-    void Property_Widget::show_transform_property(Core::Transform *transform)
+    void Properties_Widget::show_transform_property(Core::Transform *transform)
     {
         if (transform != nullptr)
         {
@@ -447,6 +512,90 @@ namespace GUI
             ImGui::Checkbox("Lock Proportion", &lock_proportion);
             transform->set_scale(scale);
         }
+    }
+
+    void Scene_Widget::show()
+    {
+
+        ImGui::Begin(name.c_str());
+        {
+            update();
+            // list all the configurable objects in the scene
+            if (scene == nullptr)
+            {
+                ImGui::End();
+                selected_object = nullptr;
+                return;
+            }
+            // list all configurable objects in the scene and get the selected object
+            // if none was selected then select the scene
+            auto ogl_scene = dynamic_cast<Rendering::OGL_Scene *>(scene);
+            if (ImGui::TreeNode("Scene"))
+            {
+                if (ogl_scene)
+                {
+                    if (ImGui::TreeNode("Models"))
+                    {
+                        int idx = 0;
+                        for (auto &model : ogl_scene->models)
+                        {
+                            ImGui::Checkbox(("##" + model.value->name).c_str(), &model.is_active);
+                            ImGui::SameLine();
+                            const std::string &label = model.value->name + "##model" + std::to_string(idx++);
+                            if (ImGui::Selectable(label.c_str(), selected_object == model.value.get()))
+                            {
+                                selected_object = model.value.get();
+                            }
+                        }
+                        ImGui::TreePop();
+                    }
+                }
+                auto ogl_scene_3d = dynamic_cast<Rendering::OGL_Scene_3D *>(scene);
+                if (ogl_scene_3d)
+                {
+
+                    if (ImGui::TreeNode("Lights"))
+                    {
+                        int idx = 0;
+                        for (auto &light : ogl_scene_3d->lights)
+                        {
+                            ImGui::Checkbox(("##" + light.value->name).c_str(), &light.is_active);
+                            ImGui::SameLine();
+                            const std::string &label = light.value->name + "##light" + std::to_string(idx++);
+
+                            if (ImGui::Selectable(label.c_str(), selected_object == light.value.get()))
+                            {
+                                selected_object = light.value.get();
+                            }
+                        }
+                        ImGui::TreePop();
+                    }
+
+                    if (ImGui::TreeNode("Cameras"))
+                    {
+                        int idx = 0;
+                        for (auto &camera : ogl_scene_3d->cameras)
+                        {
+                            ImGui::Checkbox(("##" + camera.value->name).c_str(), &camera.is_active);
+                            ImGui::SameLine();
+                            const std::string &label = camera.value->name + "##camera" + std::to_string(idx++);
+
+                            if (ImGui::Selectable(label.c_str(), selected_object == camera.value.get()))
+                            {
+                                selected_object = camera.value.get();
+                            }
+                        }
+                        ImGui::TreePop();
+                    }
+                }
+                ImGui::TreePop();
+            }
+            else
+            {
+                selected_object = scene;
+            }
+        }
+        ImGui::End();
     }
 
 }; // namespace GUI

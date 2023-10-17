@@ -13,7 +13,7 @@ namespace Rendering
     using Light_Ptr_W = std::weak_ptr<Light>;
     using Light_Ptr = Light_Ptr_U;
 
-    class Light
+    class Light : public Core::Configurable
     {
     public:
         enum Light_Type
