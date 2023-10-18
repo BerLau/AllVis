@@ -10,6 +10,12 @@
 
 #define CLAMP(x, min, max) ((x) < (min) ? (min) : ((x) > (max) ? (max) : (x)))
 
+#define RANDOM(max) (rand() % (max)) // [0, max) max has to be greater than 0
+#define RANDOM_RANGE(min, max) ((min) + (rand() % ((max) - (min))))
+
+#define RANDOM_F(max) ((float)rand() / (float)(RAND_MAX / (max))) // [0, max) max has to be greater than 0
+#define RANDOM_RANGE_F(min, max) ((min) + ((float)rand() / (float)(RAND_MAX / ((max) - (min)))))
+
 namespace Core
 {
     const int FAILURE = 0;

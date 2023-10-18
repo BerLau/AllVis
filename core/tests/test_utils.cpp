@@ -42,3 +42,65 @@ bool Expect_Matrix_Equal(const Core::Matrix3 &m1, const glm::mat3 &m2)
     }
     return rslt;
 }
+
+TEST(TestRandom, random_max_int)
+{
+    int max = 10;
+    for (int i = 0; i < 100; i++)
+    {
+        for (int j = 0; j < 100; j++)
+        {
+            int rslt = RANDOM(max);
+            std::cout << "random number: " << rslt << std::endl;
+            EXPECT_GE(rslt, 0);
+            EXPECT_LT(rslt, max);
+        }
+    }
+}
+
+TEST(TestRandom, random_range_int)
+{
+    int min = 10;
+    int max = 20;
+    for (int i = 0; i < 100; i++)
+    {
+        for (int j = 0; j < 100; j++)
+        {
+            int rslt = RANDOM_RANGE(min, max);
+            std::cout << "random number: " << rslt << std::endl;
+            EXPECT_GE(rslt, min);
+            EXPECT_LT(rslt, max);
+        }
+    }
+}
+
+TEST(TestRandom, random_max_float)
+{
+    float max = -1.5f;
+    for (int i = 0; i < 100; i++)
+    {
+        for (int j = 0; j < 100; j++)
+        {
+            float rslt = RANDOM_F(max);
+            std::cout << "random number: " << rslt << std::endl;
+            EXPECT_GE(rslt, 0.f);
+            EXPECT_LT(rslt, max);
+        }
+    }
+}
+
+TEST(TestRandom, random_range_float)
+{
+    float min = -1.f;
+    float max = 1.f;
+    for (int i = 0; i < 100; i++)
+    {
+        for (int j = 0; j < 100; j++)
+        {
+            float rslt = RANDOM_RANGE_F(min, max);
+            std::cout << "random number: " << rslt << std::endl;
+            EXPECT_GE(rslt, min);
+            EXPECT_LT(rslt, max);
+        }
+    }
+}

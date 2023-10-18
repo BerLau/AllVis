@@ -17,6 +17,7 @@ struct Light
     vec3 direction;
     vec3 color;
     int type;
+    float intensity;
 };
 
 struct Material
@@ -25,6 +26,12 @@ struct Material
     float metallic;
     float roughness;
     float ao;
+
+    sampler2D albedo_map;
+    sampler2D metallic_map;
+    sampler2D roughness_map;
+    sampler2D ao_map;
+    sampler2D normal_map;
 };
 
 uniform int u_light_num;
@@ -47,17 +54,18 @@ void main()
 
     for (int i = 0; i < u_light_num; ++i)
     {
-        vec3 ambient = ambient_intensity * u_lights[i].color;
+        vec3 light_color = u_lights[i].color * u_lights[i].intensity;
+        vec3 ambient = ambient_intensity * light_color;
 
         // diffuse
         vec3 light_dir = normalize(u_lights[i].position - frag_position);
         float diff = max(dot(norm, light_dir), 0.0);
-        vec3 diffuse = diffuse_intensity * diff * u_lights[i].color;
+        vec3 diffuse = diffuse_intensity * diff * light_color;
 
         // specular
         vec3 halfway = normalize(light_dir + view_dir);
         float spec = pow(max(dot(norm, halfway), 0.0), u_material.roughness*10);
-        vec3 specular = specular_intensity * spec * u_lights[i].color;
+        vec3 specular = specular_intensity * spec * light_color;
 
         result += (ambient + diffuse + specular) * u_material.albedo;
     }

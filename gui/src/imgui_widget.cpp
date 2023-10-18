@@ -397,10 +397,14 @@ namespace GUI
         {
             auto &light_prop = light->properties;
             ImGui::Text("Light");
+            ImGui::Separator();
             ImGui::Text("Type");
             ImGui::SameLine();
+            ImGui::Combo("##type", (int *)&light_prop.type, "Parallel\0Point\0Spot\0");
             ImGui::Text("Color");
             ImGui::ColorEdit3("##color", light_prop.color.data());
+            ImGui::Text("Intensity");
+            ImGui::SliderFloat("##intensity", &light_prop.intensity, 0.0f, 1.0f, "%.3f");
             show_transform_property(light->transform.get());
         }
     }
@@ -410,6 +414,7 @@ namespace GUI
         if (camera != nullptr)
         {
             ImGui::Text("Camera");
+            ImGui::Separator();
             show_transform_property(camera->transform.get());
             auto &camera_props = camera->properties;
             ImGui::Text("FOV");
@@ -430,6 +435,7 @@ namespace GUI
 
             auto props = scene->get_properties();
             ImGui::Text("Scene");
+            ImGui::Separator();
             ImGui::Text("Rect");
             ImGui::Text("width: %.1f", props->width);
             ImGui::SameLine();
@@ -440,6 +446,7 @@ namespace GUI
                 // show the ogl_scene properties
                 auto props = ogl_scene->get_properties();
                 ImGui::Text("OGL_Scene");
+                ImGui::Separator();
                 ImGui::Text("background color");
                 ImGui::ColorEdit4("##bg_color", props->bg_color);
                 ImGui::Text("fov");
@@ -456,6 +463,7 @@ namespace GUI
                 // show the ogl_scene properties
                 auto props = ogl_3d->get_properties();
                 ImGui::Text("OGL_Scene_3D");
+                ImGui::Separator();
                 ImGui::Text("gamma");
                 ImGui::DragFloat("##gamma", &props->gamma, 0.1f, 0.01f, 10.0f);
                 ImGui::Text("exposure");
@@ -468,6 +476,8 @@ namespace GUI
     {
         if (material != nullptr)
         {
+            ImGui::Text("MAterial");
+            ImGui::Separator();
             ImGui::Text("Albedo");
             ImGui::ColorEdit3("##albedo", material->albedo.data());
             ImGui::Text("Metallic");
@@ -485,6 +495,10 @@ namespace GUI
     {
         if (transform != nullptr)
         {
+            // show Title
+            ImGui::Text("Transform");
+            // Display a separator
+            ImGui::Separator();
             auto pos = transform->get_position();
             ImGui::Text("Position");
             ImGui::DragFloat3("##position", pos.data(), 0.1f);
@@ -576,7 +590,7 @@ namespace GUI
                         {
                             auto &camera = ogl_scene_3d->cameras[i];
                             const std::string &label = camera.value->name + "##camera" + std::to_string(i);
-                            ImGui::RadioButton(("##"+label).c_str(),&(ogl_scene_3d->active_camera_index),i);
+                            ImGui::RadioButton(("##" + label).c_str(), &(ogl_scene_3d->active_camera_index), i);
                             ImGui::SameLine();
                             if (ImGui::Selectable(label.c_str(), selected_object == camera.value.get()))
                             {

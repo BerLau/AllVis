@@ -24,8 +24,9 @@ namespace Rendering
         };
         struct Properties
         {
-            Light_Type type;
-            Core::Vector3 color;
+            Light_Type type = POINT_LIGHT;
+            Core::Vector3 color=Core::Vector3{1.0, 1.0, 1.0};
+            float intensity = 1.0;
         };
         // attributes
     public:
@@ -33,10 +34,10 @@ namespace Rendering
         Properties properties;
         // constructors and deconstructor
     public:
-        Light(Properties properties = {POINT_LIGHT, Core::Vector3{1.0, 1.0, 1.0}})
+        Light(Properties properties = {POINT_LIGHT, Core::Vector3{1.0, 1.0, 1.0}, 1.0})
             : transform(Core::Transform_Ptr(new Core::Transform())),
               properties(properties) {}
-        Light(Core::Transform *transform, Properties properties = {POINT_LIGHT, Core::Vector3{1.0, 1.0, 1.0}})
+        Light(Core::Transform *transform, Properties properties = {POINT_LIGHT, Core::Vector3{1.0, 1.0, 1.0}, 1.0})
             : transform(transform),
               properties(properties) {}
         virtual ~Light() {}
@@ -50,6 +51,8 @@ namespace Rendering
         void set_direction(Core::Vector3 direction) { transform->set_front(direction); }
         void set_color(Core::Vector3 color) { properties.color = color; }
         void set_type(Light_Type type) { properties.type = type; }
+        void set_intensity(float intensity) { properties.intensity = intensity; }
+        float get_intensity() const { return properties.intensity; }
     };
 
 };

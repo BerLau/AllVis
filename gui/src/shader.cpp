@@ -169,6 +169,7 @@ namespace Rendering
         set_vec3(name + ".direction", light.get_direction().data());
         set_vec3(name + ".color", light.get_color().data());
         set_int(name + ".type", light.get_type());
+        set_float(name + ".intensity", light.get_intensity());
     }
 
     void Shader_Program::set_light(const std::string &name, size_t index, const Rendering::Light &light) const
@@ -176,6 +177,7 @@ namespace Rendering
         set_vec3(name + "[" + std::to_string(index) + "].position", light.get_position().data());
         set_vec3(name + "[" + std::to_string(index) + "].direction", light.get_direction().data());
         set_vec3(name + "[" + std::to_string(index) + "].color", light.get_color().data());
+        set_float(name + "[" + std::to_string(index) + "].intensity", light.get_intensity());
         set_int(name + "[" + std::to_string(index) + "].type", light.get_type());
     }
 
