@@ -32,8 +32,8 @@ namespace GUI
     {
         // attributes
     public:
-        float x;
-        float y;
+        float x_pos;
+        float y_pos;
         float width;
         float height;
         bool active;
@@ -48,12 +48,15 @@ namespace GUI
         virtual void update();
         virtual void init(){};
         virtual void destroy(){};
-        virtual void resize(float width, float height, float pos_x, float pos_y)
+        virtual void resize(float width, float height)
         {
             this->width = width;
             this->height = height;
-            this->x = pos_x;
-            this->y = pos_y;
+        }
+        virtual void reposition(float x, float y)
+        {
+            this->x_pos = x;
+            this->y_pos = y;
         }
     };
 

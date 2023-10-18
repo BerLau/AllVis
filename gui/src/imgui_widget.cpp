@@ -11,8 +11,8 @@ namespace GUI
     IMG_Widget::IMG_Widget(const std::string &name, float x, float y, float width, float height, bool active)
     {
         this->name = name;
-        this->x = x;
-        this->y = y;
+        this->x_pos = x;
+        this->y_pos = y;
         this->width = width;
         this->height = height;
         this->active = active;
@@ -28,7 +28,8 @@ namespace GUI
     {
         ImVec2 rect = ImGui::GetContentRegionAvail();
         ImVec2 pos = ImGui::GetCursorScreenPos();
-        this->resize(rect.x, rect.y, pos.x, pos.y);
+        this->resize(rect.x, rect.y);
+        this->reposition(pos.x, pos.y);
     }
 
     OGL_Widget::OGL_Widget(const std::string &name, float x, float y, float width, float height, bool active)
@@ -86,9 +87,25 @@ namespace GUI
         ImGui::Begin(name.c_str());
         {
             update();
+            bool focused = ImGui::IsWindowFocused();
+
+            ImGui::Begin("Info");
+            ImGui::Text("Size: %.1f x %.1f", width, height);
+            ImGui::Text("Position: %.1f x %.1f", x_pos, y_pos);
+            ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+            if (focused)
+            {
+                ImGui::Text("Focused");
+            }
+            else
+            {
+                ImGui::Text("Not Focused");
+            }
+            ImGui::End();
+
             scene->resize(width, height);
             this->render();
-            this->show_framebuffer(scene->fb_tex, x, y, width, height);
+            this->show_framebuffer(scene->fb_tex, x_pos, y_pos, width, height);
             ImGui::End();
         }
     }

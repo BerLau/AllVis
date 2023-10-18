@@ -2,5 +2,5 @@ GUI_SETTINGS
 ini_file default.ini
 show_OpenGL_window 1
 show_Log_window 1
-show_Text_window 1
+show_Text_window 0
 show_Properties_window 1

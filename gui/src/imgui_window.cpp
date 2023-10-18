@@ -1,6 +1,4 @@
 #include "imgui_window.h"
-#include <backends/imgui_impl_glfw.h>
-#include <backends/imgui_impl_opengl3.h>
 #include <stdexcept>
 #include <stdio.h>
 #include <memory>
@@ -10,28 +8,48 @@
 
 namespace GUI
 {
-    Window::Window(int width, int height, int x, int y)
+
+    void IMG_Window::callback(KEY_EVENT event)
+    {
+        Log::get().info("Key Pressed: " + std::string(event.name));
+    }
+
+    void IMG_Window::callback(MOUSE_EVENT event)
+    {
+        Log::get().info("Mouse Event: " + std::to_string(event.x_pos) + ", " + std::to_string(event.y_pos));
+    }
+
+    void IMG_Window::callback(RESIZE_EVENT event)
+    {
+        this->width = event.width;
+        this->height = event.height;
+    }
+
+    void IMG_Window::callback(REPOSITION_EVENT event)
+    {
+        this->x_pos = event.x_pos;
+        this->y_pos = event.y_pos;
+    }
+
+    IMG_Window::IMG_Window(int width, int height, int x, int y_pos)
     {
         this->width = width;
         this->height = height;
-        this->x = x;
-        this->y = y;
-        this->handle = NULL;
-        this->init();
+        this->x_pos = x;
+        this->y_pos = y_pos;
+        this->register_resize_watcher(this);
+        this->register_reposition_watcher(this);
     }
 
-    Window::~Window()
+    IMG_Window::~IMG_Window()
     {
         this->destroy();
     }
 
-    void Window::init()
+    void IMG_Window::init()
     {
-        this->init_glfw();
-        this->init_glad();
-        this->init_opengl();
-        this->init_imgui();
-
+        this->settings.load_from_file();
+        this->load_layout(this->settings.ini_file);
         Rendering::shader_program_factory.add_shader_from_file("./shaders/basic.vert", GL_VERTEX_SHADER, "basic_vertex");
         Rendering::shader_program_factory.add_shader_from_file("./shaders/basic.frag", GL_FRAGMENT_SHADER, "basic_fragment");
         Rendering::shader_program_factory.add_shader_program("basic_shader", "basic_vertex", "basic_fragment");
@@ -68,200 +86,127 @@ namespace GUI
         this->properties_Widget = std::unique_ptr<Properties_Widget>(new Properties_Widget("Properties", 0, 0, 800, 600, true));
     }
 
-    void Window::show(bool maximized)
+    void IMG_Window::show(bool maximized)
     {
-        if (maximized)
+
+        // ImGui::ShowDemoWindow();
+        // get mouse position
+        auto mouse_pos = ImGui::GetMousePos();
+        ImGui::Begin("Information");
+        ImGui::Text("Window Size: (%.1f, %.1f)", this->width, this->height);
+        ImGui::Text("Window Position: (%.1f, %.1f)", this->x_pos, this->y_pos);
+        ImGui::Text("Mouse Position: (%.1f, %.1f)", mouse_pos.x, mouse_pos.y);
+        ImGui::End();
+        settings_widget->show();
+        if (settings.show_OpenGL_window)
         {
-            glfwMaximizeWindow(this->handle);
+            auto scene = ogl_widget_test->scene.get();
+            ogl_widget_test->show();
+            scene_widget->bind_scene(scene);
+            scene_widget->show();
+            if (settings.show_Properties_window)
+            {
+                properties_Widget->bind_object(scene_widget->selected_object);
+                properties_Widget->show();
+            }
         }
 
-        while (!glfwWindowShouldClose(this->handle))
+        if (settings.show_Text_window)
         {
-            glfwPollEvents();
-            ImGui_ImplOpenGL3_NewFrame();
-            ImGui_ImplGlfw_NewFrame();
-            ImGui::NewFrame();
-
-            // ImGui::ShowDemoWindow();
-
-            auto viewport = ImGui::GetMainViewport();
-            ImGui::DockSpaceOverViewport(viewport);
-            settings_widget->show();
-            if (settings.show_OpenGL_window)
+            static float timer_gap = 10;
+            static int random_cap = 100;
+            ImGui::Begin("Timer Settings");
+            ImGui::SliderFloat("Timer Gap", &timer_gap, 0.1, 10, "%.1f", 0.1);
+            ImGui::SliderInt("Random Cap", &random_cap, 10, 1000000);
+            ImGui::End();
+            // get the current time
+            static auto prev_time = std::chrono::system_clock::now();
+            auto time = std::chrono::system_clock::now();
+            // get the time difference
+            auto time_diff = std::chrono::duration_cast<std::chrono::milliseconds>(time - prev_time);
+            // if the time difference is greater than the timer gap
+            if (time_diff.count() > timer_gap * 1000)
             {
-                auto scene = ogl_widget_test->scene.get();
-                ogl_widget_test->show();
-                scene_widget->bind_scene(scene);
-                scene_widget->show();
-                if (settings.show_Properties_window)
-                {
-                    properties_Widget->bind_object(scene_widget->selected_object);
-                    properties_Widget->show();
-                }
+                // reset the timer
+                prev_time = time;
+                // generate a random number
+                int random_number = rand() % random_cap;
+
+                // convert current time to string in the format of "hh:mm:ss"
+                // std::time_t curr_time = std::chrono::system_clock::to_time_t(time);
+
+                // auto time_info = localtime(&curr_time);
+
+                // char buffer[80];
+                // strftime(buffer, 80, "%H:%M:%S", time_info);
+
+                // update the text
+                // dynamic_cast<Text_Widget *>(this->text_widget.get())->text = std::to_string(random_number);
             }
 
-            if (settings.show_Text_window)
-            {
-                static float timer_gap = 10;
-                static int random_cap = 100;
-                ImGui::Begin("Timer Settings");
-                ImGui::SliderFloat("Timer Gap", &timer_gap, 0.1, 10, "%.1f", 0.1);
-                ImGui::SliderInt("Random Cap", &random_cap, 10, 1000000);
-                ImGui::End();
-                // get the current time
-                static auto prev_time = std::chrono::system_clock::now();
-                auto time = std::chrono::system_clock::now();
-                // get the time difference
-                auto time_diff = std::chrono::duration_cast<std::chrono::milliseconds>(time - prev_time);
-                // if the time difference is greater than the timer gap
-                if (time_diff.count() > timer_gap * 1000)
-                {
-                    // reset the timer
-                    prev_time = time;
-                    // generate a random number
-                    int random_number = rand() % random_cap;
-
-                    // convert current time to string in the format of "hh:mm:ss"
-                    // std::time_t curr_time = std::chrono::system_clock::to_time_t(time);
-
-                    // auto time_info = localtime(&curr_time);
-
-                    // char buffer[80];
-                    // strftime(buffer, 80, "%H:%M:%S", time_info);
-
-                    // update the text
-                    // dynamic_cast<Text_Widget *>(this->text_widget.get())->text = std::to_string(random_number);
-                }
-
-                // text_widget->show();
-            }
-
-            if (settings.show_Log_window)
-            {
-                log_widget->show();
-            }
-
-            ImGui::Render();
-
-            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-            if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-            {
-                GLFWwindow *backup_current_context = glfwGetCurrentContext();
-                ImGui::UpdatePlatformWindows();
-                ImGui::RenderPlatformWindowsDefault();
-                glfwMakeContextCurrent(backup_current_context);
-            }
-
-            glfwSwapBuffers(this->handle);
+            // text_widget->show();
         }
-    }
 
-    void Window::destroy()
-    {
-        ImGui_ImplOpenGL3_Shutdown();
-        ImGui_ImplGlfw_Shutdown();
-        ImGui::DestroyContext();
-        glfwDestroyWindow(this->handle);
-        glfwTerminate();
-    }
-
-    void Window::init_imgui()
-    {
-        IMGUI_CHECKVERSION();
-        ImGui::CreateContext();
-        // enable docking
-        ImGuiIO &io = ImGui::GetIO();
-        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-
-        ImGui::StyleColorsDark();
-        ImGui_ImplGlfw_InitForOpenGL(this->handle, true);
-        ImGui_ImplOpenGL3_Init("#version 330 core");
-        // load layout
-        this->settings.load_from_file();
-        this->load_layout(this->settings.ini_file);
-    }
-
-    void Window::init_glfw()
-    {
-        glfwSetErrorCallback(Window::glfw_error_callback);
-        if (!glfwInit())
+        if (settings.show_Log_window)
         {
-            throw std::runtime_error("Failed to initialize GLFW");
+            log_widget->show();
         }
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-#ifdef __APPLE__
-        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
-        this->handle = glfwCreateWindow(this->width, this->height, "GUI", NULL, NULL);
-        if (!this->handle)
-        {
-            throw std::runtime_error("Failed to create GLFW window");
-        }
-        glfwSetWindowPos(this->handle, this->x, this->y);
-        glfwSetWindowUserPointer(this->handle, this);
-        glfwSetKeyCallback(this->handle, Window::glfw_key_callback);
-        glfwSetWindowSizeCallback(this->handle, Window::glfw_resize_callback);
-        glfwSetWindowPosCallback(this->handle, Window::glfw_window_pos_callback);
-        glfwMakeContextCurrent(this->handle);
-        glfwSwapInterval(1);
-
-        // enable multisampling
-        glfwWindowHint(GLFW_SAMPLES, 4);
     }
 
-    void Window::init_glad()
+    void IMG_Window::destroy()
     {
-        if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+    }
+
+    void IMG_Window::resize_event(float width_, float height_)
+    {
+        // notify all resize watchers
+        if (!EQUAL_F(width_, this->width) || !EQUAL_F(height_, this->height))
         {
-            throw std::runtime_error("Failed to initialize GLAD");
+            // notify all resize watchers
+            for (auto watcher : this->resize_watchers)
+            {
+                watcher->callback({width_, height_});
+            }
         }
     }
 
-    void Window::init_opengl()
+    void IMG_Window::reposition_event(float x_pos, float y_pos)
     {
-        // enable depth testing
-        glEnable(GL_DEPTH_TEST);
-        // enable multisampling
-        glEnable(GL_MULTISAMPLE);
-        // enable face culling
-        glEnable(GL_CULL_FACE);
-        // enable blending
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        // notify all reposition watchers
+        if (x_pos != this->x_pos || y_pos != this->y_pos)
+        {
+            // notify all resize watchers
+            for (auto watcher : this->reposition_watchers)
+            {
+                watcher->callback({x_pos, y_pos});
+            }
+        }
     }
 
-    void Window::load_layout(const std::string &filename)
+    void IMG_Window::register_keyboard_watcher(KeyBoard_Watcher *watcher)
+    {
+        this->keyboard_watchers.insert(watcher);
+    }
+
+    void IMG_Window::register_mouse_watcher(Mouse_Watcher *watcher)
+    {
+        this->mouse_watchers.insert(watcher);
+    }
+
+    void IMG_Window::register_resize_watcher(Resize_Watcher *watcher)
+    {
+
+        this->resize_watchers.insert(watcher);
+    }
+
+    void IMG_Window::register_reposition_watcher(Reposition_Watcher *watcher)
+    {
+        this->reposition_watchers.insert(watcher);
+    }
+
+    void IMG_Window::load_layout(const std::string &filename)
     {
         ImGui::LoadIniSettingsFromDisk(filename.c_str());
-    }
-
-    void Window::glfw_error_callback(int error, const char *description)
-    {
-        throw std::runtime_error(description);
-    }
-
-    void Window::glfw_key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
-    {
-        if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-        {
-            glfwSetWindowShouldClose(window, true);
-        }
-    }
-
-    void Window::glfw_resize_callback(GLFWwindow *window, int width, int height)
-    {
-        Window *self = (Window *)glfwGetWindowUserPointer(window);
-        self->width = width;
-        self->height = height;
-    }
-
-    void Window::glfw_window_pos_callback(GLFWwindow *window, int xpos, int ypos)
-    {
-        Window *self = (Window *)glfwGetWindowUserPointer(window);
-        self->x = xpos;
-        self->y = ypos;
     }
 
 } // namespace GUI
