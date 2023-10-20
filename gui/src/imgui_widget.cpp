@@ -9,13 +9,14 @@
 namespace GUI
 {
     IMG_Widget::IMG_Widget(const std::string &name, float x, float y, float width, float height, bool active)
+        : Core::Configurable(name),
+          width(width),
+          height(height),
+          pos_x(x),
+          pos_y(y),
+          active(active),
+          focused(false)
     {
-        this->name = name;
-        this->x_pos = x;
-        this->y_pos = y;
-        this->width = width;
-        this->height = height;
-        this->active = active;
         init();
     }
 
@@ -26,10 +27,17 @@ namespace GUI
 
     void IMG_Widget::update()
     {
+        // get the content region size
         ImVec2 rect = ImGui::GetContentRegionAvail();
+        // get the content region position
         ImVec2 pos = ImGui::GetCursorScreenPos();
         this->resize(rect.x, rect.y);
         this->reposition(pos.x, pos.y);
+    }
+
+    Core::Vector2 IMG_Widget::win_to_ndc(float x, float y)
+    {
+        return Core::Vector2((x - this->pos_x) / this->width, (y - this->pos_y) / this->height);
     }
 
     OGL_Widget::OGL_Widget(const std::string &name, float x, float y, float width, float height, bool active)
@@ -43,15 +51,9 @@ namespace GUI
         destroy();
     }
 
-    void OGL_Widget::resize(float width, float height)
-    {
-        this->width = width;
-        this->height = height;
-    }
-
     void OGL_Widget::show_framebuffer(GLuint tex, float x, float y, float width, float height)
     {
-        ImGui::Image((void *)tex, ImVec2(width, height), ImVec2(0, 1), ImVec2(1, 0));
+        ImGui::GetWindowDrawList()->AddImage((void *)tex, ImVec2(x, y), ImVec2(x + width, y + height));
     }
 
     void OGL_Widget::init()
@@ -64,14 +66,19 @@ namespace GUI
 
     Sample_OGL_Widget::Sample_OGL_Widget(const std::string &name, float x, float y, float width, float height, bool active) : OGL_Widget(name, x, y, width, height, active)
     {
-        Rendering::OGL_Scene_3D::Properties *properties = new Rendering::OGL_Scene_3D::Properties();
-        scene = Rendering::OGL_Scene_3D_Ptr(new Rendering::OGL_Scene_3D(width, height, properties));
+        scene = Rendering::OGL_Scene_3D_Ptr(new Rendering::OGL_Scene_3D(width, height));
         init();
     }
 
     Sample_OGL_Widget::~Sample_OGL_Widget()
     {
         destroy();
+    }
+
+    Core::Vector2 OGL_Widget::ndc_to_clip(float x, float y)
+    {
+        // convert to clip space -1 <= x <= 1; -1 <= y <= 1
+        return Core::Vector2(x * 2.f - 1.f, 1.f - y * 2);
     }
 
     void Sample_OGL_Widget::init()
@@ -82,32 +89,50 @@ namespace GUI
     {
     }
 
+    void Sample_OGL_Widget::resize(float width, float height)
+    {
+        OGL_Widget::resize(width, height);
+        scene->resize(width, height);
+    }
+
     void Sample_OGL_Widget::show()
     {
+
+        // set padding to zero
+        // ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
         ImGui::Begin(name.c_str());
         {
             update();
-            bool focused = ImGui::IsWindowFocused();
-
-            ImGui::Begin("Info");
-            ImGui::Text("Size: %.1f x %.1f", width, height);
-            ImGui::Text("Position: %.1f x %.1f", x_pos, y_pos);
-            ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
-            if (focused)
-            {
-                ImGui::Text("Focused");
-            }
-            else
-            {
-                ImGui::Text("Not Focused");
-            }
-            ImGui::End();
-
-            scene->resize(width, height);
+            this->focused = ImGui::IsWindowFocused();
+            // get the actual canvas size
+            glViewport(0, 0, this->width, height);
             this->render();
-            this->show_framebuffer(scene->fb_tex, x_pos, y_pos, width, height);
-            ImGui::End();
+            this->show_framebuffer(scene->fb_tex, this->pos_x, this->pos_y, this->width, this->height);
         }
+        ImGui::End();
+        // ImGui::PopStyleVar();
+        ImGui::Begin("Info");
+        ImGui::Text("Size: %.1f x %.1f", width, height);
+        ImGui::Text("Position: %.1f x %.1f", this->pos_x, this->pos_y);
+        ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+
+        if (focused)
+        {
+            ImGui::Text("Focused");
+            auto mouse_pos = ImGui::GetMousePos();
+            // get the normalized mouse position
+            auto mouse_ndc = win_to_ndc(mouse_pos.x, mouse_pos.y);
+
+            auto mouse_clip = ndc_to_clip(mouse_ndc.x(), mouse_ndc.y());
+            ImGui::Text("Mouse Position: %.1f , %.1f", mouse_pos.x, mouse_pos.y);
+            ImGui::Text("Mouse Position Normalized: %.3f , %.3f", mouse_ndc.x(), mouse_ndc.y());
+            ImGui::Text("Mouse Position Clip: %.3f , %.3f", mouse_clip.x(), mouse_clip.y());
+        }
+        else
+        {
+            ImGui::Text("Not Focused");
+        }
+        ImGui::End();
     }
 
     void Sample_OGL_Widget::render()
@@ -450,41 +475,38 @@ namespace GUI
         if (scene != nullptr)
         {
 
-            auto props = scene->get_properties();
             ImGui::Text("Scene");
             ImGui::Separator();
             ImGui::Text("Rect");
-            ImGui::Text("width: %.1f", props->width);
+            ImGui::Text("width: %.1f", scene->width);
             ImGui::SameLine();
-            ImGui::Text("height: %.1f", props->height);
+            ImGui::Text("height: %.1f", scene->height);
             auto ogl_scene = dynamic_cast<Rendering::OGL_Scene *>(scene);
             if (ogl_scene)
             {
                 // show the ogl_scene properties
-                auto props = ogl_scene->get_properties();
                 ImGui::Text("OGL_Scene");
                 ImGui::Separator();
                 ImGui::Text("background color");
-                ImGui::ColorEdit4("##bg_color", props->bg_color);
+                ImGui::ColorEdit4("##bg_color", ogl_scene->bg_color.data());
                 ImGui::Text("fov");
-                ImGui::DragFloat("##fov", &props->fov, 0.1f, 0.1f, 180.0f);
+                ImGui::DragFloat("##fov", &ogl_scene->fov, 0.1f, 0.1f, 180.0f);
                 ImGui::Text("near");
-                ImGui::DragFloat("##near", &props->near, 0.1f, 0.1f, 100.0f);
+                ImGui::DragFloat("##near", &ogl_scene->near, 0.1f, 0.1f, 100.0f);
                 ImGui::Text("far");
-                ImGui::DragFloat("##far", &props->far, 0.1f, 0.1f, 100.0f);
+                ImGui::DragFloat("##far", &ogl_scene->far, 0.1f, 0.1f, 100.0f);
             }
 
             auto ogl_3d = dynamic_cast<Rendering::OGL_Scene_3D *>(scene);
             if (ogl_3d)
             {
                 // show the ogl_scene properties
-                auto props = ogl_3d->get_properties();
                 ImGui::Text("OGL_Scene_3D");
                 ImGui::Separator();
                 ImGui::Text("gamma");
-                ImGui::DragFloat("##gamma", &props->gamma, 0.1f, 0.01f, 10.0f);
+                ImGui::DragFloat("##gamma", &ogl_3d->gamma, 0.1f, 0.01f, 10.0f);
                 ImGui::Text("exposure");
-                ImGui::DragFloat("##exposure", &props->exposure, 0.1f, 0.01f, 10.0f);
+                ImGui::DragFloat("##exposure", &ogl_3d->exposure, 0.1f, 0.01f, 10.0f);
             }
         }
     }

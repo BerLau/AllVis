@@ -20,23 +20,17 @@ namespace Rendering
     class Scene : public Core::Configurable
     {
         // structures
-
     public:
-        class Properties
-        {
-        public:
-            float width = 0.f;
-            float height = 0.f;
-            float aspect = 0.f;
-            virtual bool is_accessible() { return true; }
-        };
-        using Properties_Ptr = std::unique_ptr<Properties>;
-        // attributes
     public:
-        Properties_Ptr properties;
+        float width = 0.f;
+        float height = 0.f;
+        float aspect = 0.f;
         // constructors and deconstructor
     public:
-        Scene(float width, float height, Properties *properties) : properties(properties)
+        Scene(float width, float height)
+            : width(width),
+              height(height),
+              aspect(height == 0.f ? 0.f : width / height)
         {
             this->resize(width, height);
         }
@@ -50,11 +44,10 @@ namespace Rendering
 
         virtual void resize(float width, float height)
         {
-            properties->width = width;
-            properties->height = height;
-            properties->aspect = width / height;
+            this->width = width;
+            this->height = height;
+            this->aspect = height == 0.f ? 0 : width / height;
         }
-        virtual Properties *get_properties() { return properties.get(); }
     };
 
     class OGL_Scene;
@@ -72,26 +65,20 @@ namespace Rendering
             OGL_Model_Ptr value = nullptr;
             bool is_active = true;
         };
-
-        class Properties : public Scene::Properties
-        {
-        public:
-            float near = 0.1f;
-            float far = 100.f;
-            float fov = 45.f;
-            float bg_color[4] = {0.f, 0.f, 0.f, 1.f};
-        };
         // attributes
     public:
-        GLuint fbo, fb_tex, rbo;
-        Rendering::Shader_Program *shader;
+        float near = 0.1f;
+        float far = 100.0f;
+        float fov = 45.0f;
+        Core::Vector4 bg_color = Core::Vector4(1.f, 1.f, 1.f, 1.0f);
+        GLuint fbo = 0, fb_tex = 0, rbo = 0;
+        Rendering::Shader_Program *shader = nullptr;
         std::vector<OGL_Model_Item> models;
         // constructors and deconstructor
     public:
         // cast properties to OGL_Scene::Properties
-        OGL_Scene(float width, float height, Properties *properties)
-            : fb_tex(0), fbo(0), rbo(0), shader(nullptr),
-              Scene(height, width, properties)
+        OGL_Scene(float width, float height)
+            : Scene(height, width)
         {
             init();
         }
@@ -114,7 +101,7 @@ namespace Rendering
         virtual void render() override = 0;
         virtual void resize(float width, float height) override
         {
-            if (EQUAL_F(width, properties->width) && EQUAL_F(height, properties->height))
+            if (EQUAL_F(this->width, width) && EQUAL_F(this->height, height))
             {
                 return;
             }
@@ -123,11 +110,6 @@ namespace Rendering
                 Scene::resize(width, height);
                 this->resize_framebuffer();
             }
-        }
-
-        Properties *get_properties()
-        {
-            return dynamic_cast<Properties *>(properties.get());
         }
         void create_framebuffer();
         void resize_framebuffer();
@@ -155,14 +137,10 @@ namespace Rendering
             Light_Ptr value = nullptr;
             bool is_active = true;
         };
-        class Properties : public OGL_Scene::Properties
-        {
-        public:
-            float gamma = 2.2f;
-            float exposure = 1.f;
-        };
         // attributes
     public:
+        float gamma=2.2f;
+        float exposure = 1.0f;
         // constructors and deconstructor
         Rendering::Texture_Ptr sample_texture;
 
@@ -172,7 +150,7 @@ namespace Rendering
         std::vector<Light_Item> lights;
         // constructors and deconstructor
     public:
-        OGL_Scene_3D(float width, float height, Properties *properties);
+        OGL_Scene_3D(float width, float height);
         virtual ~OGL_Scene_3D();
 
         // methods
@@ -181,11 +159,6 @@ namespace Rendering
         virtual void update();
         virtual void destroy();
         virtual void render();
-
-        virtual Properties *get_properties()
-        {
-            return dynamic_cast<Properties *>(properties.get());
-        }
 
         void set_shader(Rendering::Shader_Program *shader)
         {

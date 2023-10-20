@@ -18,15 +18,10 @@ namespace GUI
     using IMG_Window_S_Ptr = std::shared_ptr<IMG_Window>;
     using IMG_Window_W_Ptr = std::weak_ptr<IMG_Window>;
     using IMG_Window_Ptr = IMG_Window_U_Ptr;
-    class IMG_Window : public KeyBoard_Watcher, public Mouse_Watcher, public Resize_Watcher, public Reposition_Watcher
+    class IMG_Window
     {
         // structures
-        // interface
-    public:
-        void callback(KEY_EVENT event) override;
-        void callback(MOUSE_EVENT event) override;
-        void callback(RESIZE_EVENT event) override;
-        void callback(REPOSITION_EVENT event) override;
+
         // attributes
     public:
         float width;
@@ -41,12 +36,6 @@ namespace GUI
         Properties_Widget_Ptr properties_Widget;
         Scene_Widget_Ptr scene_widget;
 
-        std::set<KeyBoard_Watcher *> keyboard_watchers;
-        std::set<Mouse_Watcher *> mouse_watchers;
-        std::set<Resize_Watcher *> resize_watchers;
-        std::set<Reposition_Watcher *> reposition_watchers;
-
-
         // constructors and deconstructor
     public:
         IMG_Window(int width = 800, int height = 600, int x_pos = 0, int y_pos = 0);
@@ -57,15 +46,6 @@ namespace GUI
         void init();
         void show(bool maximized = false);
         void destroy();
-
-        void resize_event(float width, float height);
-        void reposition_event(float x_pos, float y_pos);
-
-        void register_keyboard_watcher(KeyBoard_Watcher *watcher);
-        void register_mouse_watcher(Mouse_Watcher *watcher);
-        void register_resize_watcher(Resize_Watcher *watcher);
-        void register_reposition_watcher(Reposition_Watcher *watcher);
-
         void load_layout(const std::string &filename);
     };
 }

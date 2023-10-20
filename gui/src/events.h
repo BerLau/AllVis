@@ -12,11 +12,11 @@ namespace GUI
     public:
         struct KEY_EVENT
         {
-            unsigned int value = 0;
-            const char *name;
-            unsigned int scancode;
-            unsigned int action;
-            unsigned int mods;
+            int value = 0;
+            const char *name = "";
+            int scancode = 0;
+            int action = 0;
+            int mods = 0;
         };
 
         // attributes
@@ -30,27 +30,70 @@ namespace GUI
         virtual void callback(KEY_EVENT KEY_EVENT) = 0;
     };
 
-    class Mouse_Watcher
+    class Mouse_Click_Watcher
     {
         // structures
     public:
-        struct MOUSE_EVENT
+        struct MOUSE_CLICK_EVENT
         {
-            double x_pos;
-            double y_pos;
-            unsigned int action;
-            unsigned int mods;
+            float x_pos;
+            float y_pos;
+            int button;
+            int action;
+            int mods;
         };
 
         // attributes
     public:
         // constructors and deconstructor
     public:
-        Mouse_Watcher(){};
-        virtual ~Mouse_Watcher(){};
+        Mouse_Click_Watcher(){};
+        virtual ~Mouse_Click_Watcher(){};
         // methods
     public:
-        virtual void callback(MOUSE_EVENT event) = 0;
+        virtual void callback(MOUSE_CLICK_EVENT event) = 0;
+    };
+
+    class Mouse_Move_Watcher
+    {
+        // structures
+    public:
+        struct MOUSE_MOVE_EVENT
+        {
+            float x_pos;
+            float y_pos;
+        };
+
+        // attributes
+    public:
+        // constructors and deconstructor
+    public:
+        Mouse_Move_Watcher(){};
+        virtual ~Mouse_Move_Watcher(){};
+        // methods
+    public:
+        virtual void callback(MOUSE_MOVE_EVENT event) = 0;
+    };
+
+    class Scroll_Watcher
+    {
+        // structures
+    public:
+        struct SCROLL_EVENT
+        {
+            float x_offset;
+            float y_offset;
+        };
+
+        // attributes
+    public:
+        // constructors and deconstructor
+    public:
+        Scroll_Watcher(){};
+        virtual ~Scroll_Watcher(){};
+        // methods
+    public:
+        virtual void callback(SCROLL_EVENT event) = 0;
     };
 
     class Resize_Watcher
@@ -94,6 +137,24 @@ namespace GUI
     public:
         virtual void callback(REPOSITION_EVENT event) = 0;
     };
+
+    class Event_Dispatcher
+    {
+        // structures
+    public:
+
+        // attributes
+    public:
+        // constructors and deconstructor
+    public:
+        Event_Dispatcher(){};
+        virtual ~Event_Dispatcher(){};
+        // methods
+    public:
+        virtual void capture_events(GLFWwindow *glfw_window);
+    };
+
+
 
 }; // namespace GUI
 

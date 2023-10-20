@@ -28,16 +28,18 @@ namespace GUI
     using IMGWidget_W_Ptr = std::weak_ptr<IMG_Widget>;
     using IMGWidget_Ptr = IMGWidget_U_Ptr;
 
-    class IMG_Widget
+    class IMG_Widget : public Core::Configurable
     {
+        // structures
+    public:
         // attributes
     public:
-        float x_pos;
-        float y_pos;
-        float width;
-        float height;
-        bool active;
-        std::string name;
+        float width=0.f;
+        float height=0.f;
+        float pos_x=0.f;
+        float pos_y=0.f;
+        bool active=true;
+        bool focused=false;
         // constructors and deconstructor
     public:
         IMG_Widget(const std::string &name = "IMG_Widget", float x = 0, float y = 0, float width = 0, float height = 0, bool active = true);
@@ -55,9 +57,11 @@ namespace GUI
         }
         virtual void reposition(float x, float y)
         {
-            this->x_pos = x;
-            this->y_pos = y;
+            this->pos_x = x;
+            this->pos_y = y;
         }
+
+        Core::Vector2 win_to_ndc(float x, float y);
     };
 
     class OGL_Widget;
@@ -78,7 +82,7 @@ namespace GUI
         virtual void init();
         virtual void destroy();
         virtual void show() = 0;
-        virtual void resize(float width, float height);
+        Core::Vector2 ndc_to_clip(float x, float y);
         void show_framebuffer(GLuint tex, float x, float y, float width, float height);
     };
 
@@ -95,6 +99,7 @@ namespace GUI
         // virtual void update();
         virtual void init();
         virtual void destroy();
+        virtual void resize(float width, float height) override;
         // attributes
     public:
         Rendering::OGL_Scene_3D_Ptr scene;
@@ -244,6 +249,5 @@ namespace GUI
     //     float get_text_width(const std::string &text, float scale);
     //     float get_text_height(const std::string &text, float scale);
     // };
-
 };
 #endif

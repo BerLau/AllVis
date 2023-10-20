@@ -8,7 +8,7 @@ namespace Rendering
 
         glGenTextures(1, &this->fb_tex);
         glBindTexture(GL_TEXTURE_2D, this->fb_tex);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, properties->width, properties->height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, this->width, this->height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // GL_NEAREST
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // GL_NEAREST
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->fb_tex, 0);
@@ -22,7 +22,7 @@ namespace Rendering
 
         glGenRenderbuffers(1, &rbo);
         glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, properties->width, properties->height);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, this->width, this->height);
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glBindTexture(GL_TEXTURE_2D, 0);
@@ -31,10 +31,10 @@ namespace Rendering
     void OGL_Scene::resize_framebuffer()
     {
         glBindTexture(GL_TEXTURE_2D, this->fb_tex);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, properties->width, properties->height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, this->width, this->height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
         glBindTexture(GL_TEXTURE_2D, 0);
         glBindBuffer(GL_RENDERBUFFER, this->rbo);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, properties->width, properties->height);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, this->width, this->height);
         glBindBuffer(GL_RENDERBUFFER, 0);
     }
 
@@ -64,8 +64,8 @@ namespace Rendering
         }
     }
 
-    OGL_Scene_3D::OGL_Scene_3D(float width, float height, Properties *properties)
-        : OGL_Scene(width, height, properties),
+    OGL_Scene_3D::OGL_Scene_3D(float width, float height)
+        : OGL_Scene(width, height),
           lights(),
           cameras(),
           active_camera_index(-1)
@@ -82,18 +82,18 @@ namespace Rendering
     {
         auto cube_model = Rendering::OGL_Model_U_Ptr(new Rendering::Cube_Model());
         cube_model->name = "cube 1";
-        cube_model->material->albedo = Core::Vector3(RANDOM_RANGE_F(0.2,1.0), RANDOM_RANGE_F(0.2,1.0), RANDOM_RANGE_F(0.2,1.0));
-        cube_model->material->metallic = RANDOM_RANGE_F(0.2,1.0);
-        cube_model->material->roughness = RANDOM_RANGE_F(0.2,1.0);
-        cube_model->material->ao = RANDOM_RANGE_F(0.2,1.0);
+        cube_model->material->albedo = Core::Vector3(RANDOM_RANGE_F(0.2, 1.0), RANDOM_RANGE_F(0.2, 1.0), RANDOM_RANGE_F(0.2, 1.0));
+        cube_model->material->metallic = RANDOM_RANGE_F(0.2, 1.0);
+        cube_model->material->roughness = RANDOM_RANGE_F(0.2, 1.0);
+        cube_model->material->ao = RANDOM_RANGE_F(0.2, 1.0);
 
         auto cube_mode_2 = Rendering::OGL_Model_U_Ptr(new Rendering::Cube_Model());
         cube_mode_2->name = "cube 2";
         cube_mode_2->transform->set_position(Core::Vector3(-1.f, 0.0f, 0.0f));
-        cube_mode_2->material->albedo = Core::Vector3(RANDOM_RANGE_F(0.2,1.0), RANDOM_RANGE_F(0.2,1.0), RANDOM_RANGE_F(0.2,1.0));
-        cube_mode_2->material->metallic = RANDOM_RANGE_F(0.2,1.0);
-        cube_mode_2->material->roughness = RANDOM_RANGE_F(0.2,1.0);
-        cube_mode_2->material->ao =RANDOM_RANGE_F(0.2,1.0);
+        cube_mode_2->material->albedo = Core::Vector3(RANDOM_RANGE_F(0.2, 1.0), RANDOM_RANGE_F(0.2, 1.0), RANDOM_RANGE_F(0.2, 1.0));
+        cube_mode_2->material->metallic = RANDOM_RANGE_F(0.2, 1.0);
+        cube_mode_2->material->roughness = RANDOM_RANGE_F(0.2, 1.0);
+        cube_mode_2->material->ao = RANDOM_RANGE_F(0.2, 1.0);
 
         models.push_back({std::move(cube_model), true});
         models.push_back({std::move(cube_mode_2), true});
@@ -101,9 +101,9 @@ namespace Rendering
         auto light = Rendering::Light_Ptr(new Rendering::Light());
         light->name = "light 1";
         light->set_position(Core::Vector3(2.0f, 3.0f, 3.0f));
-        float r = RANDOM_RANGE_F(0.2,1.0);
+        float r = RANDOM_RANGE_F(0.2, 1.0);
         light->set_color(Core::Vector3(r, r, r));
-        light->set_intensity(RANDOM_RANGE_F(0.2,1.0));
+        light->set_intensity(RANDOM_RANGE_F(0.2, 1.0));
         light->set_type(Rendering::Light::POINT_LIGHT);
         lights.push_back({std::move(light), true});
 
@@ -111,9 +111,9 @@ namespace Rendering
         light_2->name = "light 2";
         light_2->set_position(Core::Vector3(-2.0f, 3.0f, 3.0f));
         // light_2->set_direction(Core::Vector3(-1.0f, -1.0f, -1.0f));
-        r = RANDOM_RANGE_F(0.2,1.0);
+        r = RANDOM_RANGE_F(0.2, 1.0);
         light_2->set_color(Core::Vector3(r, r, r));
-        light_2->set_intensity(RANDOM_RANGE_F(0.2,1.0));
+        light_2->set_intensity(RANDOM_RANGE_F(0.2, 1.0));
         light_2->set_type(Rendering::Light::POINT_LIGHT);
         lights.push_back({std::move(light_2), true});
 
@@ -140,12 +140,11 @@ namespace Rendering
     {
         using namespace Core;
         bind_framebuffer();
-        auto props = get_properties();
         // temporarily set the light properties
-        glClearColor(props->bg_color[0], props->bg_color[1], props->bg_color[2], props->bg_color[3]);
-        glViewport(0, 0, props->width, props->height);
+        glClearColor(this->bg_color[0], this->bg_color[1], this->bg_color[2], this->bg_color[3]);
+        // glViewport(0, 0, props->width, props->height);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        Core::Matrix4 projection = Geometry::perspective(Geometry::radians(props->fov), props->width / props->height, props->near, props->far);
+        Core::Matrix4 projection = Geometry::perspective(Geometry::radians(this->fov), this->aspect, this->near, this->far);
         Core::Matrix4 view = Core::Matrix4::identity();
         Core::Vector3 view_position = Core::Vector3(0.0f, 0.0f, 0.0f);
         if (active_camera_index >= 0)

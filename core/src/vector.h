@@ -97,6 +97,20 @@ namespace Core
 
         ~Vector2() {}
         explicit Vector2(float *values, bool duplicate) : Vector(values, 2, duplicate) {}
+        // cast from matrix
+        Vector2(const Matrix &other) : Vector(other) {}
+        Vector2 &operator=(const Matrix &other)
+        {
+            Vector::operator=(other);
+            return *this;
+        }
+
+        Vector2(Matrix &&other) : Vector(other) {}
+        Vector2 &operator=(Matrix &&other)
+        {
+            Vector::operator=(other);
+            return *this;
+        }
         // methods
     private:
     protected:
