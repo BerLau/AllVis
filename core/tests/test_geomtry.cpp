@@ -146,7 +146,6 @@ TEST(TestGeometry, quat_matrix_look_at)
     Core::Vector3 up_ = q * Core::Vector3(0.0f, 1.0f, 0.0f);
     Core::Matrix4 m1 = Geometry::look_at(pos, center, up_);
 
-
     Core::Matrix4 m2 = Geometry::look_at(pos, center, up);
 
     std::cout << "m1" << std::endl
@@ -155,4 +154,21 @@ TEST(TestGeometry, quat_matrix_look_at)
               << m2 << std::endl;
 
     EXPECT_TRUE(m1 == m2);
+}
+
+TEST(TestGeometry, AngleAxis)
+{
+    Core::Vector3 axis = Core::Vector3(0.0f, 1.0f, 0.0f);
+    Core::Quaternion q = Geometry::angle_axis(Geometry::radians(90.0f), axis);
+
+    glm::vec3 axis_glm = glm::vec3(0.0f, 1.0f, 0.0f);
+    glm::quat q_glm = glm::angleAxis(glm::radians(90.0f), axis_glm);
+
+    std::cout << "q: " << q.w << ", " << q.x << ", " << q.y << ", " << q.z << std::endl;
+    std::cout << "q_glm: " << q_glm.w << ", " << q_glm.x << ", " << q_glm.y << ", " << q_glm.z << std::endl;
+
+    EXPECT_FLOAT_EQ(q.w, q_glm.w);
+    EXPECT_FLOAT_EQ(q.x, q_glm.x);
+    EXPECT_FLOAT_EQ(q.y, q_glm.y);
+    EXPECT_FLOAT_EQ(q.z, q_glm.z);
 }

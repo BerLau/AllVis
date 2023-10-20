@@ -50,7 +50,7 @@ namespace Geometry
     {
         float half_angle = angle_rad * 0.5f;
         float sin_half_angle = std::sin(half_angle);
-        return Core::Quaternion(x * sin_half_angle, y * sin_half_angle, z * sin_half_angle, cos(half_angle));
+        return Core::Quaternion(cos(half_angle), x * sin_half_angle, y * sin_half_angle, z * sin_half_angle);
     }
 
     Core::Quaternion angle_axis(float angle_rad, const Core::Vector3 &axis)

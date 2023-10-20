@@ -76,7 +76,6 @@ namespace Rendering
         Core::Vector3 get_focus() const { return transform->get_position() + transform->get_front() * properties.focus_distance; }
         void focus_on(Core::Vector3 position, Core::Vector3 up = Core::Vector3(0.0f, 1.0f, 0.0f));
 
-    private:
         void init();
         void move_forward(float distance);
         void move_backward(float distance);

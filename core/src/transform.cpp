@@ -214,26 +214,44 @@ namespace Core
 
     void Transform::rotate_x(float angle_degree, bool local)
     {
-        float offset = Geometry::radians(angle_degree);
-        Vector3 axis = local ? get_right() : WORLD_RIGHT;
-        Quaternion rot = Geometry::angle_axis(offset, axis);
-        m_orientation = (rot * m_orientation).normalize();
+        float angle_rad = Geometry::radians(angle_degree);
+        Quaternion offset = Geometry::angle_axis(angle_rad, get_right());
+        if (local)
+        {
+            m_orientation = (offset * m_orientation).normalize();
+        }
+        else
+        {
+            m_orientation = (m_orientation * offset).normalize();
+        }
     }
 
     void Transform::rotate_y(float angle_degree, bool local)
     {
-        float offset = Geometry::radians(angle_degree);
-        Vector3 axis = local ? get_up() : WORLD_UP;
-        Quaternion rot = Geometry::angle_axis(offset, axis);
-        m_orientation = (rot * m_orientation).normalize();
+        float angle_rad = Geometry::radians(angle_degree);
+        Quaternion offset = Geometry::angle_axis(angle_rad, get_up());
+        if (local)
+        {
+            m_orientation = (offset * m_orientation).normalize();
+        }
+        else
+        {
+            m_orientation = (m_orientation * offset).normalize();
+        }
     }
 
     void Transform::rotate_z(float angle_degree, bool local)
     {
-        float offset = Geometry::radians(angle_degree);
-        Vector3 axis = local ? get_front() : WORLD_UP;
-        Quaternion rot = Geometry::angle_axis(offset, axis);
-        m_orientation = (rot * m_orientation).normalize();
+        float angle_rad = Geometry::radians(angle_degree);
+        Quaternion offset = Geometry::angle_axis(angle_rad, get_front());
+        if (local)
+        {
+            m_orientation = (offset * m_orientation).normalize();
+        }
+        else
+        {
+            m_orientation = (m_orientation * offset).normalize();
+        }
     }
 
     void Transform::angle_axis_rotate(float angle_rad, Vector3 axis)

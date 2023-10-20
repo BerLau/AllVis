@@ -134,9 +134,89 @@ namespace GUI
         ImGui::End();
     }
 
+    void Sample_OGL_Widget::update()
+    {
+        OGL_Widget::update();
+        // update the scene
+        scene->update();
+        // process input
+        process_input();
+        // process mouse movement
+        process_mouse_movement();
+    }
+
     void Sample_OGL_Widget::render()
     {
         scene->render();
+    }
+
+    void Sample_OGL_Widget::process_input()
+    {
+        const float a = 1.f;
+        const float v_max = 3.f;
+        const float dump = 0.5f;
+        if (focused)
+        {
+            static float v = 0.0f;
+            bool W_DOWN = ImGui::IsKeyDown(ImGuiKey_W);
+            bool S_DOWN = ImGui::IsKeyDown(ImGuiKey_S);
+            bool A_DOWN = ImGui::IsKeyDown(ImGuiKey_A);
+            bool D_DOWN = ImGui::IsKeyDown(ImGuiKey_D);
+            bool Q_DOWN = ImGui::IsKeyDown(ImGuiKey_Q);
+            bool E_DOWN = ImGui::IsKeyDown(ImGuiKey_E);
+
+            float del_t = ImGui::GetIO().DeltaTime;
+            v = std::min(v_max, v + a * del_t);
+            float d = v * del_t;
+            if (W_DOWN || S_DOWN || A_DOWN || D_DOWN || Q_DOWN || E_DOWN)
+            {
+                if (W_DOWN)
+                {
+                    scene->cameras[scene->active_camera_index].value->move_forward(d);
+                }
+                if (S_DOWN)
+                {
+                    scene->cameras[scene->active_camera_index].value->move_backward(d);
+                }
+                if (A_DOWN)
+                {
+                    scene->cameras[scene->active_camera_index].value->move_left(d);
+                }
+                if (D_DOWN)
+                {
+                    scene->cameras[scene->active_camera_index].value->move_right(d);
+                }
+                if (Q_DOWN)
+                {
+                    scene->cameras[scene->active_camera_index].value->move_up(d);
+                }
+                if (E_DOWN)
+                {
+                    scene->cameras[scene->active_camera_index].value->move_down(d);
+                }
+            }
+            else
+            {
+                v = 0.0f;
+            }
+        }
+    }
+
+    void Sample_OGL_Widget::process_mouse_movement()
+    {
+        if (focused)
+        {
+            // get the mouse movement
+            auto mouse_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
+            float fps = ImGui::GetIO().Framerate;
+            float speed = 1.75f * 1.0 / fps;
+            // rotate the camera
+            scene->cameras[scene->active_camera_index].value->transform->rotate_y(-mouse_delta.x * speed);
+            scene->cameras[scene->active_camera_index].value->transform->rotate_x(-mouse_delta.y * speed);
+            // reset the mouse movement
+            ImGui::ResetMouseDragDelta(ImGuiMouseButton_Left);
+            // get the normalized mouse position
+        }
     }
 
     Log_Widget::Log_Widget(const std::string &name, float x, float y, float width, float height, bool active) : IMG_Widget(name, x, y, width, height, active)
@@ -549,11 +629,11 @@ namespace GUI
             ImGui::Separator();
             auto pos = transform->get_position();
             ImGui::Text("Position");
-            ImGui::DragFloat3("##position", pos.data(), 0.1f);
+            ImGui::DragFloat3("##position", pos.data(), 0.001f);
             transform->set_position(pos);
             Core::EulerAngle euler_angle = transform->get_orientation_euler_angle();
             ImGui::Text("Rotation(pitch,yaw,roll)");
-            ImGui::DragFloat3("##rotation", (float *)&euler_angle, 0.1f, -180, 180);
+            ImGui::DragFloat3("##rotation", (float *)&euler_angle, 0.01f, -180, 180);
             transform->set_orientation(euler_angle);
             auto scale = transform->get_scale();
             static bool lock_proportion = false;
@@ -561,7 +641,7 @@ namespace GUI
             {
                 ImGui::Text("Scale");
                 float x = scale.x();
-                ImGui::DragFloat("##scale", &scale.x(), 0.01f, 0.01f, 100.0f);
+                ImGui::DragFloat("##scale", &scale.x(), 0.001f, 0.01f, 100.0f);
                 float ratio = scale.x() / x;
                 scale.y() *= ratio;
                 scale.z() *= ratio;
@@ -656,6 +736,11 @@ namespace GUI
             }
         }
         ImGui::End();
+    }
+
+    void Scene_Widget::init()
+    {
+        IMG_Widget::init();
     }
 
 }; // namespace GUI

@@ -96,7 +96,7 @@ namespace GUI
         // inherit from OGL_Widget
     public:
         virtual void show();
-        // virtual void update();
+        virtual void update() override;
         virtual void init();
         virtual void destroy();
         virtual void resize(float width, float height) override;
@@ -110,6 +110,8 @@ namespace GUI
         // methods
     public:
         void render();
+        void process_input();
+        void process_mouse_movement();
     };
 
     class Log_Widget;
@@ -209,6 +211,13 @@ namespace GUI
     using Scene_Widget_Ptr = Scene_Widget_U_Ptr;
     class Scene_Widget : public IMG_Widget
     {
+        // inherit from OGL_Widget
+    public:
+        void show() override;
+        // void update() override;
+        void init() override;
+        // void destroy() override;
+        // void resize(float width, float height) override;
         // attributes
     public:
         Rendering::Scene *scene;
@@ -222,7 +231,6 @@ namespace GUI
         ~Scene_Widget(){};
         // methods
     public:
-        void show();
         void bind_scene(Rendering::Scene *scene) { this->scene = scene; }
     };
 };
