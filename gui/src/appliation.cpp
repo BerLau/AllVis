@@ -1,4 +1,4 @@
-#include "imgui_window.h"
+#include "application.h"
 #include <stdexcept>
 #include <stdio.h>
 #include <memory>
@@ -8,22 +8,18 @@
 
 namespace GUI
 {
-    IMG_Window::IMG_Window(int width, int height, int x, int y_pos)
+    Application::Application()
     {
-        this->width = width;
-        this->height = height;
-        this->x_pos = x;
-        this->y_pos = y_pos;
     }
 
-    IMG_Window::~IMG_Window()
+    Application::~Application()
     {
         this->destroy();
     }
 
-    void IMG_Window::init()
+    void Application::init()
     {
-        this->settings.load_from_file();
+        this->settings.load_from_file(settings.path);
         this->load_layout(this->settings.ini_file);
         Rendering::shader_program_factory.add_shader_from_file("./shaders/basic.vert", GL_VERTEX_SHADER, "basic_vertex");
         Rendering::shader_program_factory.add_shader_from_file("./shaders/basic.frag", GL_FRAGMENT_SHADER, "basic_fragment");
@@ -61,7 +57,7 @@ namespace GUI
         this->properties_Widget = std::unique_ptr<Properties_Widget>(new Properties_Widget("Properties", 0, 0, 800, 600, true));
     }
 
-    void IMG_Window::show(bool maximized)
+    void Application::run(bool maximized)
     {
 
         // ImGui::ShowDemoWindow();
@@ -83,11 +79,11 @@ namespace GUI
         }
     }
 
-    void IMG_Window::destroy()
+    void Application::destroy()
     {
     }
 
-    void IMG_Window::load_layout(const std::string &filename)
+    void Application::load_layout(const std::string &filename)
     {
         ImGui::LoadIniSettingsFromDisk(filename.c_str());
     }

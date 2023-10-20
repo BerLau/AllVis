@@ -172,12 +172,11 @@ namespace GUI
         std::string ini_file = "default.ini";
         bool show_OpenGL_window = false;
         bool show_Log_window = false;
-        bool show_Text_window = true;
         bool show_Properties_window = false;
 
-        void save_to_file();
+        void save_to_file(const std::string& directory,const std::string& filename);
 
-        void load_from_file();
+        void load_from_file(const std::string& path);
     };
 
     class UI_Settings_Widget;
@@ -200,7 +199,7 @@ namespace GUI
         void bind_settings(UI_Settings *settings);
 
     private:
-        void save_layout(const std::string &filename);
+        void save_layout(const std::string &directory,const std::string &filename);
     };
 
     class Scene_Widget;
@@ -226,28 +225,5 @@ namespace GUI
         void show();
         void bind_scene(Rendering::Scene *scene) { this->scene = scene; }
     };
-
-    // class Text_Widget : public OGL_Widget
-    // {
-    //     // attributes
-    // public:
-    //     std::string text;
-    //     float color[3] = {0.3f, 0.0f, 0.7f};
-    //     Rendering::Text_Render text_render;
-    //     // constructors and deconstructor
-    // public:
-    //     Text_Widget(const std::string &name = "Text_Widget", float x = 0, float y = 0, float width = 0, float height = 0, bool active = true);
-    //     ~Text_Widget();
-    //     // methods
-    // public:
-    //     void init();
-    //     void destroy();
-    //     void show();
-    //     void render();
-
-    // private:
-    //     float get_text_width(const std::string &text, float scale);
-    //     float get_text_height(const std::string &text, float scale);
-    // };
 };
 #endif

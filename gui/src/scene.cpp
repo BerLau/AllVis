@@ -117,7 +117,7 @@ namespace Rendering
         light_2->set_type(Rendering::Light::POINT_LIGHT);
         lights.push_back({std::move(light_2), true});
 
-        auto camera = Rendering::Camera_Ptr(new Rendering::Camera(Core::Vector3(0.0f, 2.0f, 4.0f)));
+        auto camera = Rendering::Camera_Ptr(new Rendering::Camera(Core::Vector3(0.0f, 0.0f, 4.0f)));
         camera->name = "camera 1";
         camera->focus_on(Core::Vector3(0.f, 0.0f, 0.0f), Core::Vector3(0.0f, 1.0f, 0.0f));
         cameras.push_back({std::move(camera), true});
@@ -142,7 +142,7 @@ namespace Rendering
         bind_framebuffer();
         // temporarily set the light properties
         glClearColor(this->bg_color[0], this->bg_color[1], this->bg_color[2], this->bg_color[3]);
-        // glViewport(0, 0, props->width, props->height);
+        glViewport(0, 0, this->width, this->height);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         Core::Matrix4 projection = Geometry::perspective(Geometry::radians(this->fov), this->aspect, this->near, this->far);
         Core::Matrix4 view = Core::Matrix4::identity();

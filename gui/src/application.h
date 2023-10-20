@@ -1,6 +1,6 @@
 #pragma once
-#ifndef GUI_WINDOW_H
-#define GUI_WINDOW_H
+#ifndef GUI_APPLICATION_H
+#define GUI_APPLICATION_H
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -13,21 +13,12 @@
 
 namespace GUI
 {
-    class IMG_Window;
-    using IMG_Window_U_Ptr = std::unique_ptr<IMG_Window>;
-    using IMG_Window_S_Ptr = std::shared_ptr<IMG_Window>;
-    using IMG_Window_W_Ptr = std::weak_ptr<IMG_Window>;
-    using IMG_Window_Ptr = IMG_Window_U_Ptr;
-    class IMG_Window
+    class Application
     {
         // structures
 
         // attributes
     public:
-        float width;
-        float height;
-        float x_pos;
-        float y_pos;
         UI_Settings settings;
         Sample_OGL_Widget_Ptr ogl_widget_test;
         Log_Widget_Ptr log_widget;
@@ -38,13 +29,13 @@ namespace GUI
 
         // constructors and deconstructor
     public:
-        IMG_Window(int width = 800, int height = 600, int x_pos = 0, int y_pos = 0);
-        ~IMG_Window();
+        Application();
+        ~Application();
 
         // methods
     public:
         void init();
-        void show(bool maximized = false);
+        void run(bool maximized = false);
         void destroy();
         void load_layout(const std::string &filename);
     };

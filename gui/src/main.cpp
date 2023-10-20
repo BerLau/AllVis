@@ -1,4 +1,4 @@
-#include "imgui_window.h"
+#include "application.h"
 #include <iostream>
 #include <fstream>
 #include <ctime>
@@ -11,9 +11,8 @@ void init_opengl();
 GLFWwindow *init_glfw(int width, int height, int x_pos, int y_pos);
 void init_imgui(GLFWwindow *glfw_window);
 void glfw_error_callback(int error, const char *description);
-void loop(GLFWwindow *glfw_window, GUI::IMG_Window *img_window);
-void destroy(GLFWwindow *glfw_window, GUI::IMG_Window *img_window);
-void dispatch_events(GLFWwindow *glfw_window, GUI::IMG_Window *img_window);
+void loop(GLFWwindow *glfw_window, GUI::Application *app);
+void destroy(GLFWwindow *glfw_window);
 
 int main()
 {
@@ -22,22 +21,22 @@ int main()
     auto glfw_window = init_glfw(800, 600, 0, 0);
     init_glad();
     init_opengl();
-    auto imgui_window = GUI::IMG_Window_Ptr(new GUI::IMG_Window(800, 600, 0, 0));
-    glfwSetWindowUserPointer(glfw_window, imgui_window.get());
+    auto app = GUI::Application();
+    glfwSetWindowUserPointer(glfw_window, &app);
     // dispatch_events(glfw_window, imgui_window.get());
 
     init_imgui(glfw_window);
     // register callbacks
 
     // maximize the window
-    imgui_window->init();
+    app.init();
     glfwMaximizeWindow(glfw_window);
 
     // GUI LOOP
-    loop(glfw_window, imgui_window.get());
+    loop(glfw_window, &app);
 
     // CLEANUP
-    destroy(glfw_window, imgui_window.get());
+    destroy(glfw_window);
     return 0;
 }
 
@@ -121,7 +120,7 @@ void glfw_error_callback(int error, const char *description)
     std::cout << "GLFW ERROR: " << error << " " << description << std::endl;
 }
 
-void loop(GLFWwindow *glfw_window, GUI::IMG_Window *img_window)
+void loop(GLFWwindow *glfw_window, GUI::Application *app)
 {
     while (!glfwWindowShouldClose(glfw_window))
     {
@@ -132,7 +131,7 @@ void loop(GLFWwindow *glfw_window, GUI::IMG_Window *img_window)
 
         auto viewport = ImGui::GetMainViewport();
         ImGui::DockSpaceOverViewport(viewport);
-        img_window->show();
+        app->run();
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
@@ -146,7 +145,7 @@ void loop(GLFWwindow *glfw_window, GUI::IMG_Window *img_window)
     }
 }
 
-void destroy(GLFWwindow *glfw_window, GUI::IMG_Window *img_window)
+void destroy(GLFWwindow *glfw_window)
 {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -156,58 +155,3 @@ void destroy(GLFWwindow *glfw_window, GUI::IMG_Window *img_window)
     std::cout << "QUIT" << std::endl;
     Rendering::shader_program_factory.destroy();
 }
-
-// void dispatch_events(GLFWwindow *glfw_window, GUI::IMG_Window *img_window)
-// {
-//     // dispatch resize event
-//     glfwSetWindowSizeCallback(glfw_window, [](GLFWwindow *glfw_window, int width, int height)
-//                               {
-//         auto img_window = static_cast<GUI::IMG_Window *>(glfwGetWindowUserPointer(glfw_window));
-//         img_window->resize_event(width, height); });
-
-//     // dispatch reposition event
-//     glfwSetWindowPosCallback(glfw_window, [](GLFWwindow *glfw_window, int x_pos, int y_pos)
-//                              {
-//         auto img_window = static_cast<GUI::IMG_Window *>(glfwGetWindowUserPointer(glfw_window));
-//         img_window->reposition_event(x_pos, y_pos); });
-
-//     // dispatch key event
-//     glfwSetKeyCallback(glfw_window, [](GLFWwindow *glfw_window, int key, int scancode, int action, int mods)
-//                        {
-//         auto img_window = static_cast<GUI::IMG_Window *>(glfwGetWindowUserPointer(glfw_window));
-//         for (auto watcher : img_window->keyboard_watchers)
-//         {
-//             const char *name = glfwGetKeyName(key, scancode);
-//             name = name ? name : "unknown";
-//             watcher->callback({key,name,scancode,action,mods});
-//         } });
-
-//     // dispatch mouse button event
-//     glfwSetMouseButtonCallback(glfw_window, [](GLFWwindow *glfw_window, int button, int action, int mods)
-//                                {
-//         auto img_window = static_cast<GUI::IMG_Window *>(glfwGetWindowUserPointer(glfw_window));
-//         for (auto watcher : img_window->mouse_click_watchers)
-//         {
-//             double x_pos, y_pos;
-//             glfwGetCursorPos(glfw_window, &x_pos, &y_pos);
-//             watcher->callback({(float)x_pos, (float)y_pos, button, action, mods});
-//         } });
-
-//     // dispatch mouse move event
-//     glfwSetCursorPosCallback(glfw_window, [](GLFWwindow *glfw_window, double x_pos, double y_pos)
-//                              {
-//         auto img_window = static_cast<GUI::IMG_Window *>(glfwGetWindowUserPointer(glfw_window));
-//         for (auto watcher : img_window->mouse_move_watchers)
-//         {
-//             watcher->callback({(float)x_pos, (float)y_pos});
-//         } });
-
-//     // dispatch scroll event
-//     glfwSetScrollCallback(glfw_window, [](GLFWwindow *glfw_window, double x_offset, double y_offset)
-//                           {
-//         auto img_window = static_cast<GUI::IMG_Window *>(glfwGetWindowUserPointer(glfw_window));
-//         for (auto watcher : img_window->scroll_watchers)
-//         {
-//             watcher->callback({(float)x_offset, (float)y_offset});
-//         } });
-// }

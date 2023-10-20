@@ -5,7 +5,7 @@
 #include <fstream>
 #include "ui_log.h"
 #include <lmath.h>
-
+#include <filesystem>
 namespace GUI
 {
     IMG_Widget::IMG_Widget(const std::string &name, float x, float y, float width, float height, bool active)
@@ -53,7 +53,7 @@ namespace GUI
 
     void OGL_Widget::show_framebuffer(GLuint tex, float x, float y, float width, float height)
     {
-        ImGui::GetWindowDrawList()->AddImage((void *)tex, ImVec2(x, y), ImVec2(x + width, y + height));
+        ImGui::Image((void *)tex, ImVec2(width, height), ImVec2(0, 1), ImVec2(1, 0));
     }
 
     void OGL_Widget::init()
@@ -105,7 +105,6 @@ namespace GUI
             update();
             this->focused = ImGui::IsWindowFocused();
             // get the actual canvas size
-            glViewport(0, 0, this->width, height);
             this->render();
             this->show_framebuffer(scene->fb_tex, this->pos_x, this->pos_y, this->width, this->height);
         }
@@ -174,7 +173,7 @@ namespace GUI
     {
     }
 
-    void UI_Settings::save_to_file()
+    void UI_Settings::save_to_file(const std::string &directory, const std::string &filename)
     {
         // open file
         Log::get().info(std::string("Saving GUI settings from file: ") + path);
@@ -190,13 +189,12 @@ namespace GUI
         file << "ini_file " << ini_file << std::endl;
         file << "show_OpenGL_window " << show_OpenGL_window << std::endl;
         file << "show_Log_window " << show_Log_window << std::endl;
-        file << "show_Text_window " << show_Text_window << std::endl;
         file << "show_Properties_window " << show_Properties_window << std::endl;
         // close file
         file.close();
     }
 
-    void UI_Settings::load_from_file()
+    void UI_Settings::load_from_file(const std::string &path)
     {
         // open file
         Log::get().info(std::string("Loading GUI settings from file: ") + path);
@@ -231,10 +229,6 @@ namespace GUI
             {
                 ss >> show_Log_window;
             }
-            else if (key == "show_Text_window")
-            {
-                ss >> show_Text_window;
-            }
             else if (key == "show_Properties_window")
             {
                 ss >> show_Properties_window;
@@ -250,7 +244,6 @@ namespace GUI
             {
                 ImGui::Checkbox("Show OpenGL Window", &this->settings->show_OpenGL_window);
                 ImGui::Checkbox("Show Log Window", &this->settings->show_Log_window);
-                ImGui::Checkbox("Show Text Window", &this->settings->show_Text_window);
                 ImGui::Checkbox("Show Properties Window", &this->settings->show_Properties_window);
                 if (ImGui::Button("Save Layout"))
                 {
@@ -259,11 +252,14 @@ namespace GUI
                 }
                 if (ImGui::BeginPopupModal("Save Layout", NULL, ImGuiWindowFlags_AlwaysAutoResize))
                 {
+                    static char directory[256] = "";
+                    ImGui::InputText("Filepath", directory, 256);
+
                     static char filename[256] = "";
                     ImGui::InputText("Filename", filename, 256);
                     if (ImGui::Button("Save"))
                     {
-                        this->save_layout(filename);
+                        this->save_layout(directory, filename);
                         ImGui::CloseCurrentPopup();
                     }
                     ImGui::SameLine();
@@ -283,17 +279,25 @@ namespace GUI
         this->settings = settings;
     }
 
-    void UI_Settings_Widget::save_layout(const std::string &filename)
+    void UI_Settings_Widget::save_layout(const std::string &directory, const std::string &filename)
     {
+        // check if the folder exists
+        if (!std::filesystem::exists(directory))
+        {
+            Log::get().info("Creating directory: " + directory);
+            std::filesystem::create_directory(directory);
+        }
         // save imgui layout to file for loading directly in future.
         auto ini = ImGui::SaveIniSettingsToMemory();
 
-        std::ofstream file(settings->ini_file, std::ios::out | std::ios::trunc);
+        // save the ini file
+        std::ofstream file(directory + "/" + filename + ".ini", std::ios::out | std::ios::trunc);
         file.write(ini, strlen(ini));
         file.close();
-        this->settings->path = filename + std::string(".layout");
-        this->settings->ini_file = filename + std::string(".ini");
-        this->settings->save_to_file();
+        // save the settings file
+        this->settings->path = directory + "/" + filename + ".layout";
+        this->settings->ini_file = directory + "/" + filename + ".ini";
+        this->settings->save_to_file(directory, filename);
     }
 
     // Text_Widget::Text_Widget(const std::string &name, float x, float y, float width, float height, bool active)
@@ -422,15 +426,20 @@ namespace GUI
         if (model != nullptr)
         {
             ImGui::Text("Model");
+            ImGui::Separator();
             show_transform_property(model->transform.get());
         }
 
         auto ogl_model = dynamic_cast<Rendering::OGL_Model *>(model);
         if (ogl_model)
         {
-            // show material properties
-            show_material_property(ogl_model->material.get());
+            show_ogl_model_property(ogl_model);
         }
+    }
+
+    void Properties_Widget::show_ogl_model_property(Rendering::OGL_Model *model)
+    {
+        show_material_property(model->material.get());
     }
 
     void Properties_Widget::show_light_property(Rendering::Light *light)
