@@ -14,8 +14,8 @@
 #include <map>
 #include "shader.h"
 #include "text_render.h"
-
 #include "scene.h"
+#include "light.h"
 
 #include <freetype2/ft2build.h>
 #include FT_FREETYPE_H

@@ -7,6 +7,7 @@
 #include "mesh.h"
 #include "shader.h"
 #include "core.h"
+#include "material.h"
 
 namespace Rendering
 {
@@ -56,7 +57,7 @@ namespace Rendering
         Shader_Program *shader;
 
     public:
-        Rendering::Material_Ptr material;
+        Material_Ptr material;
 
         // constructors and deconstructor
     public:
@@ -64,7 +65,7 @@ namespace Rendering
         {
             init();
         }
-        OGL_Model(Mesh *mesh, Core::Transform *transform, Rendering::Material *material) : Model(mesh, transform), vao(0), vbo(0), ebo(0), material(material) {}
+        OGL_Model(Mesh *mesh, Core::Transform *transform, Material *material) : Model(mesh, transform), vao(0), vbo(0), ebo(0), material(material) {}
         virtual ~OGL_Model() { destroy(); }
         // methods
     public:
@@ -104,6 +105,24 @@ namespace Rendering
     public:
         Cube_Model() : OGL_Model() { init(); }
         virtual ~Cube_Model() {}
+        // methods
+    public:
+        virtual void draw();
+        virtual void update();
+        virtual void init() override;
+
+    private:
+        void create_mesh();
+    };
+
+    class Sphere_Model : public OGL_Model
+    {
+        // attributes
+    public:
+        // constructors and deconstructor
+    public:
+        Sphere_Model() : OGL_Model() { init(); }
+        virtual ~Sphere_Model() {}
         // methods
     public:
         virtual void draw();

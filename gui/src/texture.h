@@ -6,6 +6,7 @@
 #include <memory>
 #include <core.h>
 #include <unordered_map>
+#include "ui_log.h"
 
 namespace Rendering
 {
@@ -21,12 +22,20 @@ namespace Rendering
     public:
         struct Format
         {
-            GLenum min_filter;
-            GLenum mag_filter;
-            GLenum wrap_s;
-            GLenum wrap_t;
-            GLenum wrap_r;
-            float border_color[4];
+            GLenum min_filter = GL_LINEAR;
+            GLenum mag_filter = GL_LINEAR;
+            GLenum wrap_s = GL_CLAMP_TO_EDGE;
+            GLenum wrap_t = GL_CLAMP_TO_EDGE;
+            GLenum wrap_r = GL_CLAMP_TO_EDGE;
+            float border_color[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+            constexpr Format(GLenum min_filter = GL_LINEAR, GLenum mag_filter = GL_LINEAR, GLenum wrap_s = GL_CLAMP_TO_EDGE, GLenum wrap_t = GL_CLAMP_TO_EDGE, GLenum wrap_r = GL_CLAMP_TO_EDGE)
+                : min_filter(min_filter),
+                  mag_filter(mag_filter),
+                  wrap_s(wrap_s),
+                  wrap_t(wrap_t),
+                  wrap_r(wrap_r)
+            {
+            }
         };
         // attributes
     public:
@@ -34,7 +43,7 @@ namespace Rendering
         Format format;
         // constructors and deconstructor
     public:
-        Sampler(Format format = {GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, {0.0f, 0.0f, 0.0f, 0.0f}})
+        Sampler(Format format) : format(format)
         {
             glGenSamplers(1, &sampler_id);
             glSamplerParameteri(sampler_id, GL_TEXTURE_MIN_FILTER, format.min_filter);
@@ -73,11 +82,24 @@ namespace Rendering
     private:
         Sampler_Manager()
         {
+            // default sampler: linear filter, clamp to edge
+            Sampler *default_sampler = new Sampler(Sampler::Format());
+            samplers["default"] = Sampler_Ptr(default_sampler);
+
+            // shadow sampler: linear filter, clamp to border
+            Sampler *linear_clamp_edge = new Sampler(Sampler::Format(GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER));
+
+            samplers["linear_clamp_edge"] = Sampler_Ptr(linear_clamp_edge);
+
+            // shadow sampler: linear filter, clamp to border
+            Sampler *linear_clamp_border = new Sampler(Sampler::Format(GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER));
+
+            samplers["linear_clamp_border"] = Sampler_Ptr(linear_clamp_border);
         }
+
     public:
         ~Sampler_Manager()
         {
-            clear();
         }
         // methods
     public:
@@ -109,14 +131,12 @@ namespace Rendering
         }
         // static methods
     public:
-        static Sampler_Manager& instance()
+        static Sampler_Manager &instance()
         {
             static Sampler_Manager instance;
             return instance;
         }
     };
-
-    extern Sampler_Manager sampler_manager;
 
     class Texture;
     using Texture_S_Ptr = std::shared_ptr<Texture>;
@@ -134,11 +154,12 @@ namespace Rendering
             GLenum type;
             GLenum target;
         };
+
         // attributes
     public:
-        GLuint texture_id;
+        GLuint texture_id = 0;
         Format format;
-        Sampler *sampler;
+        Sampler *sampler = nullptr;
         // constructors and deconstructor
     public:
         Texture(Format format = {GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, GL_TEXTURE_2D});
@@ -160,14 +181,47 @@ namespace Rendering
         std::unordered_map<std::string, Texture_Ptr> textures;
         // constructors
     public:
-        Texture_Manager();
-        ~Texture_Manager();
+        ~Texture_Manager(){};
+
+    private:
+        Texture_Manager() {}
         // methods
     public:
-        Texture_Ptr get_texture(const std::string &name);
-        void add_texture(const std::string &name, Texture_Ptr texture);
-        void remove_texture(const std::string &name);
-        void clear();
+        Texture *get_texture(const std::string &path)
+        {
+            if (textures.find(path) != textures.end())
+            {
+                return textures[path].get();
+            }
+            return nullptr;
+        }
+        void add_texture(const std::string &path, Texture *texture)
+        {
+            textures.insert({path, Texture_Ptr(texture)});
+            GUI::Log::get().info("Texture_Manager: texture added:" + path);
+        }
+        void remove_texture(const std::string &path)
+        {
+            if (textures.find(path) != textures.end())
+            {
+                textures.erase(path);
+            }
+        }
+        bool has_texture(const std::string &path)
+        {
+            return textures.find(path) != textures.end();
+        }
+        void clear()
+        {
+            textures.clear();
+        }
+        // static methods
+    public:
+        static Texture_Manager &instance()
+        {
+            static Texture_Manager singleton;
+            return singleton;
+        }
     };
 }
 

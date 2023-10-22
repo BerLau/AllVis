@@ -10,6 +10,7 @@ namespace Core
         // attributes
     public:
         std::string name;
+        bool editable = true;
         // constructors and deconstructor
     public:
         Configurable(const std::string &name = "Configurable Object") : name(name){};

@@ -82,7 +82,7 @@ namespace Rendering
     {
         auto cube_model = Rendering::OGL_Model_U_Ptr(new Rendering::Cube_Model());
         cube_model->name = "cube 1";
-        cube_model->material->albedo = Core::Vector3(RANDOM_RANGE_F(0.2, 1.0), RANDOM_RANGE_F(0.2, 1.0), RANDOM_RANGE_F(0.2, 1.0));
+        cube_model->material->color = Core::Vector3(RANDOM_RANGE_F(0.2, 1.0), RANDOM_RANGE_F(0.2, 1.0), RANDOM_RANGE_F(0.2, 1.0));
         cube_model->material->metallic = RANDOM_RANGE_F(0.2, 1.0);
         cube_model->material->roughness = RANDOM_RANGE_F(0.2, 1.0);
         cube_model->material->ao = RANDOM_RANGE_F(0.2, 1.0);
@@ -90,7 +90,7 @@ namespace Rendering
         auto cube_mode_2 = Rendering::OGL_Model_U_Ptr(new Rendering::Cube_Model());
         cube_mode_2->name = "cube 2";
         cube_mode_2->transform->set_position(Core::Vector3(-1.f, 0.0f, 0.0f));
-        cube_mode_2->material->albedo = Core::Vector3(RANDOM_RANGE_F(0.2, 1.0), RANDOM_RANGE_F(0.2, 1.0), RANDOM_RANGE_F(0.2, 1.0));
+        cube_mode_2->material->color = Core::Vector3(RANDOM_RANGE_F(0.2, 1.0), RANDOM_RANGE_F(0.2, 1.0), RANDOM_RANGE_F(0.2, 1.0));
         cube_mode_2->material->metallic = RANDOM_RANGE_F(0.2, 1.0);
         cube_mode_2->material->roughness = RANDOM_RANGE_F(0.2, 1.0);
         cube_mode_2->material->ao = RANDOM_RANGE_F(0.2, 1.0);
@@ -163,7 +163,7 @@ namespace Rendering
         {
             if (light.is_active)
             {
-                shader->set_light("u_lights[" + std::to_string(active_light_num++) + "]", *light.value);
+                light.value->write_to_shader("u_lights", active_light_num++, shader);
             }
         }
         shader->set_int("u_light_num", active_light_num);
@@ -174,6 +174,16 @@ namespace Rendering
                 model.value->bind_shader(shader);
                 model.value->draw();
                 model.value->unbind_shader();
+            }
+        }
+        shader->set_int("u_light_num", 0);
+        for (auto &light : lights)
+        {
+            if (light.is_active)
+            {
+                light.value->bind_shader(shader);
+                light.value->draw();
+                light.value->unbind_shader();
             }
         }
         unbind_framebuffer();

@@ -8,6 +8,7 @@
 
 #include "models.h"
 #include "camera.h"
+#include "light.h"
 
 namespace Rendering
 {

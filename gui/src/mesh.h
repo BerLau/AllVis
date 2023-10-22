@@ -125,6 +125,7 @@ namespace Rendering
         }
         // static methods
     };
+    
 }; // namespace Rendering
 
 #endif // !RENDERING_MESH_H

@@ -8,6 +8,7 @@ in vec3 frag_normal;
 in vec2 texcoord;
 in vec3 test;
 
+
 #define DIRECTIONAL_LIGHT 0
 #define POINT_LIGHT 1
 #define SPOT_LIGHT 2
@@ -22,7 +23,7 @@ struct Light
 
 struct Material
 {
-    vec3 albedo;
+    vec3 color;
     float metallic;
     float roughness;
     float ao;
@@ -67,7 +68,7 @@ void main()
         float spec = pow(max(dot(norm, halfway), 0.0), u_material.roughness*10);
         vec3 specular = specular_intensity * spec * light_color;
 
-        result += (ambient + diffuse + specular) * u_material.albedo;
+        result += (ambient + diffuse + specular) * u_material.color;
     }
 
     frag_color = vec4(result, 1.0);

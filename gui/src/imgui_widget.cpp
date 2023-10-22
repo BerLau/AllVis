@@ -6,6 +6,7 @@
 #include "ui_log.h"
 #include <lmath.h>
 #include <filesystem>
+#include "ImGuiFileDialog.h"
 namespace GUI
 {
     IMG_Widget::IMG_Widget(const std::string &name, float x, float y, float width, float height, bool active)
@@ -152,8 +153,8 @@ namespace GUI
 
     void Sample_OGL_Widget::process_input()
     {
-        const float a = 1.f;
-        const float v_max = 3.f;
+        const float a = 0.75f;
+        const float v_max = 2.f;
         const float dump = 0.5f;
         if (focused)
         {
@@ -325,29 +326,30 @@ namespace GUI
                 ImGui::Checkbox("Show OpenGL Window", &this->settings->show_OpenGL_window);
                 ImGui::Checkbox("Show Log Window", &this->settings->show_Log_window);
                 ImGui::Checkbox("Show Properties Window", &this->settings->show_Properties_window);
+                static bool show_save_dialog = false;
                 if (ImGui::Button("Save Layout"))
                 {
-                    // Open Popup Modal to get filename
-                    ImGui::OpenPopup("Save Layout");
+                    show_save_dialog = true;
                 }
-                if (ImGui::BeginPopupModal("Save Layout", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+                if (show_save_dialog)
                 {
-                    static char directory[256] = "";
-                    ImGui::InputText("Filepath", directory, 256);
-
-                    static char filename[256] = "";
-                    ImGui::InputText("Filename", filename, 256);
-                    if (ImGui::Button("Save"))
+                    ImGuiFileDialog::Instance()->OpenDialog("SaveLayoutDlgKey", "Save Layout", ".layout", ".", 1, nullptr, ImGuiFileDialogFlags_Modal);
+                    // display
+                    if (ImGuiFileDialog::Instance()->Display("SaveLayoutDlgKey", ImGuiWindowFlags_NoCollapse, ImVec2(500, 300)))
                     {
-                        this->save_layout(directory, filename);
-                        ImGui::CloseCurrentPopup();
+                        // action if OK
+                        if (ImGuiFileDialog::Instance()->IsOk())
+                        {
+                            std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+                            std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+                            std::string fileName = ImGuiFileDialog::Instance()->GetCurrentFileName();
+                            // save the layout
+                            save_layout(filePath, fileName);
+                        }
+                        // close
+                        ImGuiFileDialog::Instance()->Close();
+                        show_save_dialog = false;
                     }
-                    ImGui::SameLine();
-                    if (ImGui::Button("Cancel"))
-                    {
-                        ImGui::CloseCurrentPopup();
-                    }
-                    ImGui::EndPopup();
                 }
             }
             ImGui::End();
@@ -361,6 +363,8 @@ namespace GUI
 
     void UI_Settings_Widget::save_layout(const std::string &directory, const std::string &filename)
     {
+        // get the pure name of the file
+        std::string pure_name = filename.substr(0, filename.find_last_of("."));
         // check if the folder exists
         if (!std::filesystem::exists(directory))
         {
@@ -371,13 +375,406 @@ namespace GUI
         auto ini = ImGui::SaveIniSettingsToMemory();
 
         // save the ini file
-        std::ofstream file(directory + "/" + filename + ".ini", std::ios::out | std::ios::trunc);
+        std::ofstream file(directory + "/" + pure_name + ".ini", std::ios::out | std::ios::trunc);
         file.write(ini, strlen(ini));
         file.close();
         // save the settings file
-        this->settings->path = directory + "/" + filename + ".layout";
-        this->settings->ini_file = directory + "/" + filename + ".ini";
+        this->settings->path = directory + "/" + pure_name + ".layout";
+        this->settings->ini_file = directory + "/" + pure_name + ".ini";
         this->settings->save_to_file(directory, filename);
+    }
+
+    void Properties_Widget::show()
+    {
+        ImGui::Begin(name.c_str());
+        {
+            update();
+            if (selected_object == nullptr)
+            {
+                ImGui::End();
+                return;
+            }
+            // show scene configuration if it can be casted to scene
+            auto scene = dynamic_cast<Rendering::Scene *>(this->selected_object);
+            if (scene)
+            {
+                show_scene_property(scene);
+            }
+
+            // show model configuration if it can be casted to model
+            auto model = dynamic_cast<Rendering::Model *>(this->selected_object);
+            if (model)
+            {
+                show_model_property(model);
+            }
+
+            // show camera configuration if it can be casted to camera
+            auto camera = dynamic_cast<Rendering::Camera *>(this->selected_object);
+            if (camera)
+            {
+                show_camera_property(camera);
+            }
+
+            // show light configuration if it can be casted to light
+            auto light = dynamic_cast<Rendering::Light *>(this->selected_object);
+            if (light)
+            {
+                show_light_property(light);
+            }
+            ImGui::End();
+        }
+    }
+
+    void Properties_Widget::show_model_property(Rendering::Model *model)
+    {
+        if (model != nullptr)
+        {
+            ImGui::Text("Model");
+            ImGui::Separator();
+            show_transform_property(model->transform.get());
+        }
+
+        auto ogl_model = dynamic_cast<Rendering::OGL_Model *>(model);
+        if (ogl_model)
+        {
+            show_ogl_model_property(ogl_model);
+        }
+    }
+
+    void Properties_Widget::show_ogl_model_property(Rendering::OGL_Model *model)
+    {
+        show_material_property(model->material.get());
+    }
+
+    void Properties_Widget::show_light_property(Rendering::Light *light)
+    {
+        if (light != nullptr && light->editable)
+        {
+            auto &light_prop = light->properties;
+            ImGui::Text("Light");
+            ImGui::Separator();
+            ImGui::Text("Type");
+            ImGui::SameLine();
+            ImGui::Combo("##type", (int *)&light_prop.type, "Parallel\0Point\0Spot\0");
+            ImGui::Text("Color");
+            ImGui::ColorEdit3("##color", light_prop.color.data());
+            ImGui::Text("Intensity");
+            ImGui::SliderFloat("##intensity", &light_prop.intensity, 0.0f, 1.0f, "%.3f");
+            show_transform_property(light->transform.get());
+            light->material->color = light_prop.color;
+        }
+    }
+
+    void Properties_Widget::show_camera_property(Rendering::Camera *camera)
+    {
+        if (camera != nullptr && camera->editable)
+        {
+            ImGui::Text("Camera");
+            ImGui::Separator();
+            show_transform_property(camera->transform.get());
+            auto &camera_props = camera->properties;
+            ImGui::Text("FOV");
+            ImGui::DragFloat("##fov", &camera_props.fov, 0.1f, 0.1f, 180.0f);
+            ImGui::Text("Near");
+            ImGui::DragFloat("##near", &camera_props.near, 0.1f, 0.1f, 100.0f);
+            ImGui::Text("Far");
+            ImGui::DragFloat("##far", &camera_props.far, 0.1f, 0.1f, 100.0f);
+            ImGui::Text("Focus Distance");
+            ImGui::DragFloat("##focus_distance", &camera_props.focus_distance, 0.1f, 0.1f, 100.0f);
+        }
+    }
+
+    void Properties_Widget::show_scene_property(Rendering::Scene *scene)
+    {
+        if (scene != nullptr)
+        {
+
+            ImGui::Text("Scene");
+            ImGui::Separator(); // Display a separator
+            ImGui::Text("Rect");
+            ImGui::Text("width: %.1f", scene->width);
+            ImGui::SameLine();
+            ImGui::Text("height: %.1f", scene->height);
+            auto ogl_scene = dynamic_cast<Rendering::OGL_Scene *>(scene);
+            if (ogl_scene)
+            {
+                // show the ogl_scene properties
+                ImGui::Text("OGL_Scene");
+                ImGui::Separator();
+                ImGui::Text("background color");
+                ImGui::ColorEdit4("##bg_color", ogl_scene->bg_color.data());
+                ImGui::Text("fov");
+                ImGui::DragFloat("##fov", &ogl_scene->fov, 0.1f, 0.1f, 180.0f);
+                ImGui::Text("near");
+                ImGui::DragFloat("##near", &ogl_scene->near, 0.1f, 0.1f, 100.0f);
+                ImGui::Text("far");
+                ImGui::DragFloat("##far", &ogl_scene->far, 0.1f, 0.1f, 100.0f);
+            }
+
+            auto ogl_3d = dynamic_cast<Rendering::OGL_Scene_3D *>(scene);
+            if (ogl_3d)
+            {
+                // show the ogl_scene properties
+                ImGui::Text("OGL_Scene_3D");
+                ImGui::Separator();
+                ImGui::Text("gamma");
+                ImGui::DragFloat("##gamma", &ogl_3d->gamma, 0.1f, 0.01f, 10.0f);
+                ImGui::Text("exposure");
+                ImGui::DragFloat("##exposure", &ogl_3d->exposure, 0.1f, 0.01f, 10.0f);
+            }
+        }
+    }
+
+    void load_map_button(const std::string &name, std::string &path)
+    {
+        if (ImGui::Button(("...##" + name).c_str()))
+        {
+            ImGuiFileDialog::Instance()->OpenDialog(name + "MapDlgKey", "Choose " + name, ".*,.png,.jpg,.jpeg,.bmp", path, 1, nullptr, ImGuiFileDialogFlags_Modal);
+        }
+        if (ImGuiFileDialog::Instance()->Display(name + "MapDlgKey", ImGuiWindowFlags_NoCollapse, ImVec2(500, 300)))
+        {
+            // action if OK
+            if (ImGuiFileDialog::Instance()->IsOk())
+            {
+                std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+                // load the texture
+                path = filePathName;
+            }
+            // close
+            ImGuiFileDialog::Instance()->Close();
+        }
+    }
+
+    void update_material(Rendering::Material *material)
+    {
+        auto &tex_manager = Rendering::Texture_Manager::instance();
+
+        if (material->albedo_map_path != "" && !tex_manager.has_texture(material->albedo_map_path))
+        {
+            tex_manager.add_texture(material->albedo_map_path, Rendering::load_texture(material->albedo_map_path));
+        }
+
+        material->albedo_map = tex_manager.get_texture(material->albedo_map_path);
+        if (material->metallic_map_path != "" && !tex_manager.has_texture(material->metallic_map_path))
+        {
+            tex_manager.add_texture(material->metallic_map_path, Rendering::load_texture(material->metallic_map_path));
+        }
+        material->metallic_map = tex_manager.get_texture(material->metallic_map_path);
+
+        if (material->roughness_map_path != "" && !tex_manager.has_texture(material->roughness_map_path))
+        {
+            tex_manager.add_texture(material->roughness_map_path, Rendering::load_texture(material->roughness_map_path));
+        }
+        material->roughness_map = tex_manager.get_texture(material->roughness_map_path);
+
+        if (material->ao_map_path != "" && !tex_manager.has_texture(material->ao_map_path))
+        {
+            tex_manager.add_texture(material->ao_map_path, Rendering::load_texture(material->ao_map_path));
+        }
+        material->ao_map = tex_manager.get_texture(material->ao_map_path);
+
+        if (material->emissive_map_path != "" && !tex_manager.has_texture(material->emissive_map_path))
+        {
+            tex_manager.add_texture(material->emissive_map_path, Rendering::load_texture(material->emissive_map_path));
+        }
+        material->emissive_map = tex_manager.get_texture(material->emissive_map_path);
+
+        if (material->normal_map_path != "" && !tex_manager.has_texture(material->normal_map_path))
+        {
+            tex_manager.add_texture(material->normal_map_path, Rendering::load_texture(material->normal_map_path));
+        }
+        material->normal_map = tex_manager.get_texture(material->normal_map_path);
+
+        if (material->height_map_path != "" && !tex_manager.has_texture(material->height_map_path))
+        {
+            tex_manager.add_texture(material->height_map_path, Rendering::load_texture(material->height_map_path));
+        }
+        material->height_map = tex_manager.get_texture(material->height_map_path);
+    }
+
+    void Properties_Widget::show_material_property(Rendering::Material *material)
+    {
+        if (material != nullptr && material->editable)
+        {
+            ImGui::Text("Material");
+            ImGui::Separator();
+            ImGui::Text("Color");
+            ImGui::ColorEdit3("##color", material->color.data());
+            ImGui::Text("Metallic");
+            ImGui::SliderFloat("##metallic", &material->metallic, 0.0f, 1.0f, "%.3f");
+            ImGui::Text("Roughness");
+            ImGui::SliderFloat("##roughness", &material->roughness, 0.001f, 1.0f, "%.3f");
+            ImGui::Text("AO");
+            ImGui::SliderFloat("##ao", &material->ao, 0.001f, 1.0f, "%.3f");
+
+            ImGui::Checkbox("##Is emissive", &material->is_emissive);
+            ImGui::SameLine();
+            ImGui::Text("Is emissive");
+
+            ImGui::Text("Albedo Map");
+            ImGui::TextWrapped("%s", material->albedo_map_path.c_str());
+            ImGui::SameLine();
+            load_map_button("Albedo Map", material->albedo_map_path);
+
+            ImGui::Text("Metallic Map");
+            ImGui::TextWrapped("%s", material->metallic_map_path.c_str());
+            ImGui::SameLine();
+            load_map_button("Metallic Map", material->metallic_map_path);
+
+            ImGui::Text("Roughness Map");
+            ImGui::TextWrapped("%s", material->roughness_map_path.c_str());
+            ImGui::SameLine();
+            load_map_button("Roughness Map", material->roughness_map_path);
+
+            ImGui::Text("AO Map");
+            ImGui::TextWrapped("%s", material->ao_map_path.c_str());
+            ImGui::SameLine();
+            load_map_button("AO Map", material->ao_map_path);
+
+            ImGui::Text("Emissive Map");
+            ImGui::TextWrapped("%s", material->emissive_map_path.c_str());
+            ImGui::SameLine();
+            load_map_button("Emissive Map", material->emissive_map_path);
+
+            ImGui::Text("Normal Map");
+            ImGui::TextWrapped("%s", material->normal_map_path.c_str());
+            ImGui::SameLine();
+            load_map_button("Normal Map", material->normal_map_path);
+
+            ImGui::Text("Height Map");
+            ImGui::TextWrapped("%s", material->height_map_path.c_str());
+            ImGui::SameLine();
+            load_map_button("Height Map", material->height_map_path);
+
+            update_material(material);
+        }
+    }
+
+    void Properties_Widget::show_transform_property(Core::Transform *transform)
+    {
+        if (transform != nullptr)
+        {
+            // show Title
+            ImGui::Text("Transform");
+            // Display a separator
+            ImGui::Separator();
+            auto pos = transform->get_position();
+            ImGui::Text("Position");
+            ImGui::DragFloat3("##position", pos.data(), 0.001f);
+            transform->set_position(pos);
+            Core::EulerAngle euler_angle = transform->get_orientation_euler_angle();
+            ImGui::Text("Rotation(pitch,yaw,roll)");
+            ImGui::DragFloat3("##rotation", (float *)&euler_angle, 0.01f, -180, 180);
+            transform->set_orientation(euler_angle);
+            auto scale = transform->get_scale();
+            static bool lock_proportion = false;
+            if (lock_proportion)
+            {
+                ImGui::Text("Scale");
+                float x = scale.x();
+                ImGui::DragFloat("##scale", &scale.x(), 0.001f, 0.01f, 100.0f);
+                float ratio = scale.x() / x;
+                scale.y() *= ratio;
+                scale.z() *= ratio;
+            }
+            else
+            {
+                ImGui::Text("Scale");
+                ImGui::DragFloat3("##scale", scale.data(), 0.01f, 0.01f, 100.0f);
+            }
+            ImGui::Checkbox("Lock Proportion", &lock_proportion);
+            transform->set_scale(scale);
+        }
+    }
+
+    void Scene_Widget::show()
+    {
+
+        ImGui::Begin(name.c_str());
+        {
+            update();
+            // list all the configurable objects in the scene
+            if (scene == nullptr)
+            {
+                ImGui::End();
+                selected_object = nullptr;
+                return;
+            }
+            // list all configurable objects in the scene and get the selected object
+            // if none was selected then select the scene
+            auto ogl_scene = dynamic_cast<Rendering::OGL_Scene *>(scene);
+            ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+            if (ImGui::TreeNode("Scene"))
+            {
+                if (ogl_scene)
+                {
+                    ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+                    if (ImGui::TreeNode("Models"))
+                    {
+                        for (int i = 0; i < ogl_scene->models.size(); i++)
+                        {
+                            auto &model = ogl_scene->models[i];
+                            const std::string &label = model.value->name + "##model" + std::to_string(i);
+                            ImGui::Checkbox(("##" + label).c_str(), &model.is_active);
+                            ImGui::SameLine();
+                            if (ImGui::Selectable(label.c_str(), selected_object == model.value.get()))
+                            {
+                                selected_object = model.value.get();
+                            }
+                        }
+                        ImGui::TreePop();
+                    }
+                }
+                auto ogl_scene_3d = dynamic_cast<Rendering::OGL_Scene_3D *>(scene);
+                if (ogl_scene_3d)
+                {
+                    ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+                    if (ImGui::TreeNode("Lights"))
+                    {
+                        for (int i = 0; i < ogl_scene_3d->lights.size(); i++)
+                        {
+                            auto &light = ogl_scene_3d->lights[i];
+                            const std::string &label = light.value->name + "##light" + std::to_string(i);
+                            ImGui::Checkbox(("##" + label).c_str(), &light.is_active);
+                            ImGui::SameLine();
+                            if (ImGui::Selectable(label.c_str(), selected_object == light.value.get()))
+                            {
+                                selected_object = light.value.get();
+                            }
+                        }
+                        ImGui::TreePop();
+                    }
+
+                    ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+                    if (ImGui::TreeNode("Cameras"))
+                    {
+                        for (int i = 0; i < ogl_scene_3d->cameras.size(); i++)
+                        {
+                            auto &camera = ogl_scene_3d->cameras[i];
+                            const std::string &label = camera.value->name + "##camera" + std::to_string(i);
+                            ImGui::RadioButton(("##" + label).c_str(), &(ogl_scene_3d->active_camera_index), i);
+                            ImGui::SameLine();
+                            if (ImGui::Selectable(label.c_str(), selected_object == camera.value.get()))
+                            {
+                                selected_object = camera.value.get();
+                            }
+                        }
+                        ImGui::TreePop();
+                    }
+                }
+                ImGui::TreePop();
+            }
+            else
+            {
+                selected_object = scene;
+            }
+        }
+        ImGui::End();
+    }
+
+    void Scene_Widget::init()
+    {
+        IMG_Widget::init();
     }
 
     // Text_Widget::Text_Widget(const std::string &name, float x, float y, float width, float height, bool active)
@@ -459,288 +856,5 @@ namespace GUI
     //     }
     //     return height;
     // }
-
-    void Properties_Widget::show()
-    {
-        ImGui::Begin(name.c_str());
-        {
-            update();
-            if (selected_object == nullptr)
-            {
-                ImGui::End();
-                return;
-            }
-            // show scene configuration if it can be casted to scene
-            auto scene = dynamic_cast<Rendering::Scene *>(this->selected_object);
-            if (scene)
-            {
-                show_scene_property(scene);
-            }
-
-            // show model configuration if it can be casted to model
-            auto model = dynamic_cast<Rendering::Model *>(this->selected_object);
-            if (model)
-            {
-                show_model_property(model);
-            }
-
-            // show camera configuration if it can be casted to camera
-            auto camera = dynamic_cast<Rendering::Camera *>(this->selected_object);
-            if (camera)
-            {
-                show_camera_property(camera);
-            }
-
-            // show light configuration if it can be casted to light
-            auto light = dynamic_cast<Rendering::Light *>(this->selected_object);
-            if (light)
-            {
-                show_light_property(light);
-            }
-            ImGui::End();
-        }
-    }
-
-    void Properties_Widget::show_model_property(Rendering::Model *model)
-    {
-        if (model != nullptr)
-        {
-            ImGui::Text("Model");
-            ImGui::Separator();
-            show_transform_property(model->transform.get());
-        }
-
-        auto ogl_model = dynamic_cast<Rendering::OGL_Model *>(model);
-        if (ogl_model)
-        {
-            show_ogl_model_property(ogl_model);
-        }
-    }
-
-    void Properties_Widget::show_ogl_model_property(Rendering::OGL_Model *model)
-    {
-        show_material_property(model->material.get());
-    }
-
-    void Properties_Widget::show_light_property(Rendering::Light *light)
-    {
-        if (light != nullptr)
-        {
-            auto &light_prop = light->properties;
-            ImGui::Text("Light");
-            ImGui::Separator();
-            ImGui::Text("Type");
-            ImGui::SameLine();
-            ImGui::Combo("##type", (int *)&light_prop.type, "Parallel\0Point\0Spot\0");
-            ImGui::Text("Color");
-            ImGui::ColorEdit3("##color", light_prop.color.data());
-            ImGui::Text("Intensity");
-            ImGui::SliderFloat("##intensity", &light_prop.intensity, 0.0f, 1.0f, "%.3f");
-            show_transform_property(light->transform.get());
-        }
-    }
-
-    void Properties_Widget::show_camera_property(Rendering::Camera *camera)
-    {
-        if (camera != nullptr)
-        {
-            ImGui::Text("Camera");
-            ImGui::Separator();
-            show_transform_property(camera->transform.get());
-            auto &camera_props = camera->properties;
-            ImGui::Text("FOV");
-            ImGui::DragFloat("##fov", &camera_props.fov, 0.1f, 0.1f, 180.0f);
-            ImGui::Text("Near");
-            ImGui::DragFloat("##near", &camera_props.near, 0.1f, 0.1f, 100.0f);
-            ImGui::Text("Far");
-            ImGui::DragFloat("##far", &camera_props.far, 0.1f, 0.1f, 100.0f);
-            ImGui::Text("Focus Distance");
-            ImGui::DragFloat("##focus_distance", &camera_props.focus_distance, 0.1f, 0.1f, 100.0f);
-        }
-    }
-
-    void Properties_Widget::show_scene_property(Rendering::Scene *scene)
-    {
-        if (scene != nullptr)
-        {
-
-            ImGui::Text("Scene");
-            ImGui::Separator();
-            ImGui::Text("Rect");
-            ImGui::Text("width: %.1f", scene->width);
-            ImGui::SameLine();
-            ImGui::Text("height: %.1f", scene->height);
-            auto ogl_scene = dynamic_cast<Rendering::OGL_Scene *>(scene);
-            if (ogl_scene)
-            {
-                // show the ogl_scene properties
-                ImGui::Text("OGL_Scene");
-                ImGui::Separator();
-                ImGui::Text("background color");
-                ImGui::ColorEdit4("##bg_color", ogl_scene->bg_color.data());
-                ImGui::Text("fov");
-                ImGui::DragFloat("##fov", &ogl_scene->fov, 0.1f, 0.1f, 180.0f);
-                ImGui::Text("near");
-                ImGui::DragFloat("##near", &ogl_scene->near, 0.1f, 0.1f, 100.0f);
-                ImGui::Text("far");
-                ImGui::DragFloat("##far", &ogl_scene->far, 0.1f, 0.1f, 100.0f);
-            }
-
-            auto ogl_3d = dynamic_cast<Rendering::OGL_Scene_3D *>(scene);
-            if (ogl_3d)
-            {
-                // show the ogl_scene properties
-                ImGui::Text("OGL_Scene_3D");
-                ImGui::Separator();
-                ImGui::Text("gamma");
-                ImGui::DragFloat("##gamma", &ogl_3d->gamma, 0.1f, 0.01f, 10.0f);
-                ImGui::Text("exposure");
-                ImGui::DragFloat("##exposure", &ogl_3d->exposure, 0.1f, 0.01f, 10.0f);
-            }
-        }
-    }
-
-    void Properties_Widget::show_material_property(Rendering::Material *material)
-    {
-        if (material != nullptr)
-        {
-            ImGui::Text("MAterial");
-            ImGui::Separator();
-            ImGui::Text("Albedo");
-            ImGui::ColorEdit3("##albedo", material->albedo.data());
-            ImGui::Text("Metallic");
-            ImGui::SliderFloat("##metallic", &material->metallic, 0.0f, 1.0f, "%.3f");
-            ImGui::Text("Roughness");
-            ImGui::SliderFloat("##roughness", &material->roughness, 0.001f, 1.0f, "%.3f");
-            ImGui::Text("AO");
-            ImGui::SliderFloat("##ao", &material->ao, 0.001f, 1.0f, "%.3f");
-            ImGui::Text("Emissive");
-            ImGui::ColorEdit3("##emissive", material->emissive.data());
-        }
-    }
-
-    void Properties_Widget::show_transform_property(Core::Transform *transform)
-    {
-        if (transform != nullptr)
-        {
-            // show Title
-            ImGui::Text("Transform");
-            // Display a separator
-            ImGui::Separator();
-            auto pos = transform->get_position();
-            ImGui::Text("Position");
-            ImGui::DragFloat3("##position", pos.data(), 0.001f);
-            transform->set_position(pos);
-            Core::EulerAngle euler_angle = transform->get_orientation_euler_angle();
-            ImGui::Text("Rotation(pitch,yaw,roll)");
-            ImGui::DragFloat3("##rotation", (float *)&euler_angle, 0.01f, -180, 180);
-            transform->set_orientation(euler_angle);
-            auto scale = transform->get_scale();
-            static bool lock_proportion = false;
-            if (lock_proportion)
-            {
-                ImGui::Text("Scale");
-                float x = scale.x();
-                ImGui::DragFloat("##scale", &scale.x(), 0.001f, 0.01f, 100.0f);
-                float ratio = scale.x() / x;
-                scale.y() *= ratio;
-                scale.z() *= ratio;
-            }
-            else
-            {
-                ImGui::Text("Scale");
-                ImGui::DragFloat3("##scale", scale.data(), 0.01f, 0.01f, 100.0f);
-            }
-            ImGui::Checkbox("Lock Proportion", &lock_proportion);
-            transform->set_scale(scale);
-        }
-    }
-
-    void Scene_Widget::show()
-    {
-
-        ImGui::Begin(name.c_str());
-        {
-            update();
-            // list all the configurable objects in the scene
-            if (scene == nullptr)
-            {
-                ImGui::End();
-                selected_object = nullptr;
-                return;
-            }
-            // list all configurable objects in the scene and get the selected object
-            // if none was selected then select the scene
-            auto ogl_scene = dynamic_cast<Rendering::OGL_Scene *>(scene);
-            if (ImGui::TreeNode("Scene"))
-            {
-                if (ogl_scene)
-                {
-                    if (ImGui::TreeNode("Models"))
-                    {
-                        for (int i = 0; i < ogl_scene->models.size(); i++)
-                        {
-                            auto &model = ogl_scene->models[i];
-                            const std::string &label = model.value->name + "##model" + std::to_string(i);
-                            ImGui::Checkbox(("##" + label).c_str(), &model.is_active);
-                            ImGui::SameLine();
-                            if (ImGui::Selectable(label.c_str(), selected_object == model.value.get()))
-                            {
-                                selected_object = model.value.get();
-                            }
-                        }
-                        ImGui::TreePop();
-                    }
-                }
-                auto ogl_scene_3d = dynamic_cast<Rendering::OGL_Scene_3D *>(scene);
-                if (ogl_scene_3d)
-                {
-
-                    if (ImGui::TreeNode("Lights"))
-                    {
-                        for (int i = 0; i < ogl_scene_3d->lights.size(); i++)
-                        {
-                            auto &light = ogl_scene_3d->lights[i];
-                            const std::string &label = light.value->name + "##light" + std::to_string(i);
-                            ImGui::Checkbox(("##" + label).c_str(), &light.is_active);
-                            ImGui::SameLine();
-                            if (ImGui::Selectable(label.c_str(), selected_object == light.value.get()))
-                            {
-                                selected_object = light.value.get();
-                            }
-                        }
-                        ImGui::TreePop();
-                    }
-
-                    if (ImGui::TreeNode("Cameras"))
-                    {
-                        for (int i = 0; i < ogl_scene_3d->cameras.size(); i++)
-                        {
-                            auto &camera = ogl_scene_3d->cameras[i];
-                            const std::string &label = camera.value->name + "##camera" + std::to_string(i);
-                            ImGui::RadioButton(("##" + label).c_str(), &(ogl_scene_3d->active_camera_index), i);
-                            ImGui::SameLine();
-                            if (ImGui::Selectable(label.c_str(), selected_object == camera.value.get()))
-                            {
-                                selected_object = camera.value.get();
-                            }
-                        }
-                        ImGui::TreePop();
-                    }
-                }
-                ImGui::TreePop();
-            }
-            else
-            {
-                selected_object = scene;
-            }
-        }
-        ImGui::End();
-    }
-
-    void Scene_Widget::init()
-    {
-        IMG_Widget::init();
-    }
 
 }; // namespace GUI

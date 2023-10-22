@@ -21,25 +21,21 @@ namespace GUI
     {
         this->settings.load_from_file(settings.path);
         this->load_layout(this->settings.ini_file);
-        Rendering::shader_program_factory.add_shader_from_file("./shaders/basic.vert", GL_VERTEX_SHADER, "basic_vertex");
-        Rendering::shader_program_factory.add_shader_from_file("./shaders/basic.frag", GL_FRAGMENT_SHADER, "basic_fragment");
-        Rendering::shader_program_factory.add_shader_program("basic_shader", "basic_vertex", "basic_fragment");
+        // Rendering::shader_program_factory.add_shader_from_file("./shaders/basic.vert", GL_VERTEX_SHADER, "basic_vertex");
+        // Rendering::shader_program_factory.add_shader_from_file("./shaders/basic.frag", GL_FRAGMENT_SHADER, "basic_fragment");
+        // Rendering::shader_program_factory.add_shader_program("basic_shader", "basic_vertex", "basic_fragment");
 
         Rendering::shader_program_factory.add_shader_from_file("./shaders/text.vert", GL_VERTEX_SHADER, "text_vertex_shader");
         Rendering::shader_program_factory.add_shader_from_file("./shaders/text.frag", GL_FRAGMENT_SHADER, "text_fragment_shader");
         Rendering::shader_program_factory.add_shader_program("text_shader", "text_vertex_shader", "text_fragment_shader");
 
+        Rendering::shader_program_factory.add_shader_from_file("./shaders/basic_tex.vert", GL_VERTEX_SHADER, "basic_tex_vertex");
+        Rendering::shader_program_factory.add_shader_from_file("./shaders/basic_tex.frag", GL_FRAGMENT_SHADER, "basic_tex_fragment");
+        Rendering::shader_program_factory.add_shader_program("basic_tex_shader", "basic_tex_vertex", "basic_tex_fragment");
+
+
         auto w = std::unique_ptr<Sample_OGL_Widget>(new Sample_OGL_Widget("OpenGL Window", 0, 0, 800, 600, true));
-        w->scene->set_shader(Rendering::shader_program_factory.find_shader_program("basic_shader"));
-        Rendering::Texture *tex = Rendering::load_texture("./textures/box.jpeg");
-        // Rendering::sampler_manager.add_sampler("default", new Rendering::Sampler());
-        Rendering::Sampler_Manager::instance().add_sampler("basic_sampler", new Rendering::Sampler());
-        tex->set_sampler(Rendering::Sampler_Manager::instance().get_sampler("basic_sampler"));
-        // check if the texture is loaded
-        if (tex == nullptr)
-        {
-            throw std::runtime_error("Failed to load texture");
-        }
+        w->scene->set_shader(Rendering::shader_program_factory.find_shader_program("basic_tex_shader"));
         this->ogl_widget_test = std::move(w);
         this->log_widget = std::unique_ptr<Log_Widget>(new Log_Widget("Log", 0, 0, 800, 600, true));
         this->settings_widget = std::unique_ptr<UI_Settings_Widget>(new UI_Settings_Widget("Settings", 0, 0, 800, 600, true));

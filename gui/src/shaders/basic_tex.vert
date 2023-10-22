@@ -1,10 +1,10 @@
 #version 330 core
 
 out vec3 frag_position;
-out vec3 frag_normal;
+out vec3 frag_pos_tbn;
+out vec3 view_pos_tbn;
 out vec2 texcoord;
 out mat3 TBN;
-out vec3 view_pos;
 
 out vec3 test;
 
@@ -18,18 +18,24 @@ uniform mat4 u_model;
 uniform mat4 u_view;
 uniform mat4 u_projection;
 uniform mat3 u_normal_matrix;
+uniform vec3 u_view_position;
 
 void main()
 {
     texcoord = v_texcoord;
     vec4 pos_world = u_model * vec4(v_pos, 1.0);
-    vec4 pos_view = u_view * pos_world;
-    frag_position = pos_view.xyz;
-    vec3 T = normalize(u_view * vec4(v_tangent, 0.0)).xyz;
+    frag_position = pos_world.xyz;
+
+    vec3 T = normalize(u_normal_matrix * v_tangent);
     vec3 N = normalize(u_normal_matrix * v_normal);
+    T = normalize(T - dot(T, N) * N);
     vec3 B = cross(N, T);
-    mat3 TBN = transpose(mat3(T, B, N));
-    frag_normal = TBN * v_normal;
-    gl_Position = u_projection * pos_view;
+    TBN = transpose(mat3(T, B, N));
+
+    view_pos_tbn = TBN * u_view_position;
+    frag_pos_tbn = TBN * frag_position;
+
+
+    gl_Position = u_projection * u_view * pos_world;
     
 }

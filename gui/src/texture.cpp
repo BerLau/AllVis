@@ -5,7 +5,7 @@
 
 namespace Rendering
 {
-    Texture::Texture(Format format) : format(format),sampler(nullptr)
+    Texture::Texture(Format format) : format(format), sampler(nullptr)
     {
         glGenTextures(1, &texture_id);
     }
@@ -13,18 +13,24 @@ namespace Rendering
     Texture::~Texture()
     {
         glDeleteTextures(1, &texture_id);
-        if(sampler){
-            glDeleteSamplers(1,&sampler->sampler_id);
+        if (sampler)
+        {
+            glDeleteSamplers(1, &sampler->sampler_id);
             sampler = nullptr;
         }
     }
 
     void Texture::bind(GLuint index) const
     {
-        glActiveTexture(GL_TEXTURE0+index);
+        glActiveTexture(GL_TEXTURE0 + index);
         glBindTexture(format.target, texture_id);
         if (sampler)
         {
+            sampler->bind(index);
+        }
+        else
+        {
+            auto sampler = Sampler_Manager::instance().get_sampler("default");
             sampler->bind(index);
         }
     }
@@ -41,12 +47,6 @@ namespace Rendering
     void Texture::set_data(const void *data, size_t width, size_t height)
     {
         bind();
-
-        // glTexParameteri(format.target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        // glTexParameteri(format.target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        // glTexParameteri(format.target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        // glTexParameteri(format.target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
         glTexImage2D(format.target, 0, format.internal_format, width, height, 0, format.format, format.type, data);
         unbind();
     }
