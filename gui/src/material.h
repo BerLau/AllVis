@@ -56,7 +56,7 @@ namespace Rendering
         Texture *height_map;
         // constructors and deconstructor
     public:
-        Material(Core::Vector3 color, float metallic, float roughness, float ao, Core::Vector3 emissive = Core::Vector3(0.0f, 0.0f, 0.0f));
+        Material(Core::Vector3 color = Core::Vector3(0.5,0.5,0.5), float metallic=0.5, float roughness=0.5, float ao = 0.5, Core::Vector3 emissive = Core::Vector3(0.0f, 0.0f, 0.0f));
         Material(Texture *albedo_map, Texture *metallic_map, Texture *roughness_map, Texture *ao_map, Texture *emissive_map = nullptr, Texture *normal_map = nullptr, Texture *height_map = nullptr);
         ~Material() {}
         // methods

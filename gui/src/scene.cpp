@@ -80,41 +80,45 @@ namespace Rendering
 
     void OGL_Scene_3D::init()
     {
-        auto cube_model = Rendering::OGL_Model_U_Ptr(new Rendering::Cube_Model());
+        auto cube_model = Rendering::OGL_Model_Ptr(new Rendering::OGL_Model(
+            "Cube 1",
+            Rendering::OGL_Mesh::cube_mesh(1.0f, 1.0f, 1.0f)));
         cube_model->name = "cube 1";
         cube_model->material->color = Core::Vector3(RANDOM_RANGE_F(0.2, 1.0), RANDOM_RANGE_F(0.2, 1.0), RANDOM_RANGE_F(0.2, 1.0));
         cube_model->material->metallic = RANDOM_RANGE_F(0.2, 1.0);
         cube_model->material->roughness = RANDOM_RANGE_F(0.2, 1.0);
         cube_model->material->ao = RANDOM_RANGE_F(0.2, 1.0);
 
-        auto cube_mode_2 = Rendering::OGL_Model_U_Ptr(new Rendering::Cube_Model());
-        cube_mode_2->name = "cube 2";
-        cube_mode_2->transform->set_position(Core::Vector3(-1.f, 0.0f, 0.0f));
-        cube_mode_2->material->color = Core::Vector3(RANDOM_RANGE_F(0.2, 1.0), RANDOM_RANGE_F(0.2, 1.0), RANDOM_RANGE_F(0.2, 1.0));
-        cube_mode_2->material->metallic = RANDOM_RANGE_F(0.2, 1.0);
-        cube_mode_2->material->roughness = RANDOM_RANGE_F(0.2, 1.0);
-        cube_mode_2->material->ao = RANDOM_RANGE_F(0.2, 1.0);
+        auto cube_model_2 = Rendering::OGL_Model_Ptr(new Rendering::OGL_Model(
+            "Cube 2",
+            Rendering::OGL_Mesh::sphere_mesh()));
+        cube_model_2->transform->set_position(Core::Vector3(-1.f, 0.0f, 0.0f));
+        cube_model_2->material->color = Core::Vector3(RANDOM_RANGE_F(0.2, 1.0), RANDOM_RANGE_F(0.2, 1.0), RANDOM_RANGE_F(0.2, 1.0));
+        cube_model_2->material->metallic = RANDOM_RANGE_F(0.2, 1.0);
+        cube_model_2->material->roughness = RANDOM_RANGE_F(0.2, 1.0);
+        cube_model_2->material->ao = RANDOM_RANGE_F(0.2, 1.0);
 
         models.push_back({std::move(cube_model), true});
-        models.push_back({std::move(cube_mode_2), true});
+        models.push_back({std::move(cube_model_2), true});
         // set light
         auto light = Rendering::Light_Ptr(new Rendering::Light());
         light->name = "light 1";
-        light->set_position(Core::Vector3(2.0f, 3.0f, 3.0f));
+        light->set_position(Core::Vector3(1.0f, 1.0f, 2.0f));
+        light->spot_on(Core::Vector3(0.0f, 0.0f, 0.0f));
         float r = RANDOM_RANGE_F(0.2, 1.0);
-        light->set_color(Core::Vector3(r, r, r));
-        light->set_intensity(RANDOM_RANGE_F(0.2, 1.0));
-        light->set_type(Rendering::Light::POINT_LIGHT);
+        light->color = Core::Vector3(r, r, r);
+        light->intensity = RANDOM_RANGE_F(0.2, 1.0);
+        light->type = Rendering::Light::POINT_LIGHT;
         lights.push_back({std::move(light), true});
 
         auto light_2 = Rendering::Light_Ptr(new Rendering::Light());
         light_2->name = "light 2";
-        light_2->set_position(Core::Vector3(-2.0f, 3.0f, 3.0f));
-        // light_2->set_direction(Core::Vector3(-1.0f, -1.0f, -1.0f));
+        light_2->set_position(Core::Vector3(-1.0f, 1.0f, 1.0f));
+        light_2->spot_on(Core::Vector3(0.0f, 0.0f, 0.0f));
         r = RANDOM_RANGE_F(0.2, 1.0);
-        light_2->set_color(Core::Vector3(r, r, r));
-        light_2->set_intensity(RANDOM_RANGE_F(0.2, 1.0));
-        light_2->set_type(Rendering::Light::POINT_LIGHT);
+        light_2->color = Core::Vector3(r, r, r);
+        light_2->intensity = RANDOM_RANGE_F(0.2, 1.0);
+        light_2->type = Rendering::Light::POINT_LIGHT;
         lights.push_back({std::move(light_2), true});
 
         auto camera = Rendering::Camera_Ptr(new Rendering::Camera(Core::Vector3(0.0f, 0.0f, 4.0f)));
@@ -171,21 +175,26 @@ namespace Rendering
         {
             if (model.is_active)
             {
-                model.value->bind_shader(shader);
-                model.value->draw();
-                model.value->unbind_shader();
+                model.value->draw(shader);
             }
         }
-        shader->set_int("u_light_num", 0);
-        for (auto &light : lights)
+        auto light_shader = Rendering::shader_program_factory.find_shader_program("light_shader");
+        if (light_shader)
         {
-            if (light.is_active)
+            light_shader->activate();
+            light_shader->set_mat4("u_view", view.data());
+            light_shader->set_mat4("u_projection", projection.data());
+            light_shader->set_vec3("u_view_position", view_position.data());
+            for (auto &light : lights)
             {
-                light.value->bind_shader(shader);
-                light.value->draw();
-                light.value->unbind_shader();
+                if (light.is_active)
+                {
+                    light.value->visualize(light_shader);
+                }
             }
+            light_shader->deactivate();
         }
+
         unbind_framebuffer();
     }
 };

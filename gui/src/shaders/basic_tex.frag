@@ -5,7 +5,6 @@ out vec4 frag_color;
 
 in vec3 frag_position;
 in vec3 frag_pos_tbn;
-in vec3 view_pos_tbn;
 in vec2 texcoord;
 in mat3 TBN;
 
@@ -45,13 +44,14 @@ struct Material
 uniform int u_light_num;
 uniform Light[LIGHT_MAX] u_lights;
 uniform Material u_material;
+uniform mat4 u_view;
 
 float near = 0.1;
 float far = 100.0;
 
 void main()
 {
-    vec3 view_dir = normalize(view_pos_tbn - frag_pos_tbn);
+    vec3 view_dir = normalize(0 - frag_pos_tbn);
     vec3 normal = vec3(0.0, 0.0, 1.0);
 
     vec3 albedo = u_material.color;
@@ -93,7 +93,7 @@ void main()
     vec3 result = vec3(0.0);
     for(int i =0; i< u_light_num; ++i){
         // treat all light as point light
-        vec3 light_pos = u_lights[i].position;
+        vec3 light_pos = (u_view * vec4(u_lights[i].position,1.0)).xyz;
         vec3 light_dir = normalize(TBN*(light_pos - frag_position));
         vec3 light_color = u_lights[i].color;
         float light_intensity = u_lights[i].intensity;

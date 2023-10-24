@@ -81,7 +81,7 @@ namespace Core
 
     void Transform::look_at(const Core::Vector3 &target)
     {
-        this->m_orientation = Geometry::quat_look_at(target - m_position, get_up());
+        this->m_orientation = Geometry::quat_look_at(Geometry::normalize(target - m_position), get_up());
     }
 
     void Transform::set_front(Core::Vector3 front)

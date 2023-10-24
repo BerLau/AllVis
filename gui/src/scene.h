@@ -26,6 +26,7 @@ namespace Rendering
         float width = 0.f;
         float height = 0.f;
         float aspect = 0.f;
+        Configurable* focused_object = nullptr;
         // constructors and deconstructor
     public:
         Scene(float width, float height)

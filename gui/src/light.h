@@ -14,7 +14,7 @@ namespace Rendering
     using Light_Ptr_W = std::weak_ptr<Light>;
     using Light_Ptr = Light_Ptr_U;
 
-    class Light : public Sphere_Model
+    class Light : virtual public Core::Configurable
     {
     public:
         enum Light_Type
@@ -23,46 +23,36 @@ namespace Rendering
             POINT_LIGHT,
             SPOT_LIGHT
         };
-        struct Properties
-        {
-            Light_Type type = POINT_LIGHT;
-            Core::Vector3 color = Core::Vector3{1.0, 1.0, 1.0};
-            float intensity = 1.0;
-        };
         // attributes
     public:
-        Properties properties;
+        Light_Type type = POINT_LIGHT;
+        Core::Vector3 color = Core::Vector3{1.0, 1.0, 1.0};
+        float intensity = 1.0;
+        Core::Transform_Ptr transform;
+        OGL_Mesh *mesh = nullptr;
         // constructors and deconstructor
     public:
-        Light(Properties properties = {POINT_LIGHT, Core::Vector3{1.0, 1.0, 1.0}, 1.0}) : properties(properties)
+        Light(Light_Type light_type = POINT_LIGHT, Core::Vector3 color = Core::Vector3{1.0, 1.0, 1.0}, float intensity = 1.0) : type(light_type), color(color), intensity(intensity), transform(std::move(Core::Transform_Ptr(new Core::Transform())))
         {
-            transform->set_scale(0.1);
-            material->is_emissive = true;
-            material->editable = false;
+            mesh = OGL_Mesh::sphere_mesh().release();
+            transform->set_scale(0.05);
         }
-        Light(Core::Transform *transform, Properties properties = {POINT_LIGHT, Core::Vector3{1.0, 1.0, 1.0}, 1.0}) : properties(properties)
+        Light(Core::Transform *transform, Light_Type light_type = POINT_LIGHT, Core::Vector3 color = Core::Vector3{1.0, 1.0, 1.0}, float intensity = 1.0) : type(light_type), color(color), intensity(intensity), transform(Core::Transform_Ptr(transform))
         {
-            material->is_emissive = true;
-            material->editable = false;
-            transform->set_scale(0.1);
-
+            mesh = OGL_Mesh::sphere_mesh().release();
+            transform->set_scale(0.05);
         }
         virtual ~Light() {}
         // methods
     public:
         Core::Vector3 get_position() const { return transform->get_position(); }
         Core::Vector3 get_direction() const { return transform->get_front(); }
-        Core::Vector3 get_color() const { return properties.color; }
-        unsigned int get_type() const { return properties.type; }
         void set_position(Core::Vector3 position) { transform->set_position(position); }
         void set_direction(Core::Vector3 direction) { transform->set_front(direction); }
-        void set_color(Core::Vector3 color) { properties.color = color; material->color = color; }
-        void set_type(Light_Type type) { properties.type = type; }
-        void set_intensity(float intensity) { properties.intensity = intensity; }
-        float get_intensity() const { return properties.intensity; }
-
+        void spot_on(Core::Vector3 target) { transform->look_at(target); }
         void write_to_shader(const std::string &name, Shader_Program *shader);
         void write_to_shader(const std::string &name, int index, Shader_Program *shader);
+        void visualize(Shader_Program *shader);
     };
 
 };

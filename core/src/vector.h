@@ -43,7 +43,7 @@ namespace Core
         Vector(Matrix &&other) : Matrix(other) {}
         Vector &operator=(Matrix &&other)
         {
-            Matrix::operator=(other);
+            Matrix::operator=(std::move(other));
             return *this;
         }
 
@@ -108,7 +108,7 @@ namespace Core
         Vector2(Matrix &&other) : Vector(other) {}
         Vector2 &operator=(Matrix &&other)
         {
-            Vector::operator=(other);
+            Vector::operator=(std::move(other));
             return *this;
         }
         // methods
@@ -152,7 +152,7 @@ namespace Core
         Vector3(Vector3 &&other) : Vector(other) {}
         Vector3 &operator=(Vector3 &&other)
         {
-            Vector::operator=(other);
+            Vector::operator=(std::move(other));
             return *this;
         }
 
@@ -188,7 +188,7 @@ namespace Core
         Vector3(Matrix &&other) : Vector(other) {}
         Vector3 &operator=(Matrix &&other)
         {
-            Vector::operator=(other);
+            Vector::operator=(std::move(other));
             return *this;
         }
 
@@ -282,7 +282,7 @@ namespace Core
         Vector4(Matrix &&other) : Vector(other) {}
         Vector4 &operator=(Matrix &&other)
         {
-            Vector::operator=(other);
+            Vector::operator=(std::move(other));
             return *this;
         }
 

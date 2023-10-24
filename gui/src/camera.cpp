@@ -29,22 +29,22 @@ namespace Rendering
         switch (direction)
         {
         case FORWARD:
-            move_forward(distance);
+            transform->move_forward(distance);
             break;
         case BACKWARD:
-            move_backward(distance);
+            transform->move_backward(distance);
             break;
         case LEFT:
-            move_left(distance);
+            transform->move_left(distance);
             break;
         case RIGHT:
-            move_right(distance);
+            transform->move_right(distance);
             break;
         case ELEVATE:
-            move_up(distance);
+            transform->move_up(distance);
             break;
         case DEPRESS:
-            move_down(distance);
+            transform->move_down(distance);
             break;
         default:
             break;
@@ -75,36 +75,8 @@ namespace Rendering
         Core::Vector3 front = Geometry::normalize(target - transform->get_position());
         up = Geometry::normalize(up);
         transform->look_at(-front, up);
+        properties.focus_distance = Geometry::distance(target, transform->get_position());
     }
 
-    void Camera::move_forward(float distance)
-    {
-        transform->translate(transform->get_front() * distance);
-    }
-
-    void Camera::move_backward(float distance)
-    {
-        transform->translate(-transform->get_front() * distance);
-    }
-
-    void Camera::move_left(float distance)
-    {
-        transform->translate(-transform->get_right() * distance);
-    }
-
-    void Camera::move_right(float distance)
-    {
-        transform->translate(transform->get_right() * distance);
-    }
-
-    void Camera::move_up(float distance)
-    {
-        transform->translate(transform->get_up() * distance);
-    }
-
-    void Camera::move_down(float distance)
-    {
-        transform->translate(-transform->get_up() * distance);
-    }
 } // namespace Scene
 // Path: camera.h

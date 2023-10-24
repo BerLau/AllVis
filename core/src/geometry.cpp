@@ -6,12 +6,12 @@ namespace Geometry
 {
     float radians(float degrees)
     {
-        return degrees * (M_PI / 180.0);
+        return degrees * (float(M_PI) / 180.0f);
     }
 
     float degrees(float radians)
     {
-        return radians * (180.0 / M_PI);
+        return radians * (float(180.0f) / M_PI);
     }
 
     Core::Vector degrees(const Core::Vector &radians)

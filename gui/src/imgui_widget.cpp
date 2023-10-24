@@ -158,6 +158,12 @@ namespace GUI
         const float dump = 0.5f;
         if (focused)
         {
+            // get the selected object
+            auto selected_object = scene->focused_object;
+            if (!selected_object)
+            {
+                return;
+            }
             static float v = 0.0f;
             bool W_DOWN = ImGui::IsKeyDown(ImGuiKey_W);
             bool S_DOWN = ImGui::IsKeyDown(ImGuiKey_S);
@@ -169,31 +175,57 @@ namespace GUI
             float del_t = ImGui::GetIO().DeltaTime;
             v = std::min(v_max, v + a * del_t);
             float d = v * del_t;
+            // if selected object is a camera
+            Core::Transform *transform = nullptr;
+            auto camera = dynamic_cast<Rendering::Camera *>(selected_object);
+            if (camera)
+            {
+                transform = camera->transform.get();
+            }
+            // else if selected object is a model
+            auto model = dynamic_cast<Rendering::Model *>(selected_object);
+            if (model)
+            {
+                transform = model->transform.get();
+            }
+
+            // else if selected object is a light
+            auto light = dynamic_cast<Rendering::Light *>(selected_object);
+            if (light)
+            {
+                transform = light->transform.get();
+            }
+
+            if (!transform)
+            {
+                return;
+            }
+
             if (W_DOWN || S_DOWN || A_DOWN || D_DOWN || Q_DOWN || E_DOWN)
             {
                 if (W_DOWN)
                 {
-                    scene->cameras[scene->active_camera_index].value->move_forward(d);
+                    transform->move_forward(d);
                 }
                 if (S_DOWN)
                 {
-                    scene->cameras[scene->active_camera_index].value->move_backward(d);
+                    transform->move_backward(d);
                 }
                 if (A_DOWN)
                 {
-                    scene->cameras[scene->active_camera_index].value->move_left(d);
+                    transform->move_left(d);
                 }
                 if (D_DOWN)
                 {
-                    scene->cameras[scene->active_camera_index].value->move_right(d);
+                    transform->move_right(d);
                 }
                 if (Q_DOWN)
                 {
-                    scene->cameras[scene->active_camera_index].value->move_up(d);
+                    transform->move_up(d);
                 }
                 if (E_DOWN)
                 {
-                    scene->cameras[scene->active_camera_index].value->move_down(d);
+                    transform->move_down(d);
                 }
             }
             else
@@ -207,16 +239,67 @@ namespace GUI
     {
         if (focused)
         {
-            // get the mouse movement
-            auto mouse_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
-            float fps = ImGui::GetIO().Framerate;
-            float speed = 1.75f * 1.0 / fps;
-            // rotate the camera
-            scene->cameras[scene->active_camera_index].value->transform->rotate_y(-mouse_delta.x * speed);
-            scene->cameras[scene->active_camera_index].value->transform->rotate_x(-mouse_delta.y * speed);
-            // reset the mouse movement
-            ImGui::ResetMouseDragDelta(ImGuiMouseButton_Left);
-            // get the normalized mouse position
+            float del_t = ImGui::GetIO().DeltaTime;
+            float k = 2.0f;
+
+            // get the selected object
+            auto selected_object = scene->focused_object;
+            if (!selected_object)
+            {
+                return;
+            }
+
+            // if selected object is a camera
+            auto camera = dynamic_cast<Rendering::Camera *>(selected_object);
+            if (camera)
+            {
+                // get the mouse movement
+                auto mouse_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
+
+                if (!EQUAL_F(mouse_delta.x, 0.0f))
+                {
+                    scene->cameras[scene->active_camera_index].value->transform->rotate_y(-mouse_delta.x * k * del_t);
+                }
+                if (!EQUAL_F(mouse_delta.y, 0.0f))
+                {
+                    scene->cameras[scene->active_camera_index].value->transform->rotate_x(-mouse_delta.y * k * del_t);
+                }
+                ImGui::ResetMouseDragDelta(ImGuiMouseButton_Right);
+
+                mouse_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
+                Core::Vector3 camera_focus = scene->cameras[scene->active_camera_index].value->get_focus();
+
+                if (!EQUAL_F(mouse_delta.x, 0.0f))
+                {
+
+                    scene->cameras[scene->active_camera_index].value->transform->move_around_vertically(camera_focus, mouse_delta.x * k * del_t);
+                }
+
+                if (!EQUAL_F(mouse_delta.y, 0.0f))
+                {
+                    scene->cameras[scene->active_camera_index].value->transform->move_around_horizontally(camera_focus, mouse_delta.y * k * del_t);
+                }
+                // reset the mouse movement
+                ImGui::ResetMouseDragDelta(ImGuiMouseButton_Left);
+            }
+
+            // if selected object is a model
+            auto model = dynamic_cast<Rendering::Model *>(selected_object);
+            if (model)
+            {
+                // get the mouse movement
+                auto mouse_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
+
+                if (!EQUAL_F(mouse_delta.x, 0.0f))
+                {
+                    model->transform->rotate_y(-mouse_delta.x * k * del_t);
+                }
+                if (!EQUAL_F(mouse_delta.y, 0.0f))
+                {
+                    model->transform->rotate_x(-mouse_delta.y * k * del_t);
+                }
+                ImGui::ResetMouseDragDelta(ImGuiMouseButton_Left);
+            }
         }
     }
 
@@ -450,18 +533,18 @@ namespace GUI
     {
         if (light != nullptr && light->editable)
         {
-            auto &light_prop = light->properties;
             ImGui::Text("Light");
             ImGui::Separator();
             ImGui::Text("Type");
             ImGui::SameLine();
-            ImGui::Combo("##type", (int *)&light_prop.type, "Parallel\0Point\0Spot\0");
+            int type = light->type;
+            ImGui::Combo("##type", &type, "Parallel\0Point\0Spot\0");
+            light->type = Rendering::Light::Light_Type(type);
             ImGui::Text("Color");
-            ImGui::ColorEdit3("##color", light_prop.color.data());
+            ImGui::ColorEdit3("##color", light->color.data());
             ImGui::Text("Intensity");
-            ImGui::SliderFloat("##intensity", &light_prop.intensity, 0.0f, 1.0f, "%.3f");
+            ImGui::SliderFloat("##intensity", &light->intensity, 0.0f, 1.0f, "%.3f");
             show_transform_property(light->transform.get());
-            light->material->color = light_prop.color;
         }
     }
 
@@ -481,6 +564,9 @@ namespace GUI
             ImGui::DragFloat("##far", &camera_props.far, 0.1f, 0.1f, 100.0f);
             ImGui::Text("Focus Distance");
             ImGui::DragFloat("##focus_distance", &camera_props.focus_distance, 0.1f, 0.1f, 100.0f);
+            auto focus = camera->get_focus();
+            ImGui::Text("Focus");
+            ImGui::DragFloat3("##focus", focus.data(), 0.1f, 0.1f, 100.0f);
         }
     }
 
@@ -616,6 +702,16 @@ namespace GUI
             ImGui::SameLine();
             load_map_button("Albedo Map", material->albedo_map_path);
 
+            ImGui::Text("Normal Map");
+            ImGui::TextWrapped("%s", material->normal_map_path.c_str());
+            ImGui::SameLine();
+            load_map_button("Normal Map", material->normal_map_path);
+
+            ImGui::Text("Height Map");
+            ImGui::TextWrapped("%s", material->height_map_path.c_str());
+            ImGui::SameLine();
+            load_map_button("Height Map", material->height_map_path);
+
             ImGui::Text("Metallic Map");
             ImGui::TextWrapped("%s", material->metallic_map_path.c_str());
             ImGui::SameLine();
@@ -635,17 +731,6 @@ namespace GUI
             ImGui::TextWrapped("%s", material->emissive_map_path.c_str());
             ImGui::SameLine();
             load_map_button("Emissive Map", material->emissive_map_path);
-
-            ImGui::Text("Normal Map");
-            ImGui::TextWrapped("%s", material->normal_map_path.c_str());
-            ImGui::SameLine();
-            load_map_button("Normal Map", material->normal_map_path);
-
-            ImGui::Text("Height Map");
-            ImGui::TextWrapped("%s", material->height_map_path.c_str());
-            ImGui::SameLine();
-            load_map_button("Height Map", material->height_map_path);
-
             update_material(material);
         }
     }
@@ -767,6 +852,11 @@ namespace GUI
             else
             {
                 selected_object = scene;
+            }
+
+            if (selected_object && selected_object != scene)
+            {
+                scene->focused_object = selected_object;
             }
         }
         ImGui::End();

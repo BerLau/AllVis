@@ -77,12 +77,6 @@ namespace Rendering
         void focus_on(Core::Vector3 position, Core::Vector3 up = Core::Vector3(0.0f, 1.0f, 0.0f));
 
         void init();
-        void move_forward(float distance);
-        void move_backward(float distance);
-        void move_left(float distance);
-        void move_right(float distance);
-        void move_up(float distance);
-        void move_down(float distance);
     };
 } // namespace Scene
 #endif // CAMERA_H

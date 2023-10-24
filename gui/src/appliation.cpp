@@ -33,9 +33,16 @@ namespace GUI
         Rendering::shader_program_factory.add_shader_from_file("./shaders/basic_tex.frag", GL_FRAGMENT_SHADER, "basic_tex_fragment");
         Rendering::shader_program_factory.add_shader_program("basic_tex_shader", "basic_tex_vertex", "basic_tex_fragment");
 
+        Rendering::shader_program_factory.add_shader_from_file("./shaders/pbr.vert", GL_VERTEX_SHADER, "pbr_vertex");
+        Rendering::shader_program_factory.add_shader_from_file("./shaders/pbr.frag", GL_FRAGMENT_SHADER, "pbr_fragment");
+        Rendering::shader_program_factory.add_shader_program("pbr_shader", "pbr_vertex", "pbr_fragment");
+
+        Rendering::shader_program_factory.add_shader_from_file("./shaders/vis_light.vert", GL_VERTEX_SHADER, "light_vertex");
+        Rendering::shader_program_factory.add_shader_from_file("./shaders/vis_light.frag", GL_FRAGMENT_SHADER, "light_fragment");
+        Rendering::shader_program_factory.add_shader_program("light_shader", "light_vertex", "light_fragment");
 
         auto w = std::unique_ptr<Sample_OGL_Widget>(new Sample_OGL_Widget("OpenGL Window", 0, 0, 800, 600, true));
-        w->scene->set_shader(Rendering::shader_program_factory.find_shader_program("basic_tex_shader"));
+        w->scene->set_shader(Rendering::shader_program_factory.find_shader_program("pbr_shader"));
         this->ogl_widget_test = std::move(w);
         this->log_widget = std::unique_ptr<Log_Widget>(new Log_Widget("Log", 0, 0, 800, 600, true));
         this->settings_widget = std::unique_ptr<UI_Settings_Widget>(new UI_Settings_Widget("Settings", 0, 0, 800, 600, true));
