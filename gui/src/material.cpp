@@ -35,32 +35,47 @@ namespace Rendering
     {
         if (albedo_map)
         {
-            albedo_map->bind(0);
-        }
-        if (metallic_map)
-        {
-            metallic_map->bind(1);
-        }
-        if (roughness_map)
-        {
-            roughness_map->bind(2);
-        }
-        if (ao_map)
-        {
-            ao_map->bind(3);
-        }
-        if (emissive_map)
-        {
-            emissive_map->bind(4);
+            glActiveTexture(GL_TEXTURE0);
+            albedo_map->bind();
+            albedo_map->sampler->bind(0);
         }
         if (normal_map)
         {
-            normal_map->bind(5);
+            glActiveTexture(GL_TEXTURE1);
+            normal_map->bind();
+            normal_map->sampler->bind(1);
         }
         if (height_map)
         {
-            height_map->bind(6);
+            glActiveTexture(GL_TEXTURE2);
+            height_map->bind();
+            height_map->sampler->bind(2);
         }
+        if (metallic_map)
+        {
+            glActiveTexture(GL_TEXTURE3);
+            metallic_map->bind();
+            metallic_map->sampler->bind(3);
+        }
+        if (roughness_map)
+        {
+            glActiveTexture(GL_TEXTURE4);
+            roughness_map->bind();
+            roughness_map->sampler->bind(4);
+        }
+        if (ao_map)
+        {
+            glActiveTexture(GL_TEXTURE5);
+            ao_map->bind();
+            ao_map->sampler->bind(5);
+        }
+        if (emissive_map)
+        {
+            glActiveTexture(GL_TEXTURE6);
+            emissive_map->bind();
+            emissive_map->sampler->bind(6);
+        }
+
     }
 
     void Material::unbind() const
@@ -118,46 +133,10 @@ namespace Rendering
         {
             shader->set_bool(name_ + ".has_albedo_map", false);
         }
-        if (get_metallic_map() != nullptr)
-        {
-            shader->set_bool(name_ + ".has_metallic_map", true);
-            shader->set_int(name_ + ".metallic_map", 1);
-        }
-        else
-        {
-            shader->set_bool(name_ + ".has_metallic_map", false);
-        }
-        if (get_roughness_map() != nullptr)
-        {
-            shader->set_bool(name_ + ".has_roughness_map", true);
-            shader->set_int(name_ + ".roughness_map", 2);
-        }
-        else
-        {
-            shader->set_bool(name_ + ".has_roughness_map", false);
-        }
-        if (get_ao_map() != nullptr)
-        {
-            shader->set_bool(name_ + ".has_ao_map", true);
-            shader->set_int(name_ + ".ao_map", 3);
-        }
-        else
-        {
-            shader->set_bool(name_ + ".has_ao_map", false);
-        }
-        if (get_emissive_map() != nullptr)
-        {
-            shader->set_bool(name_ + ".has_emissive_map", true);
-            shader->set_int(name_ + ".emissive_map", 4);
-        }
-        else
-        {
-            shader->set_bool(name_ + ".has_emissive_map", false);
-        }
-        if (get_normal_map() != nullptr)
+                if (get_normal_map() != nullptr)
         {
             shader->set_bool(name_ + ".has_normal_map", true);
-            shader->set_int(name_ + ".normal_map", 5);
+            shader->set_int(name_ + ".normal_map", 1);
         }
         else
         {
@@ -166,12 +145,49 @@ namespace Rendering
         if (get_height_map() != nullptr)
         {
             shader->set_bool(name_ + ".has_height_map", true);
-            shader->set_int(name_ + ".height_map", 6);
+            shader->set_int(name_ + ".height_map", 2);
         }
         else
         {
             shader->set_bool(name_ + ".has_height_map", false);
         }
+        if (get_metallic_map() != nullptr)
+        {
+            shader->set_bool(name_ + ".has_metallic_map", true);
+            shader->set_int(name_ + ".metallic_map", 3);
+        }
+        else
+        {
+            shader->set_bool(name_ + ".has_metallic_map", false);
+        }
+        if (get_roughness_map() != nullptr)
+        {
+            shader->set_bool(name_ + ".has_roughness_map", true);
+            shader->set_int(name_ + ".roughness_map", 4);
+        }
+        else
+        {
+            shader->set_bool(name_ + ".has_roughness_map", false);
+        }
+        if (get_ao_map() != nullptr)
+        {
+            shader->set_bool(name_ + ".has_ao_map", true);
+            shader->set_int(name_ + ".ao_map", 5);
+        }
+        else
+        {
+            shader->set_bool(name_ + ".has_ao_map", false);
+        }
+        if (get_emissive_map() != nullptr)
+        {
+            shader->set_bool(name_ + ".has_emissive_map", true);
+            shader->set_int(name_ + ".emissive_map", 6);
+        }
+        else
+        {
+            shader->set_bool(name_ + ".has_emissive_map", false);
+        }
+
     }
 
     void Material::write_to_shader(const std::string &name_, unsigned int index, Shader_Program *shader)

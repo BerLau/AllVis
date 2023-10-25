@@ -166,7 +166,7 @@ namespace Rendering
         ~Texture();
         // methods
     public:
-        void bind(GLuint index = 0) const;
+        void bind() const;
         void unbind() const;
         void set_data(const void *data, size_t width, size_t height);
         void set_sampler(Sampler *sampler);

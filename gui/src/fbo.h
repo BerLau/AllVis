@@ -23,16 +23,21 @@ namespace Rendering
         unsigned int height;
         GLenum internal_format;
         GLenum format;
+        GLsizei samples;
         // constructors and deconstructor
     public:
-        Render_Buffer(unsigned int width, unsigned int height, GLenum internal_format = GL_DEPTH_COMPONENT, GLenum format = GL_DEPTH_COMPONENT)
+        Render_Buffer(unsigned int width, unsigned int height, GLenum internal_format = GL_DEPTH_COMPONENT, GLenum format = GL_DEPTH_COMPONENT, GLsizei samples = 1)
             : id(0),
               width(width),
               height(height),
               internal_format(internal_format),
-              format(format)
+              format(format),
+              samples(samples)
         {
             create();
+            bind();
+            set_storage(internal_format, format, samples);
+            unbind();
         }
         ~Render_Buffer() { destroy(); }
 
@@ -41,8 +46,6 @@ namespace Rendering
         void create()
         {
             glGenRenderbuffers(1, &this->id);
-            glBindRenderbuffer(GL_RENDERBUFFER, this->id);
-            glRenderbufferStorage(GL_RENDERBUFFER, this->internal_format, this->width, this->height);
         }
         void destroy()
         {
@@ -51,20 +54,42 @@ namespace Rendering
                 glDeleteRenderbuffers(1, &this->id);
             }
         }
+
         void bind()
         {
             glBindRenderbuffer(GL_RENDERBUFFER, this->id);
         }
+
         void unbind()
         {
             glBindRenderbuffer(GL_RENDERBUFFER, 0);
         }
+
         void resize(unsigned int width, unsigned int height)
         {
             this->width = width;
             this->height = height;
-            destroy();
-            create();
+            set_storage(this->internal_format, this->format, this->samples);
+        }
+
+        void set_storage(GLenum internal_format, GLenum format, GLsizei samples)
+        {
+            this->internal_format = internal_format;
+            this->format = format;
+            this->samples = samples;
+            if (samples == 1)
+            {
+                glRenderbufferStorage(GL_RENDERBUFFER, this->internal_format, this->width, this->height);
+            }
+            else if (samples > 1)
+            {
+                glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, this->internal_format, this->width, this->height);
+            }
+        }
+
+        void set_storage_multisample(GLsizei samples)
+        {
+            glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, this->internal_format, this->width, this->height);
         }
     };
 
@@ -88,13 +113,12 @@ namespace Rendering
         FBO(unsigned int width, unsigned int height)
             : id(0),
               width(width),
-              height(height),
-              texture(nullptr),
-              render_buffer(nullptr)
+              height(height)
         {
             create();
         }
-        ~FBO(){
+        ~FBO()
+        {
             destroy();
         }
 
@@ -107,7 +131,8 @@ namespace Rendering
         void resize(unsigned int width, unsigned int height);
         void attach_texture(Texture_Ptr texture);
         void attach_render_buffer(Render_Buffer_Ptr render_buffer);
+        bool check_status();
     };
-} // namespace Rendering
+}; // namespace Rendering
 
 #endif // !RENDERING_FBO_H

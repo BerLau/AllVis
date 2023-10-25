@@ -20,19 +20,10 @@ namespace Rendering
         }
     }
 
-    void Texture::bind(GLuint index) const
+    void Texture::bind() const
     {
-        glActiveTexture(GL_TEXTURE0 + index);
         glBindTexture(format.target, texture_id);
-        if (sampler)
-        {
-            sampler->bind(index);
-        }
-        else
-        {
-            auto sampler = Sampler_Manager::instance().get_sampler("default");
-            sampler->bind(index);
-        }
+    
     }
 
     void Texture::unbind() const
@@ -58,9 +49,7 @@ namespace Rendering
 
     void Texture::resize(size_t width, size_t height)
     {
-        bind();
         glTexImage2D(format.target, 0, format.internal_format, width, height, 0, format.format, format.type, NULL);
-        unbind();
     }
 
     // load texture from file with FreeImage Library
@@ -96,6 +85,7 @@ namespace Rendering
 
         Texture *texture = new Texture(format_);
         texture->set_data(bits, width, height);
+        texture->set_sampler(Sampler_Manager::instance().get_sampler("default"));
 
         FreeImage_Unload(image);
         return texture;
