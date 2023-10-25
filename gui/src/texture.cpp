@@ -56,6 +56,13 @@ namespace Rendering
         this->sampler = sampler;
     }
 
+    void Texture::resize(size_t width, size_t height)
+    {
+        bind();
+        glTexImage2D(format.target, 0, format.internal_format, width, height, 0, format.format, format.type, NULL);
+        unbind();
+    }
+
     // load texture from file with FreeImage Library
     Texture *load_texture(const std::string &path)
     {

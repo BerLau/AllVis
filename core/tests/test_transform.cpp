@@ -26,5 +26,15 @@ TEST(TestTransform, construct_from_base_vectors)
     EXPECT_TRUE(pos == pos_);
     EXPECT_TRUE(front == front_);
     EXPECT_TRUE(up == up_);
-  
+}
+
+TEST(TestTransform, scale)
+{
+    using namespace Core;
+    Transform transform;
+    transform.set_scale(Vector3(1.0f, 2.0f, 3.0f));
+    transform.scale(2.0f);
+    Vector3 scale = transform.get_scale();
+    std::cout << "scale: " << scale << std::endl;
+    EXPECT_TRUE(scale == Vector3(2.0f, 4.0f, 6.0f));
 }

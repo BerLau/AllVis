@@ -192,7 +192,7 @@ namespace Core
         {
             for (size_t j = 0; j < _cols; ++j)
             {
-                result[i] += (*this)(i, j) * other[j];
+                result(i,j) += (*this)(i, j) * other(i,j);
             }
         }
         return result;

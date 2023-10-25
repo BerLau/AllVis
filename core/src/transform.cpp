@@ -262,17 +262,21 @@ namespace Core
 
     void Transform::scale(float x, float y, float z)
     {
-        m_scale *= Vector3(x, y, z);
+        m_scale.x() *= x;
+        m_scale.y() *= y;
+        m_scale.z() *= z;
     }
 
     void Transform::scale(Vector3 scale)
     {
-        this->m_scale *= scale;
+        this->m_scale.x() *= scale.x();
+        this->m_scale.y() *= scale.y();
+        this->m_scale.z() *= scale.z();
     }
 
     void Transform::scale(float scale)
     {
-        this->m_scale *= Vector3(scale, scale, scale);
+        this->m_scale *= scale;
     }
 
     Vector3 Transform::get_front()

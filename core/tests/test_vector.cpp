@@ -238,3 +238,14 @@ TEST_F(VectorTest, VECTOR_MATRIX_MULTIPLICATION)
     EXPECT_FLOAT_EQ(v[3], 1);
 }
 
+TEST_F(VectorTest, VECTOR3_MATRIX_MULTIPLICATION)
+{
+    using namespace Core;
+    Vector3 v1(1, 2, 3);
+    Vector3 v2(1, 2, 3);
+    Vector3 v = v1 * v2;
+    EXPECT_FLOAT_EQ(v[0], 1);
+    EXPECT_FLOAT_EQ(v[1], 4);
+    EXPECT_FLOAT_EQ(v[2], 9);
+}
+

@@ -170,6 +170,7 @@ namespace Rendering
         void unbind() const;
         void set_data(const void *data, size_t width, size_t height);
         void set_sampler(Sampler *sampler);
+        void resize(size_t width, size_t height);
     };
 
     Texture *load_texture(const std::string &path);

@@ -7,7 +7,6 @@
 #include <imgui.h>
 
 #include "imgui_widget.h"
-#include "events.h"
 
 #include <set>
 

@@ -58,7 +58,6 @@ namespace Core
         Matrix &operator+=(const Matrix &other) { return *this = *this + other; }
         Matrix &operator-=(const Matrix &other) { return *this = *this - other; }
         Matrix &operator*=(float scalar) { return *this = *this * scalar; }
-        Matrix &operator*=(const Matrix &other) { return *this = *this * other; }
 
 
         virtual bool operator==(const Matrix &other) const;
