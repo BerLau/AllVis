@@ -107,7 +107,8 @@ namespace GUI
             this->focused = ImGui::IsWindowFocused();
             // get the actual canvas size
             this->render();
-            this->show_framebuffer(scene->fb_tex, this->pos_x, this->pos_y, this->width, this->height);
+            // this->show_framebuffer(scene->fb_tex, this->pos_x, this->pos_y, this->width, this->height);
+            this->show_framebuffer(scene->fbo_ptr->texture->texture_id, this->pos_x, this->pos_y, this->width, this->height);
         }
         ImGui::End();
         // ImGui::PopStyleVar();

@@ -143,7 +143,8 @@ namespace Rendering
     void OGL_Scene_3D::render()
     {
         using namespace Core;
-        bind_framebuffer();
+        // bind_framebuffer();
+        fbo_ptr->bind();
         // temporarily set the light properties
         glClearColor(this->bg_color[0], this->bg_color[1], this->bg_color[2], this->bg_color[3]);
         glViewport(0, 0, this->width, this->height);
@@ -194,7 +195,7 @@ namespace Rendering
             }
             light_shader->deactivate();
         }
-
-        unbind_framebuffer();
+        // unbind_framebuffer();
+        fbo_ptr->unbind();
     }
 };

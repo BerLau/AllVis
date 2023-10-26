@@ -37,43 +37,43 @@ namespace Rendering
         {
             glActiveTexture(GL_TEXTURE0);
             albedo_map->bind();
-            albedo_map->sampler->bind(0);
+            // albedo_map->sampler->bind(0);
         }
         if (normal_map)
         {
             glActiveTexture(GL_TEXTURE1);
             normal_map->bind();
-            normal_map->sampler->bind(1);
+            // normal_map->sampler->bind(1);
         }
         if (height_map)
         {
             glActiveTexture(GL_TEXTURE2);
             height_map->bind();
-            height_map->sampler->bind(2);
+            // height_map->sampler->bind(2);
         }
         if (metallic_map)
         {
             glActiveTexture(GL_TEXTURE3);
             metallic_map->bind();
-            metallic_map->sampler->bind(3);
+            // metallic_map->sampler->bind(3);
         }
         if (roughness_map)
         {
             glActiveTexture(GL_TEXTURE4);
             roughness_map->bind();
-            roughness_map->sampler->bind(4);
+            // roughness_map->sampler->bind(4);
         }
         if (ao_map)
         {
             glActiveTexture(GL_TEXTURE5);
             ao_map->bind();
-            ao_map->sampler->bind(5);
+            // ao_map->sampler->bind(5);
         }
         if (emissive_map)
         {
             glActiveTexture(GL_TEXTURE6);
             emissive_map->bind();
-            emissive_map->sampler->bind(6);
+            // emissive_map->sampler->bind(6);
         }
 
     }

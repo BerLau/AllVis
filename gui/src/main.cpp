@@ -112,7 +112,6 @@ void init_imgui(GLFWwindow *glfw_window)
     ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(glfw_window, true);
     ImGui_ImplOpenGL3_Init("#version 330 core");
-    // init imgui window
 }
 
 void glfw_error_callback(int error, const char *description)
@@ -130,11 +129,12 @@ void loop(GLFWwindow *glfw_window, GUI::Application *app)
         ImGui::NewFrame();
 
         auto viewport = ImGui::GetMainViewport();
-        ImGui::DockSpaceOverViewport(viewport);
+        ImGui::DockSpaceOverViewport(viewport, ImGuiDockNodeFlags_PassthruCentralNode);
+
         app->run();
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-        if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+        if (ImGui::GetIO().ConfigFlags)
         {
             GLFWwindow *backup_current_context = glfwGetCurrentContext();
             ImGui::UpdatePlatformWindows();

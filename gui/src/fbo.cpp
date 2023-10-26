@@ -13,27 +13,11 @@ namespace Rendering
     void FBO::bind()
     {
         glBindFramebuffer(GL_FRAMEBUFFER, this->id);
-        if (this->texture)
-        {
-            this->texture->bind();
-        }
-        if (this->render_buffer)
-        {
-            this->render_buffer->bind();
-        }
     }
 
     void FBO::unbind()
     {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        if (this->texture)
-        {
-            this->texture->unbind();
-        }
-        if (this->render_buffer)
-        {
-            this->render_buffer->unbind();
-        }
     }
 
     void FBO::resize(unsigned int width, unsigned int height)
@@ -44,13 +28,13 @@ namespace Rendering
         }
         this->width = width;
         this->height = height;
-        bind();
         this->texture->bind();
         this->texture->resize(width, height);
+        this->texture->unbind();
+
         this->render_buffer->bind();
         this->render_buffer->resize(width, height);
         unbind();
-        this->texture->unbind();
         this->render_buffer->unbind();
     }
 

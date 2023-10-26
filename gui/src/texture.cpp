@@ -5,34 +5,36 @@
 
 namespace Rendering
 {
-    Texture::Texture(Format format) : format(format), sampler(nullptr)
+
+    Texture::Texture(Format format, TexParams params)
+    : format(format), params(params)
     {
         glGenTextures(1, &texture_id);
+        set_tex_params(params);
     }
 
     Texture::~Texture()
     {
         glDeleteTextures(1, &texture_id);
-        if (sampler)
-        {
-            glDeleteSamplers(1, &sampler->sampler_id);
-            sampler = nullptr;
-        }
+        // if (sampler)
+        // {
+        //     glDeleteSamplers(1, &sampler->sampler_id);
+        //     sampler = nullptr;
+        // }
     }
 
     void Texture::bind() const
     {
         glBindTexture(format.target, texture_id);
-    
     }
 
     void Texture::unbind() const
     {
         glBindTexture(format.target, 0);
-        if (sampler)
-        {
-            sampler->unbind();
-        }
+        // if (sampler)
+        // {
+        //     sampler->unbind();
+        // }
     }
 
     void Texture::set_data(const void *data, size_t width, size_t height)
@@ -42,9 +44,21 @@ namespace Rendering
         unbind();
     }
 
-    void Texture::set_sampler(Sampler *sampler)
+    // void Texture::set_sampler(Sampler *sampler)
+    // {
+    //     this->sampler = sampler;
+    // }
+
+    void Texture::set_tex_params(const TexParams &params)
     {
-        this->sampler = sampler;
+        bind();
+        glTexParameteri(format.target, GL_TEXTURE_MIN_FILTER, params.min_filter);
+        glTexParameteri(format.target, GL_TEXTURE_MAG_FILTER, params.mag_filter);
+        glTexParameteri(format.target, GL_TEXTURE_WRAP_S, params.wrap_s);
+        glTexParameteri(format.target, GL_TEXTURE_WRAP_T, params.wrap_t);
+        glTexParameteri(format.target, GL_TEXTURE_WRAP_R, params.wrap_r);
+        glTexParameterfv(format.target, GL_TEXTURE_BORDER_COLOR, params.border_color);
+        unbind();
     }
 
     void Texture::resize(size_t width, size_t height)
@@ -85,7 +99,7 @@ namespace Rendering
 
         Texture *texture = new Texture(format_);
         texture->set_data(bits, width, height);
-        texture->set_sampler(Sampler_Manager::instance().get_sampler("default"));
+        // texture->set_sampler(Sampler_Manager::instance().get_sampler("default"));
 
         FreeImage_Unload(image);
         return texture;

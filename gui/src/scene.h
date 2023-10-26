@@ -9,6 +9,7 @@
 #include "models.h"
 #include "camera.h"
 #include "light.h"
+#include "fbo.h"
 
 namespace Rendering
 {
@@ -74,6 +75,7 @@ namespace Rendering
         float fov = 45.0f;
         Core::Vector4 bg_color = Core::Vector4(1.f, 1.f, 1.f, 1.0f);
         GLuint fbo = 0, fb_tex = 0, rbo = 0;
+        FBO_Ptr fbo_ptr = nullptr;
         Rendering::Shader_Program *shader = nullptr;
         std::vector<OGL_Model_Item> models;
         // constructors and deconstructor
@@ -93,6 +95,19 @@ namespace Rendering
         virtual void init()
         {
             create_framebuffer();
+            fbo_ptr = FBO_Ptr(new FBO(this->width, this->height));
+            fbo_ptr->bind();
+            auto color_attachment = Texture_Ptr(new Texture());
+            color_attachment->bind();
+            color_attachment->resize(this->width, this->height);
+            // color_attachment->set_sampler(Sampler_Manager::instance().get_sampler("default"));
+            fbo_ptr->attach_texture(color_attachment);
+            auto depth_attachment = Render_Buffer_Ptr(new Render_Buffer(this->width, this->height));
+            fbo_ptr->attach_render_buffer(std::move(depth_attachment));
+            fbo_ptr->unbind();
+            color_attachment->unbind();
+            depth_attachment->unbind();
+            fbo_ptr->check_status();
         }
         virtual void update() override = 0;
         virtual void destroy()
@@ -111,6 +126,7 @@ namespace Rendering
             {
                 Scene::resize(width, height);
                 this->resize_framebuffer();
+                fbo_ptr->resize(width, height);
             }
         }
         void create_framebuffer();
