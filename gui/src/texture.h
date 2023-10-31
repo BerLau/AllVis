@@ -186,6 +186,7 @@ namespace Rendering
     };
 
     Texture *load_texture(const std::string &path);
+    Texture *load_cube_texture(const std::string &path);
 
     class Texture_Manager
     {

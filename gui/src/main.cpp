@@ -129,7 +129,7 @@ void loop(GLFWwindow *glfw_window, GUI::Application *app)
         ImGui::NewFrame();
 
         auto viewport = ImGui::GetMainViewport();
-        ImGui::DockSpaceOverViewport(viewport, ImGuiDockNodeFlags_PassthruCentralNode);
+        ImGui::DockSpaceOverViewport(viewport);
 
         app->run();
         ImGui::Render();

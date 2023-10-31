@@ -105,8 +105,9 @@ namespace Rendering
         unsigned int id;
         unsigned int width;
         unsigned int height;
-        Texture_Ptr texture;
-        Render_Buffer_Ptr render_buffer;
+        // Texture_Ptr texture;
+        std::vector<Texture_Ptr> attachments;
+        Render_Buffer_Ptr rbo;
 
         // constructors and deconstructor
     public:
@@ -132,6 +133,7 @@ namespace Rendering
         void attach_texture(Texture_Ptr texture);
         void attach_render_buffer(Render_Buffer_Ptr render_buffer);
         bool check_status();
+        void set_draw_buffers();
     };
 }; // namespace Rendering
 

@@ -91,8 +91,8 @@ TEST(TestRandom, random_max_float)
 
 TEST(TestRandom, random_range_float)
 {
-    float min = -1.f;
-    float max = 1.f;
+    float min = -1.5f;
+    float max = 1.0f;
     for (int i = 0; i < 100; i++)
     {
         for (int j = 0; j < 100; j++)

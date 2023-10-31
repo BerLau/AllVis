@@ -1,69 +1,32 @@
 #include "scene.h"
 namespace Rendering
 {
-    void OGL_Scene::create_framebuffer()
+    void OGL_Scene::init()
     {
-        glGenFramebuffers(1, &this->fbo);
-        glBindFramebuffer(GL_FRAMEBUFFER, this->fbo);
+        fbo_ptr = FBO_Ptr(new FBO(this->width, this->height));
+        fbo_ptr->bind();
 
-        glGenTextures(1, &this->fb_tex);
-        glBindTexture(GL_TEXTURE_2D, this->fb_tex);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, this->width, this->height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // GL_NEAREST
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // GL_NEAREST
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->fb_tex, 0);
+        auto color_attachment = Texture_Ptr(new Texture());
+        color_attachment->bind();
+        color_attachment->resize(this->width, this->height);
+        fbo_ptr->attach_texture(color_attachment);
+        color_attachment->unbind();
 
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        {
-            std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
-        }
+        auto color_attachment_2 = Texture_Ptr(new Texture());
+        color_attachment_2->bind();
+        color_attachment_2->resize(this->width, this->height);
+        fbo_ptr->attach_texture(color_attachment_2);
+        color_attachment_2->unbind();
 
-        // add depth buffer
-
-        glGenRenderbuffers(1, &rbo);
-        glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, this->width, this->height);
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo);
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glBindTexture(GL_TEXTURE_2D, 0);
+        auto depth_attachment = Render_Buffer_Ptr(new Render_Buffer(this->width, this->height));
+        fbo_ptr->attach_render_buffer(std::move(depth_attachment));
+        depth_attachment->unbind();
+        fbo_ptr->set_draw_buffers();
+        fbo_ptr->check_status();
+        
+        fbo_ptr->unbind();
     }
-
-    void OGL_Scene::resize_framebuffer()
-    {
-        glBindTexture(GL_TEXTURE_2D, this->fb_tex);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, this->width, this->height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-        glBindTexture(GL_TEXTURE_2D, 0);
-        glBindBuffer(GL_RENDERBUFFER, this->rbo);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, this->width, this->height);
-        glBindBuffer(GL_RENDERBUFFER, 0);
-    }
-
-    void OGL_Scene::bind_framebuffer()
-    {
-        glBindFramebuffer(GL_FRAMEBUFFER, this->fbo);
-    }
-
-    void OGL_Scene::unbind_framebuffer()
-    {
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    }
-
-    void OGL_Scene::release_framebuffer()
-    {
-        if (this->fbo)
-        {
-            glDeleteFramebuffers(1, &this->fbo);
-        }
-        if (this->fb_tex)
-        {
-            glDeleteTextures(1, &this->fb_tex);
-        }
-        if (this->rbo)
-        {
-            glDeleteRenderbuffers(1, &this->rbo);
-        }
-    }
-
+    
     OGL_Scene_3D::OGL_Scene_3D(float width, float height)
         : OGL_Scene(width, height),
           lights(),
@@ -100,26 +63,19 @@ namespace Rendering
 
         models.push_back({std::move(cube_model), true});
         models.push_back({std::move(cube_model_2), true});
-        // set light
-        auto light = Rendering::Light_Ptr(new Rendering::Light());
-        light->name = "light 1";
-        light->set_position(Core::Vector3(1.0f, 1.0f, 2.0f));
-        light->spot_on(Core::Vector3(0.0f, 0.0f, 0.0f));
-        float r = RANDOM_RANGE_F(0.2, 1.0);
-        light->color = Core::Vector3(r, r, r);
-        light->intensity = RANDOM_RANGE_F(0.2, 1.0);
-        light->type = Rendering::Light::POINT_LIGHT;
-        lights.push_back({std::move(light), true});
-
-        auto light_2 = Rendering::Light_Ptr(new Rendering::Light());
-        light_2->name = "light 2";
-        light_2->set_position(Core::Vector3(-1.0f, 1.0f, 1.0f));
-        light_2->spot_on(Core::Vector3(0.0f, 0.0f, 0.0f));
-        r = RANDOM_RANGE_F(0.2, 1.0);
-        light_2->color = Core::Vector3(r, r, r);
-        light_2->intensity = RANDOM_RANGE_F(0.2, 1.0);
-        light_2->type = Rendering::Light::POINT_LIGHT;
-        lights.push_back({std::move(light_2), true});
+        // set lights
+        for (int i = 0; i < 16; i++)
+        {
+            auto light = Rendering::Light_Ptr(new Rendering::Light());
+            light->name = "light " + std::to_string(i);
+            light->set_position(Core::Vector3(RANDOM_RANGE_F(-2.5, 2.5), RANDOM_RANGE_F(-2.5, 2.5), RANDOM_RANGE_F(-2.5, 2.5)));
+            light->spot_on(Core::Vector3(0.0f, 0.0f, 0.0f));
+            float r = RANDOM_RANGE_F(0.2, 1.0);
+            light->color = Core::Vector3(r, r, r);
+            light->intensity = RANDOM_RANGE_F(0.2, 1.0);
+            light->type = Rendering::Light::POINT_LIGHT;
+            lights.push_back({std::move(light), true});
+        }
 
         auto camera = Rendering::Camera_Ptr(new Rendering::Camera(Core::Vector3(0.0f, 0.0f, 4.0f)));
         camera->name = "camera 1";
@@ -143,7 +99,6 @@ namespace Rendering
     void OGL_Scene_3D::render()
     {
         using namespace Core;
-        // bind_framebuffer();
         fbo_ptr->bind();
         // temporarily set the light properties
         glClearColor(this->bg_color[0], this->bg_color[1], this->bg_color[2], this->bg_color[3]);
@@ -195,7 +150,6 @@ namespace Rendering
             }
             light_shader->deactivate();
         }
-        // unbind_framebuffer();
         fbo_ptr->unbind();
     }
 };

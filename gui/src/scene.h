@@ -27,7 +27,7 @@ namespace Rendering
         float width = 0.f;
         float height = 0.f;
         float aspect = 0.f;
-        Configurable* focused_object = nullptr;
+        Configurable *focused_object = nullptr;
         // constructors and deconstructor
     public:
         Scene(float width, float height)
@@ -92,28 +92,11 @@ namespace Rendering
         }
         // methods
     public:
-        virtual void init()
-        {
-            create_framebuffer();
-            fbo_ptr = FBO_Ptr(new FBO(this->width, this->height));
-            fbo_ptr->bind();
-            auto color_attachment = Texture_Ptr(new Texture());
-            color_attachment->bind();
-            color_attachment->resize(this->width, this->height);
-            // color_attachment->set_sampler(Sampler_Manager::instance().get_sampler("default"));
-            fbo_ptr->attach_texture(color_attachment);
-            auto depth_attachment = Render_Buffer_Ptr(new Render_Buffer(this->width, this->height));
-            fbo_ptr->attach_render_buffer(std::move(depth_attachment));
-            fbo_ptr->unbind();
-            color_attachment->unbind();
-            depth_attachment->unbind();
-            fbo_ptr->check_status();
-        }
+        virtual void init();
+
         virtual void update() override = 0;
         virtual void destroy()
         {
-            unbind_framebuffer();
-            release_framebuffer();
         }
         virtual void render() override = 0;
         virtual void resize(float width, float height) override
@@ -125,15 +108,9 @@ namespace Rendering
             else
             {
                 Scene::resize(width, height);
-                this->resize_framebuffer();
                 fbo_ptr->resize(width, height);
             }
         }
-        void create_framebuffer();
-        void resize_framebuffer();
-        void bind_framebuffer();
-        void unbind_framebuffer();
-        void release_framebuffer();
     };
 
     class OGL_Scene_3D;
@@ -157,7 +134,7 @@ namespace Rendering
         };
         // attributes
     public:
-        float gamma=2.2f;
+        float gamma = 2.2f;
         float exposure = 1.0f;
         // constructors and deconstructor
         Rendering::Texture_Ptr sample_texture;

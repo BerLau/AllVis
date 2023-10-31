@@ -16,11 +16,6 @@ namespace Rendering
     Texture::~Texture()
     {
         glDeleteTextures(1, &texture_id);
-        // if (sampler)
-        // {
-        //     glDeleteSamplers(1, &sampler->sampler_id);
-        //     sampler = nullptr;
-        // }
     }
 
     void Texture::bind() const
@@ -31,23 +26,15 @@ namespace Rendering
     void Texture::unbind() const
     {
         glBindTexture(format.target, 0);
-        // if (sampler)
-        // {
-        //     sampler->unbind();
-        // }
     }
 
     void Texture::set_data(const void *data, size_t width, size_t height)
     {
         bind();
         glTexImage2D(format.target, 0, format.internal_format, width, height, 0, format.format, format.type, data);
+        glGenerateMipmap(format.target);
         unbind();
     }
-
-    // void Texture::set_sampler(Sampler *sampler)
-    // {
-    //     this->sampler = sampler;
-    // }
 
     void Texture::set_tex_params(const TexParams &params)
     {
@@ -103,6 +90,18 @@ namespace Rendering
 
         FreeImage_Unload(image);
         return texture;
+    }
+
+    Texture *load_cube_texture(const std::string &path)
+    {
+        std::vector<std::string> faces = {
+            path + "/right.jpg",
+            path + "/left.jpg",
+            path + "/top.jpg",
+            path + "/bottom.jpg",
+            path + "/front.jpg",
+            path + "/back.jpg",
+        };
     }
 
 } // namespace Rendering

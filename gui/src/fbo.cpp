@@ -28,37 +28,41 @@ namespace Rendering
         }
         this->width = width;
         this->height = height;
-        this->texture->bind();
-        this->texture->resize(width, height);
-        this->texture->unbind();
+        for (auto &attachment : this->attachments)
+        {
+            attachment->bind();
+            attachment->resize(width, height);
+            attachment->unbind();
+        }
 
-        this->render_buffer->bind();
-        this->render_buffer->resize(width, height);
-        unbind();
-        this->render_buffer->unbind();
+        this->rbo->bind();
+        this->rbo->resize(width, height);
+        this->rbo->unbind();
     }
 
     void FBO::attach_texture(Texture_Ptr texture)
     {
-        this->texture = texture;
-        bind();
-        texture->bind();
-        texture->resize(this->width, this->height);
-        // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->texture->texture_id, 0);
-        unbind();
-        texture->unbind();
+        GLuint index = GL_COLOR_ATTACHMENT0 + this->attachments.size();
+
+        if (texture->format.target == GL_TEXTURE_2D)
+        {
+            glFramebufferTexture2D(GL_FRAMEBUFFER, index, GL_TEXTURE_2D, texture->texture_id, 0);
+        }
+        else if (texture->format.target == GL_TEXTURE_CUBE_MAP)
+        {
+            for (int i = 0; i < 6; i++)
+            {
+                glFramebufferTexture2D(GL_FRAMEBUFFER, index, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, texture->texture_id, 0);
+            }
+        }
+        this->attachments.push_back(std::move(texture));
     }
 
     void FBO::attach_render_buffer(Render_Buffer_Ptr render_buffer)
     {
-        this->render_buffer = std::move(render_buffer);
-        bind();
-        this->render_buffer->bind();
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, this->render_buffer->id);
-        unbind();
-        this->render_buffer->unbind();
+        render_buffer->bind();
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, render_buffer->id);
+        this->rbo = std::move(render_buffer);
     }
 
     bool FBO::check_status()
@@ -95,6 +99,30 @@ namespace Rendering
             unbind();
             return false;
         }
+
+        // check if attachments are complete
+        for (int i = 0; i < attachments.size(); ++i)
+        {
+            int status;
+            glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE, &status);
+            if (status == GL_NONE)
+            {
+                std::cout << "[ERROR] Framebuffer incomplete: Attachment is NOT complete." << std::endl;
+                unbind();
+                return false;
+            }
+        }
+        unbind();
+    }
+
+    void FBO::set_draw_buffers()
+    {
+        std::vector<GLenum> draw_buffers;
+        for (int i = 0; i < this->attachments.size(); i++)
+        {
+            draw_buffers.push_back(GL_COLOR_ATTACHMENT0 + i);
+        }
+        glDrawBuffers(draw_buffers.size(), draw_buffers.data());
     }
 
     void FBO::create()
