@@ -6,7 +6,6 @@
 #include <memory>
 #include <core.h>
 #include <unordered_map>
-#include <FreeImage.h>
 #include "ui_log.h"
 
 namespace Rendering
@@ -28,8 +27,7 @@ namespace Rendering
             GLenum wrap_t;
             GLenum wrap_r;
             float border_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
-
-            constexpr TexParams(GLenum min_filter = GL_LINEAR, GLenum mag_filter = GL_LINEAR, GLenum wrap_s = GL_CLAMP_TO_EDGE, GLenum wrap_t = GL_CLAMP_TO_EDGE, GLenum wrap_r = GL_CLAMP_TO_EDGE)
+            TexParams(GLenum min_filter = GL_LINEAR, GLenum mag_filter = GL_LINEAR, GLenum wrap_s = GL_CLAMP_TO_EDGE, GLenum wrap_t = GL_CLAMP_TO_EDGE, GLenum wrap_r = GL_CLAMP_TO_EDGE)
                 : min_filter(min_filter),
                   mag_filter(mag_filter),
                   wrap_s(wrap_s),
@@ -183,6 +181,7 @@ namespace Rendering
         void set_data(const void *data, size_t width, size_t height);
         void set_tex_params(const TexParams &params);
         void resize(size_t width, size_t height);
+        void generate_mipmap();
     };
 
     Texture *load_texture(const std::string &path);
@@ -243,7 +242,7 @@ namespace Rendering
     };
     struct Img_Data
     {
-        BYTE *data = nullptr;
+        char *data = nullptr;
         int width = 0;
         int height = 0;
         int channels = 0;
@@ -257,8 +256,15 @@ namespace Rendering
         }
     };
 
-    bool image_info(FIBITMAP *image, FREE_IMAGE_FORMAT file_type, unsigned int &texture_format, unsigned int &texture_inner_format, int &texture_type, int &channels, bool &is_hdr);
     Img_Data image_data(const std::string &path, bool flip = false);
+
+    Img_Data read_jpg(const std::string &path, bool flip = false);
+    Img_Data read_png(const std::string &path, bool flip = false);
+    Img_Data read_bmp(const std::string &path, bool flip = false);
+    Img_Data read_tga(const std::string &path, bool flip = false);
+    Img_Data read_hdr(const std::string &path, bool flip = false);
+    Img_Data read_tiff(const std::string &path, bool flip = false);
+    // Img_Data read_exr(const std::string &path, bool flip = false);
 
 }
 

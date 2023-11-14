@@ -612,7 +612,7 @@ namespace GUI
                 ImGui::SliderFloat("##exposure", &ogl_3d->exposure, 0.01f, 20.0f, "%.2f");
                 if (!EQUAL_F(gamma, ogl_3d->gamma) || !EQUAL_F(exposure, ogl_3d->exposure))
                 {
-                    ogl_3d->update_gamma_exposure();
+                    ogl_3d->update_environment();
                 }
 
                 // set the sky box texture
@@ -633,7 +633,7 @@ namespace GUI
                         Rendering::Texture_Manager::instance().add_texture(new_path, Rendering::load_texture(new_path));
                     }
                     ogl_3d->skybox_path = new_path;
-                    ogl_3d->equi_to_cubemap();
+                    ogl_3d->update_environment();
                 }
                 // change back to one column
                 ImGui::Columns(1);

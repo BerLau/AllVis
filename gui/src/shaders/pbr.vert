@@ -32,6 +32,7 @@ struct Material {
   sampler2D ao_map;
   sampler2D normal_map;
   sampler2D height_map;
+  sampler2D emissive_map;
 
   bool has_albedo_map;
   bool has_metallic_map;
@@ -40,7 +41,9 @@ struct Material {
   bool has_normal_map;
   bool is_emissive;
   bool has_height_map;
+  bool has_emissive_map;
 };
+
 uniform Material u_material;
 
 void main() {

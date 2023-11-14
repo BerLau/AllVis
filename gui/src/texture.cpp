@@ -1,6 +1,8 @@
 #include "texture.h"
 #include "ui_log.h"
-
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+#include <tiffio.h>
 #include <cstring>
 
 namespace Rendering
@@ -63,231 +65,253 @@ namespace Rendering
         }
     }
 
-    // potential bug: the color channels may be vary in different images and os
-    bool image_info(FIBITMAP *bitmap, FREE_IMAGE_FORMAT file_type, unsigned int &texture_format, unsigned int &texture_inner_format, int &texture_type, int &channels, bool &is_hdr)
+    void Texture::generate_mipmap()
     {
-        bool rslt = true;
-        unsigned bpp = FreeImage_GetBPP(bitmap);
-        FREE_IMAGE_TYPE imageType = FreeImage_GetImageType(bitmap);
-        auto color_type = FreeImage_GetColorType(bitmap);
-        // four channel images
-        if (color_type == FIC_RGBALPHA)
-        {
-            channels = 4;
-            if (file_type == FIF_PNG || file_type == FIF_JPEG)
-            {
-                texture_format = GL_BGRA;
-            }
-            else
-            {
-                texture_format = GL_RGBA;
-            }
-            // if hdr
-            if (imageType == FIT_RGBAF)
-            {
-                is_hdr = true;
-                texture_type = GL_FLOAT;
-                if (bpp == 64)
-                {
-                    texture_inner_format = GL_RGBA16F;
-                }
-                else if (bpp == 128)
-                {
-                    texture_inner_format = GL_RGBA32F;
-                }
-                else
-                {
-                    rslt = false;
-                }
-            }
-            else
-            {
-                is_hdr = false;
-                if (bpp == 32)
-                {
-                    texture_type = GL_UNSIGNED_BYTE;
-                    texture_inner_format = GL_RGBA8;
-                }
-                else if (bpp == 64)
-                {
-                    texture_type = GL_UNSIGNED_SHORT;
-                    texture_inner_format = GL_RGBA16;
-                }
-                else if (bpp == 128)
-                {
-                    texture_type = GL_UNSIGNED_INT;
-                    texture_inner_format = GL_RGBA32F;
-                }
-                else
-                {
-                    rslt = false;
-                }
-            }
-        }
-        // three channel images
-        else if (color_type == FIC_RGB)
-        {
-            channels = 3;
-            if (file_type == FIF_PNG || file_type == FIF_JPEG)
-            {
-                texture_format = GL_BGR;
-            }
-            else
-            {
-                texture_format = GL_RGB;
-            }
-            // if hdr
-            if (imageType == FIT_RGBF)
-            {
-                is_hdr = true;
-                texture_type = GL_FLOAT;
-                if (bpp == 48)
-                {
-                    texture_inner_format = GL_RGB16F;
-                }
-                else if (bpp == 96)
-                {
-                    texture_inner_format = GL_RGB32F;
-                }
-                else
-                {
-                    rslt = false;
-                }
-            }
-            else
-            {
-                is_hdr = false;
-                if (bpp == 24)
-                {
-                    texture_type = GL_UNSIGNED_BYTE;
-                    texture_inner_format = GL_RGB8;
-                }
-                else if (bpp == 48)
-                {
-                    texture_type = GL_UNSIGNED_SHORT;
-                    texture_inner_format = GL_RGB16;
-                }
-                else if (bpp == 96)
-                {
-                    texture_type = GL_UNSIGNED_INT;
-                    texture_inner_format = GL_RGB32F;
-                }
-                else
-                {
-                    rslt = false;
-                }
-            }
-        }
-        // one channel images
-        else if (color_type == FIC_MINISBLACK || color_type == FIC_MINISWHITE)
-        {
-            channels = 1;
-            texture_format = GL_RED;
-            // if hdr
-            if (imageType == FIT_FLOAT)
-            {
-                is_hdr = true;
-                texture_type = GL_FLOAT;
-                if (bpp == 16)
-                {
-                    texture_inner_format = GL_R16F;
-                }
-                else if (bpp == 32)
-                {
-                    texture_inner_format = GL_R32F;
-                }
-                else
-                {
-                    rslt = false;
-                }
-            }
-            else
-            {
-                is_hdr = false;
-                if (bpp == 8)
-                {
-                    texture_type = GL_UNSIGNED_BYTE;
-                    texture_inner_format = GL_R8;
-                }
-                else if (bpp == 16)
-                {
-                    texture_type = GL_UNSIGNED_SHORT;
-                    texture_inner_format = GL_R16;
-                }
-                else if (bpp == 32)
-                {
-                    texture_type = GL_UNSIGNED_INT;
-                    texture_inner_format = GL_R32F;
-                }
-                else
-                {
-                    rslt = false;
-                }
-            }
-        }
-        else
-        {
-            rslt = false;
-        }
-        return rslt;
+        bind();
+        glGenerateMipmap(format.target);
+        unbind();
     }
 
     Img_Data image_data(const std::string &path, bool flip)
     {
-        static bool freeimage_initialized = false;
-        if (!freeimage_initialized)
-        {
-            FreeImage_Initialise();
-            freeimage_initialized = true;
-        }
         Img_Data rslt;
-        FREE_IMAGE_FORMAT file_type = FreeImage_GetFileType(path.c_str(), 0);
-        if (file_type == FIF_UNKNOWN)
+        auto ext = Core::file_extension(path);
+        if (ext == ".jpg" || ext == ".jpeg")
         {
-            std::cerr << "Unknown file format!" << std::endl;
-            return rslt;
+            rslt = read_jpg(path, flip);
         }
-        auto *image = FreeImage_Load(file_type, path.c_str());
-        if (!image)
+        else if (ext == ".png")
         {
-            std::cerr << "Failed to load image!" << std::endl;
-            return rslt;
+            rslt = read_png(path, flip);
         }
+        else if (ext == ".bmp")
+        {
+            rslt = read_bmp(path, flip);
+        }
+        else if (ext == ".tga")
+        {
+            rslt = read_tga(path, flip);
+        }
+        else if (ext == ".hdr")
+        {
+            rslt = read_hdr(path, flip);
+        }
+        else if (ext == ".tif")
+        {
+            rslt = read_tiff(path, flip);
+        }
+        else
+        {
+            std::cerr << "Unknown image format!" << std::endl;
+        }
+        return rslt;
+    }
 
-        bool identified = image_info(image, file_type, rslt.format, rslt.inner_format, rslt.type, rslt.channels, rslt.is_hdr);
-        if (!identified)
+    Img_Data read_jpg(const std::string &path, bool flip)
+    {
+        // read jpg with stb_image
+        Img_Data rslt;
+        stbi_set_flip_vertically_on_load(flip);
+        if (stbi_is_hdr(path.c_str()))
         {
-            // convert to 24/32 bit based on the channels
+            rslt.data = (char *)stbi_loadf(path.c_str(), &rslt.width, &rslt.height, &rslt.channels, 0);
+            rslt.is_hdr = true;
+            rslt.type = GL_FLOAT;
             if (rslt.channels == 3)
             {
-                image = FreeImage_ConvertTo24Bits(image);
-                image_info(image, file_type, rslt.format, rslt.inner_format, rslt.type, rslt.channels, rslt.is_hdr);
+                rslt.format = GL_RGB;
+                rslt.inner_format = GL_RGB16F;
             }
             else if (rslt.channels == 4)
             {
-                image = FreeImage_ConvertTo32Bits(image);
-                image_info(image, file_type, rslt.format, rslt.inner_format, rslt.type, rslt.channels, rslt.is_hdr);
+                rslt.format = GL_RGBA;
+                rslt.inner_format = GL_RGBA16F;
             }
             else
             {
                 std::cerr << "Unknown image format!" << std::endl;
                 return rslt;
             }
-            if (image == nullptr)
+        }
+        else
+        {
+            rslt.data = (char *)stbi_load(path.c_str(), &rslt.width, &rslt.height, &rslt.channels, 0);
+            rslt.is_hdr = false;
+            rslt.type = GL_UNSIGNED_BYTE;
+            if (rslt.channels == 3)
             {
-                std::cerr << "Failed to convert image!" << std::endl;
+                rslt.format = GL_RGB;
+                rslt.inner_format = GL_RGB8;
+            }
+            else if (rslt.channels == 4)
+            {
+                rslt.format = GL_RGBA;
+                rslt.inner_format = GL_RGBA8;
+            }
+            else
+            {
+                std::cerr << "Unknown image format!" << std::endl;
                 return rslt;
             }
         }
+        return rslt;
+    }
 
-        auto bpp = FreeImage_GetBPP(image);
-        rslt.width = FreeImage_GetWidth(image);
-        rslt.height = FreeImage_GetHeight(image);
-        // rearrange data
-        rslt.data = new BYTE[rslt.width * rslt.height * bpp / 8];
-        BYTE *bits = FreeImage_GetBits(image);
-        FreeImage_ConvertToRawBits(rslt.data, image, rslt.width * bpp / 8, bpp, FI_RGBA_RED_MASK, FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK, flip);
-        FreeImage_Unload(image);
+    Img_Data read_png(const std::string &path, bool flip)
+    {
+        // read png with stb_image
+        Img_Data rslt;
+        stbi_set_flip_vertically_on_load(flip);
+        rslt.data = (char *)stbi_load(path.c_str(), &rslt.width, &rslt.height, &rslt.channels, 0);
+        rslt.is_hdr = false;
+        rslt.type = GL_UNSIGNED_BYTE;
+        if (rslt.channels == 3)
+        {
+            rslt.format = GL_RGB;
+            rslt.inner_format = GL_RGB8;
+        }
+        else if (rslt.channels == 4)
+        {
+            rslt.format = GL_RGBA;
+            rslt.inner_format = GL_RGBA8;
+        }
+        else
+        {
+            std::cerr << "Unknown image format!" << std::endl;
+            return rslt;
+        }
+        return rslt;
+    }
+
+    Img_Data read_bmp(const std::string &path, bool flip)
+    {
+        // read bmp with stb_image
+        Img_Data rslt;
+        stbi_set_flip_vertically_on_load(flip);
+        rslt.data = (char *)stbi_load(path.c_str(), &rslt.width, &rslt.height, &rslt.channels, 0);
+        rslt.is_hdr = false;
+        rslt.type = GL_UNSIGNED_BYTE;
+        if (rslt.channels == 3)
+        {
+            rslt.format = GL_RGB;
+            rslt.inner_format = GL_RGB8;
+        }
+        else if (rslt.channels == 4)
+        {
+            rslt.format = GL_RGBA;
+            rslt.inner_format = GL_RGBA8;
+        }
+        else
+        {
+            std::cerr << "Unknown image format!" << std::endl;
+            return rslt;
+        }
+        return rslt;
+    }
+
+    Img_Data read_tga(const std::string &path, bool flip)
+    {
+        // read tga with stb_image
+        Img_Data rslt;
+        stbi_set_flip_vertically_on_load(flip);
+        rslt.data = (char *)stbi_load(path.c_str(), &rslt.width, &rslt.height, &rslt.channels, 0);
+        rslt.is_hdr = false;
+        rslt.type = GL_UNSIGNED_BYTE;
+        if (rslt.channels == 3)
+        {
+            rslt.format = GL_RGB;
+            rslt.inner_format = GL_RGB8;
+        }
+        else if (rslt.channels == 4)
+        {
+            rslt.format = GL_RGBA;
+            rslt.inner_format = GL_RGBA8;
+        }
+        else
+        {
+            std::cerr << "Unknown image format!" << std::endl;
+            return rslt;
+        }
+        return rslt;
+    }
+
+    Img_Data read_hdr(const std::string &path, bool flip)
+    {
+        // read hdr with stb_image
+        Img_Data rslt;
+        stbi_set_flip_vertically_on_load(flip);
+        if (stbi_is_hdr(path.c_str()))
+        {
+            rslt.data = (char *)stbi_loadf(path.c_str(), &rslt.width, &rslt.height, &rslt.channels, 0);
+            rslt.is_hdr = true;
+            rslt.type = GL_FLOAT;
+            if (rslt.channels == 3)
+            {
+                rslt.format = GL_RGB;
+                rslt.inner_format = GL_RGB16F;
+            }
+            else if (rslt.channels == 4)
+            {
+                rslt.format = GL_RGBA;
+                rslt.inner_format = GL_RGBA16F;
+            }
+            else
+            {
+                std::cerr << "Unknown image format!" << std::endl;
+                return rslt;
+            }
+        }
+        else
+        {
+            std::cerr << "Unknown image format!" << std::endl;
+            return rslt;
+        }
+        return rslt;
+    }
+
+    Img_Data read_tiff(const std::string &path, bool flip)
+    {
+        // read tiff with libtiff
+        Img_Data rslt;
+        TIFF *tif = TIFFOpen(path.c_str(), "r");
+        if (tif)
+        {
+            uint32_t width, height;
+            uint16_t bits_per_sample, samples_per_pixel;
+            uint32_t *raster;
+            TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &width);
+            TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &height);
+            TIFFGetField(tif, TIFFTAG_BITSPERSAMPLE, &bits_per_sample);
+            TIFFGetField(tif, TIFFTAG_SAMPLESPERPIXEL, &samples_per_pixel);
+            raster = (uint32_t *)_TIFFmalloc(width * height * sizeof(uint32_t));
+            if (raster != NULL)
+            {
+                if (TIFFReadRGBAImage(tif, width, height, raster, 0))
+                {
+                    rslt.width = width;
+                    rslt.height = height;
+                    rslt.channels = 4;
+                    rslt.is_hdr = false;
+                    rslt.type = GL_UNSIGNED_BYTE;
+                    rslt.format = GL_RGBA;
+                    rslt.inner_format = GL_RGBA8;
+                    rslt.data = (char *)raster;
+                }
+                else
+                {
+                    std::cerr << "Unknown image format!" << std::endl;
+                }
+            }
+            else
+            {
+                std::cerr << "Unknown image format!" << std::endl;
+            }
+            TIFFClose(tif);
+        }
+        else
+        {
+            std::cerr << "Unknown image format!" << std::endl;
+        }
         return rslt;
     }
 
@@ -296,7 +320,7 @@ namespace Rendering
     {
         Texture::Format format;
         format.target = GL_TEXTURE_2D;
-        auto img = image_data(path);
+        auto img = image_data(path, true);
         if (img.data == nullptr)
         {
             return nullptr;
@@ -304,8 +328,11 @@ namespace Rendering
         format.internal_format = img.inner_format;
         format.format = img.format;
         format.type = img.type;
-        Texture *texture = new Texture(format);
+
+        auto tex_params = Texture::TexParams(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_REPEAT);
+        Texture *texture = new Texture(format, tex_params);
         texture->set_data(img.data, img.width, img.height);
+
         img.release();
         return texture;
     }

@@ -1,4 +1,4 @@
-#version 330 core
+#version 420 core
 out vec3 texcoords;
 
 layout (location = 0) in vec3 v_position;

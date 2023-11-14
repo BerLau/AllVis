@@ -4,7 +4,6 @@ cmake_minimum_required(VERSION 3.10)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/glad glad)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/glfw glfw)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/freetype freetype)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/FreeImage FreeImage)
 
 # if glad is not found, abort
 if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/glad)
@@ -32,6 +31,15 @@ endif()
 if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/imgui)
     message(FATAL_ERROR "imgui not found, using git clone https://github.com/ocornut/imgui.git to download it")
 endif()
+
+# add stb_image
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/stb_image)
+
+#add libtiff 
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/libtiff)
+
+#add OpenEXR
+# add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/openexr)
 
 
 set(IMGUI_SOURCES 

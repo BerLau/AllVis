@@ -64,6 +64,7 @@ namespace Rendering
     {
         render_buffer->bind();
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, render_buffer->id);
+        render_buffer->unbind();
         this->rbo = std::move(render_buffer);
     }
 

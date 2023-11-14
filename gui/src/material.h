@@ -23,13 +23,13 @@ namespace Rendering
         virtual ~Material() {}
         // methods
     public:
-        virtual void bind() const = 0;
+        virtual void bind(unsigned int start_index = 0) const = 0;
         virtual void unbind() const = 0;
-        virtual void write_to_shader(const std::string &m_name, Shader_Program *shader) = 0;
-        void write_to_shader(const std::string &m_name, unsigned int index, Shader_Program *shader)
+        virtual void write_to_shader(const std::string &m_name, Shader_Program *shader, unsigned int start_index = 0) = 0;
+        void write_to_shader(const std::string &m_name, unsigned int index, Shader_Program *shader, unsigned int start_index = 0)
         {
             auto name_i = m_name + "[" + std::to_string(index) + "]";
-            write_to_shader(name_i, shader);
+            write_to_shader(name_i, shader, start_index);
         }
         // static methods
     };
@@ -88,49 +88,14 @@ namespace Rendering
         ~Material_PBR() {}
         // methods
     public:
-        void bind() const;
+        void bind(unsigned int start_index = 0) const;
         void unbind() const;
         void set_albedo(Core::Vector3 color) { color = color; }
         void set_metallic(float metallic) { this->metallic = metallic; }
         void set_roughness(float roughness) { this->roughness = roughness; }
         void set_ao(float ao) { this->ao = ao; }
 
-        void set_map(Texture *tex, const std::string &path, Map_Type type)
-        {
-            switch (type)
-            {
-            case ALBEDO_MAP:
-                albedo_map = tex;
-                albedo_map_path = path;
-                break;
-            case METALLIC_MAP:
-                metallic_map = tex;
-                metallic_map_path = path;
-                break;
-            case ROUGHNESS_MAP:
-                roughness_map = tex;
-                roughness_map_path = path;
-                break;
-            case AO_MAP:
-                ao_map = tex;
-                ao_map_path = path;
-                break;
-            case EMISSIVE_MAP:
-                emissive_map = tex;
-                emissive_map_path = path;
-                break;
-            case NORMAL_MAP:
-                normal_map = tex;
-                normal_map_path = path;
-                break;
-            case HEIGHT_MAP:
-                height_map = tex;
-                height_map_path = path;
-                break;
-            default:
-                break;
-            }
-        }
+        void set_map(Texture *tex, const std::string &path, Map_Type type);
         Core::Vector3 get_albedo() const { return color; }
         float get_metallic() const { return metallic; }
         float get_roughness() const { return roughness; }
@@ -144,7 +109,7 @@ namespace Rendering
         Texture *get_normal_map() const { return normal_map; }
         Texture *get_height_map() const { return height_map; }
 
-        void write_to_shader(const std::string &m_name, Shader_Program *shader);
+        void write_to_shader(const std::string &m_name, Shader_Program *shader, unsigned int start_index = 0);
     };
 
     class Material_PHONG;
@@ -157,9 +122,9 @@ namespace Rendering
     {
         // interface
     public:
-        void bind() const;
+        void bind(unsigned int start_index = 0) const;
         void unbind() const;
-        void write_to_shader(const std::string &m_name, Shader_Program *shader);
+        void write_to_shader(const std::string &m_name, Shader_Program *shader, unsigned int start_index = 0);
         // struct
     public:
         enum Map_Type

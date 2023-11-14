@@ -54,7 +54,22 @@ namespace GUI
         Rendering::shader_program_factory.add_shader_from_file("./shaders/equi_to_cube.vert", GL_VERTEX_SHADER, "equi_to_cube_vertex");
         Rendering::shader_program_factory.add_shader_from_file("./shaders/equi_to_cube.frag", GL_FRAGMENT_SHADER, "equi_to_cube_fragment");
         Rendering::shader_program_factory.add_shader_program("equi_to_cube_shader", "equi_to_cube_vertex", "equi_to_cube_fragment");
-        
+
+        // add irradiance_shader
+        Rendering::shader_program_factory.add_shader_from_file("./shaders/env_irradiance.vert", GL_VERTEX_SHADER, "env_irradiance_vertex");
+        Rendering::shader_program_factory.add_shader_from_file("./shaders/env_irradiance.frag", GL_FRAGMENT_SHADER, "env_irradiance_fragment");
+        Rendering::shader_program_factory.add_shader_program("env_irradiance_shader", "env_irradiance_vertex", "env_irradiance_fragment");
+
+        // add prefilter_shader
+        Rendering::shader_program_factory.add_shader_from_file("./shaders/env_prefilter.vert", GL_VERTEX_SHADER, "env_prefilter_vertex");
+        Rendering::shader_program_factory.add_shader_from_file("./shaders/env_prefilter.frag", GL_FRAGMENT_SHADER, "env_prefilter_fragment");
+        Rendering::shader_program_factory.add_shader_program("env_prefilter_shader", "env_prefilter_vertex", "env_prefilter_fragment");
+
+        // add brdf_shader
+        Rendering::shader_program_factory.add_shader_from_file("./shaders/env_brdf.vert", GL_VERTEX_SHADER, "env_brdf_vertex");
+        Rendering::shader_program_factory.add_shader_from_file("./shaders/env_brdf.frag", GL_FRAGMENT_SHADER, "env_brdf_fragment");
+        Rendering::shader_program_factory.add_shader_program("env_brdf_shader", "env_brdf_vertex", "env_brdf_fragment");
+
         auto w = std::unique_ptr<Sample_OGL_Widget>(new Sample_OGL_Widget("OpenGL Window", 0, 0, 800, 600, true));
         this->ogl_widget_test = std::move(w);
         this->log_widget = std::unique_ptr<Log_Widget>(new Log_Widget("Log", 0, 0, 800, 600, true));

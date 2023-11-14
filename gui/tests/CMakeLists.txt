@@ -19,8 +19,10 @@ target_link_libraries(${EXE_NAME}
     glfw
     glad
     freetype
-    FreeImage
+    math
     core
+    stb_image
+    tiff
 )
 
 gtest_discover_tests(${EXE_NAME})

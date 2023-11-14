@@ -26,8 +26,8 @@ namespace Rendering
         Core::Matrix4 model = get_model_matrix();
         Core::Matrix3 normal_matrix = transform->get_normal_matrix();
         shader->activate();
-        material->bind();
-        material->write_to_shader("u_material", shader);
+        // material->bind();
+        // material->write_to_shader("u_material", shader);
         shader->set_mat4("u_model", model.data());
         shader->set_mat3("u_normal_matrix", normal_matrix.data());
         mesh_->bind_buffer();

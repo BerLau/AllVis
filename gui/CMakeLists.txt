@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.10)
 project(gui LANGUAGES CXX C)
 
 
+include_directories(${OpenEXR_INCLUDE_DIRS})
 
 set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
@@ -37,15 +38,18 @@ add_executable(${EXE_NAME} ${SOURCES})
 # create library
 add_library( ${LIB_NAME} STATIC ${SOURCES} )
 
+# print ${OpenEXR_LIBRARIES}
+message(STATUS "OpenEXR_LIBRARIES: ${OpenEXR_LIBRARIES}")
 #link libraries
 target_link_libraries(${EXE_NAME} PRIVATE 
 glad 
 glfw 
 imgui 
 core 
-FreeImage
 freetype
 math
+stb_image
+tiff
 )
 
 target_link_libraries(${LIB_NAME} PRIVATE
@@ -53,13 +57,15 @@ glad
 glfw
 imgui
 core
-FreeImage
 freetype
 math
+stb_image
+tiff
 )
 
 target_include_directories(${LIB_NAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+
 )
 
 # # copy shaders to build directory

@@ -2,11 +2,13 @@
 fragment shader for pbr shading
 in: mat3 tbn, vec3 frag_position, vec2 texcoord
 out: vec4 fragColor, vec4 brightColor
-uniform: mat4 model, mat4 view, mat4 projection, mat3 normalMatrix
+uniform: Material u_material, Light u_lights[MAX_LIGHTS], int u_light_num,
+mat4 u_view, bool environment_mapping, vec3 env_color, samplerCube
+irradiance_map, samplerCube prefilter_map, sampler2D brdf_lut
 */
 #version 420 core
 #define PI 3.14159265359
-#define MAX_LIGHTS 16
+#define MAX_LIGHTS 33
 #define LIGHT_TYPE_PARALLEL 0
 #define LIGHT_TYPE_POINT 1
 #define LIGHT_TYPE_SPOT 2
@@ -38,6 +40,7 @@ struct Material {
   sampler2D ao_map;
   sampler2D normal_map;
   sampler2D height_map;
+  sampler2D emissive_map;
 
   bool has_albedo_map;
   bool has_metallic_map;
@@ -46,6 +49,7 @@ struct Material {
   bool has_normal_map;
   bool is_emissive;
   bool has_height_map;
+  bool has_emissive_map;
 };
 
 uniform Material u_material;
@@ -53,7 +57,7 @@ uniform Light u_lights[MAX_LIGHTS];
 uniform int u_light_num;
 uniform mat4 u_view;
 
-uniform bool environment_mapping = false;
+uniform bool environment_mapping;
 uniform vec3 env_color = vec3(1.0, 1.0, 1.0);
 
 uniform samplerCube irradiance_map;
@@ -68,9 +72,7 @@ vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness);
 
 const float MAX_REFLECTION_LOD = 4.0;
 
-vec3 to_srgb(vec3 color) {
-  return pow(color, vec3(2.2));
-}
+vec3 to_srgb(vec3 color) { return pow(color, vec3(2.2)); }
 
 void main() {
   vec3 normal = vec3(0.0, 0.0, 1.0);
@@ -86,7 +88,7 @@ void main() {
   vec3 albedo = u_material.color;
   if (u_material.has_albedo_map) {
     albedo = texture(u_material.albedo_map, texcoord).rgb;
-    // to_srgb(albedo);
+    to_srgb(albedo);
   }
 
   float metallic = u_material.metallic;
@@ -102,6 +104,14 @@ void main() {
   float ao = u_material.ao;
   if (u_material.has_ao_map) {
     ao = texture(u_material.ao_map, texcoord).r;
+  }
+
+  vec3 emissive = vec3(0.0);
+  if (u_material.is_emissive) {
+    emissive = albedo;
+    if (u_material.has_emissive_map) {
+      emissive = texture(u_material.albedo_map, texcoord).rgb;
+    }
   }
 
   vec3 F0 = vec3(0.04);
@@ -160,15 +170,43 @@ void main() {
   vec3 kD = 1.0 - kS;
   kD *= 1.0 - metallic;
 
-  vec3 diffuse = kD * albedo * env_color / PI;
-  vec3 specular = kS * F;
+  vec3 diffuse = vec3(0.0);
+  vec3 specular = vec3(0.0);
+  vec3 ambient = vec3(0.0);
+  if (false) {
+  // if (environment_mapping) {
+    // debug
+    // frag_color = vec4(normal, 1.0);
+    // return;
+    vec3 irradiance = texture(irradiance_map, normal).rgb;
+    diffuse = irradiance * albedo;
+    // debug irradiance
+    frag_color = vec4(irradiance, 1.0);
+    return;
+    const float MAX_REFLECTION_LOD = 4.0;
+    vec3 prefiltered_color =
+        textureLod(prefilter_map, reflect(-view_dir, normal),
+                   roughness * MAX_REFLECTION_LOD)
+            .rgb;
+    // debug prefiltered_color
+    // frag_color = vec4(prefiltered_color, 1.0);
+    // return;
+    vec2 brdf =
+        texture(brdf_lut, vec2(max(dot(normal, view_dir), 0.0), roughness)).rg;
+    specular = prefiltered_color * (F * brdf.x + brdf.y);
 
-  vec3 ambient = (kD * diffuse + specular) * ao;
+    ambient = (kD * diffuse + specular) * ao;
 
-  vec3 color = ambient + Lo;
+  } else {
+    diffuse = kD * albedo * env_color / PI;
+    specular = kS * F;
+    ambient = (kD * diffuse + specular) * ao;
+  }
+
+  vec3 color = Lo + vec3(0.03) * F * ao;
 
   if (u_material.is_emissive) {
-    color += albedo;
+    color += emissive;
   }
 
   frag_color = vec4(color, 1.0);
