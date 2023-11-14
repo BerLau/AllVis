@@ -21,9 +21,9 @@ namespace GUI
     {
         this->settings.load_from_file(settings.path);
         this->load_layout(this->settings.ini_file);
-        // Rendering::shader_program_factory.add_shader_from_file("./shaders/basic.vert", GL_VERTEX_SHADER, "basic_vertex");
-        // Rendering::shader_program_factory.add_shader_from_file("./shaders/basic.frag", GL_FRAGMENT_SHADER, "basic_fragment");
-        // Rendering::shader_program_factory.add_shader_program("basic_shader", "basic_vertex", "basic_fragment");
+        Rendering::shader_program_factory.add_shader_from_file("./shaders/blinn-phong.vert", GL_VERTEX_SHADER, "blinn-phong_vertex");
+        Rendering::shader_program_factory.add_shader_from_file("./shaders/blinn-phong.frag", GL_FRAGMENT_SHADER, "blinn-phong_fragment");
+        Rendering::shader_program_factory.add_shader_program("blinn-phong_shader", "blinn-phong_vertex", "blinn-phong_fragment");
 
         Rendering::shader_program_factory.add_shader_from_file("./shaders/text.vert", GL_VERTEX_SHADER, "text_vertex_shader");
         Rendering::shader_program_factory.add_shader_from_file("./shaders/text.frag", GL_FRAGMENT_SHADER, "text_fragment_shader");
@@ -41,8 +41,21 @@ namespace GUI
         Rendering::shader_program_factory.add_shader_from_file("./shaders/vis_light.frag", GL_FRAGMENT_SHADER, "light_fragment");
         Rendering::shader_program_factory.add_shader_program("light_shader", "light_vertex", "light_fragment");
 
+        Rendering::shader_program_factory.add_shader_from_file("./shaders/skybox.vert", GL_VERTEX_SHADER, "skybox_vertex");
+        Rendering::shader_program_factory.add_shader_from_file("./shaders/skybox.frag", GL_FRAGMENT_SHADER, "skybox_fragment");
+        Rendering::shader_program_factory.add_shader_program("skybox_shader", "skybox_vertex", "skybox_fragment");
+
+        // add tone mapping shader
+        Rendering::shader_program_factory.add_shader_from_file("./shaders/tone_mapping.vert", GL_VERTEX_SHADER, "tone_mapping_vertex");
+        Rendering::shader_program_factory.add_shader_from_file("./shaders/tone_mapping.frag", GL_FRAGMENT_SHADER, "tone_mapping_fragment");
+        Rendering::shader_program_factory.add_shader_program("tone_mapping_shader", "tone_mapping_vertex", "tone_mapping_fragment");
+
+        // add equi to cube shader
+        Rendering::shader_program_factory.add_shader_from_file("./shaders/equi_to_cube.vert", GL_VERTEX_SHADER, "equi_to_cube_vertex");
+        Rendering::shader_program_factory.add_shader_from_file("./shaders/equi_to_cube.frag", GL_FRAGMENT_SHADER, "equi_to_cube_fragment");
+        Rendering::shader_program_factory.add_shader_program("equi_to_cube_shader", "equi_to_cube_vertex", "equi_to_cube_fragment");
+        
         auto w = std::unique_ptr<Sample_OGL_Widget>(new Sample_OGL_Widget("OpenGL Window", 0, 0, 800, 600, true));
-        w->scene->set_shader(Rendering::shader_program_factory.find_shader_program("pbr_shader"));
         this->ogl_widget_test = std::move(w);
         this->log_widget = std::unique_ptr<Log_Widget>(new Log_Widget("Log", 0, 0, 800, 600, true));
         this->settings_widget = std::unique_ptr<UI_Settings_Widget>(new UI_Settings_Widget("Settings", 0, 0, 800, 600, true));

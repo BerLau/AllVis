@@ -1,4 +1,4 @@
-#version 330 core
+#version 420 core
 #define LIGHT_MAX 4
 
 out vec4 frag_color;

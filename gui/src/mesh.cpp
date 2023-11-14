@@ -82,6 +82,17 @@ namespace Rendering
         unbind_buffer();
     }
 
+    void OGL_Mesh::render(Shader_Program *shader)
+    {
+        bind_buffer();
+        glCullFace(GL_FRONT);
+        glDepthFunc(GL_LEQUAL);
+        glDrawElements(GL_TRIANGLES, index_count, GL_UNSIGNED_INT, 0);
+        glDepthFunc(GL_LESS);
+        glCullFace(GL_BACK);
+        unbind_buffer();
+    }
+
     OGL_Mesh_Ptr OGL_Mesh::cube_mesh(float width, float height, float depth)
     {
         Rendering::Mesh::Layout layout;
@@ -238,12 +249,41 @@ namespace Rendering
         return mesh;
     }
 
+    OGL_Mesh_Ptr OGL_Mesh::quad_mesh(float width, float height)
+    {
+        Mesh::Layout layout;
+        layout.add(2, GL_FLOAT, sizeof(float)); // postion
+        layout.add(2, GL_FLOAT, sizeof(float)); // texture
+
+        float pos_x = width / 2.0f;
+        float pos_y = height / 2.0f;
+        float neg_x = -pos_x;
+        float neg_y = -pos_y;
+
+        float vertices[] = {
+            // layout pos.x, pos.y, tex.u, tex.v
+            neg_x, neg_y, 0.0f, 0.0f,
+            pos_x, neg_y, 1.0f, 0.0f,
+            pos_x, pos_y, 1.0f, 1.0f,
+            neg_x, pos_y, 0.0f, 1.0f};
+        
+        unsigned int indices[] = {
+            0, 1, 2, 0, 2, 3
+        };
+
+        auto mesh = OGL_Mesh_Ptr(new OGL_Mesh(layout, 4, 6));
+        memcpy(mesh->vertices, vertices, sizeof(vertices));
+        memcpy(mesh->indices, indices, sizeof(indices));
+        mesh->init();
+        return mesh;
+    }
+
     OGL_Mesh *OGL_Mesh::instanced_cube_mesh()
     {
         static OGL_Mesh *mesh = nullptr;
         if (!mesh)
         {
-            mesh = OGL_Mesh::cube_mesh().release();
+            mesh = OGL_Mesh::cube_mesh(1, 1, 1).release();
         }
         return mesh;
     }
@@ -254,6 +294,15 @@ namespace Rendering
         if (!mesh)
         {
             mesh = OGL_Mesh::sphere_mesh().release();
+        }
+        return mesh;
+    }
+    OGL_Mesh *OGL_Mesh::instanced_quad_mesh()
+    {
+        static OGL_Mesh *mesh = nullptr;
+        if (!mesh)
+        {
+            mesh = OGL_Mesh::quad_mesh(2.f, 2.f).release();
         }
         return mesh;
     }

@@ -134,6 +134,8 @@ namespace Rendering
         void attach_render_buffer(Render_Buffer_Ptr render_buffer);
         bool check_status();
         void set_draw_buffers();
+        void clear(Core::Vector4 bg_color = Core::Vector4(1.f, 1.f, 1.f, 1.f));
+        Texture* get_color_attachment(unsigned int index = 0);
     };
 }; // namespace Rendering
 

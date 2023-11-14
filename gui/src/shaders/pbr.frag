@@ -1,8 +1,13 @@
-#version 330 core
-
+/*
+fragment shader for pbr shading
+in: mat3 tbn, vec3 frag_position, vec2 texcoord
+out: vec4 fragColor, vec4 brightColor
+uniform: mat4 model, mat4 view, mat4 projection, mat3 normalMatrix
+*/
+#version 420 core
 #define PI 3.14159265359
-#define MAX_LIGHT_NUM 16
-#define LIGHT_TYPE_DIRECTIONAL 0
+#define MAX_LIGHTS 16
+#define LIGHT_TYPE_PARALLEL 0
 #define LIGHT_TYPE_POINT 1
 #define LIGHT_TYPE_SPOT 2
 
@@ -10,8 +15,8 @@ layout(location = 0) out vec4 frag_color;
 layout(location = 1) out vec4 bright_color;
 
 in mat3 tbn;
-in vec2 texcoord;
 in vec3 frag_position;
+in vec2 texcoord;
 
 struct Light {
   vec3 position;
@@ -44,7 +49,7 @@ struct Material {
 };
 
 uniform Material u_material;
-uniform Light u_lights[MAX_LIGHT_NUM];
+uniform Light u_lights[MAX_LIGHTS];
 uniform int u_light_num;
 uniform mat4 u_view;
 
@@ -63,9 +68,12 @@ vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness);
 
 const float MAX_REFLECTION_LOD = 4.0;
 
+vec3 to_srgb(vec3 color) {
+  return pow(color, vec3(2.2));
+}
+
 void main() {
   vec3 normal = vec3(0.0, 0.0, 1.0);
-
   if (u_material.has_normal_map) {
     normal = texture(u_material.normal_map, texcoord).rgb;
     normal = normalize(normal * 2.0 - 1.0);
@@ -78,6 +86,7 @@ void main() {
   vec3 albedo = u_material.color;
   if (u_material.has_albedo_map) {
     albedo = texture(u_material.albedo_map, texcoord).rgb;
+    // to_srgb(albedo);
   }
 
   float metallic = u_material.metallic;
@@ -105,32 +114,25 @@ void main() {
     vec3 H;
     Light light = u_lights[i];
 
-    if (light.type == LIGHT_TYPE_DIRECTIONAL) {
+    if (light.type == LIGHT_TYPE_PARALLEL) {
       L = normalize((u_view * vec4(light.direction, 0.0)).xyz);
       H = normalize(view_dir + L);
       radiance = light.color;
-    } else if (light.type == LIGHT_TYPE_POINT) {
+    } else {
       vec3 light_pos = (u_view * vec4(light.position, 1.0)).xyz;
       L = normalize(light_pos - frag_position);
       H = normalize(view_dir + L);
       float distance = length(light_pos - frag_position);
       float attenuation = 1.0 / (distance * distance);
       radiance = light.color * attenuation;
-    } else if (light.type == LIGHT_TYPE_SPOT) {
-      vec3 light_pos = (u_view * vec4(light.position, 1.0)).xyz;
-      L = normalize(light_pos - frag_position);
-      H = normalize(view_dir + L);
-      float distance = length(light_pos - frag_position);
-      float attenuation = 1.0 / (distance * distance);
-      float spot = dot(normalize(light.direction), -L);
-      if (spot > light.intensity) {
-        attenuation *= pow(spot, 5.0);
-        radiance = light.color * attenuation;
-      } else {
-        continue;
+      if (light.type == LIGHT_TYPE_SPOT) {
+        float spot = dot(normalize(light.direction), -L);
+        if (spot > light.intensity) {
+          radiance *= pow(spot, light.intensity);
+        } else {
+          radiance = vec3(0.0);
+        }
       }
-    } else {
-      continue;
     }
 
     float NDF = DistributionGGX(normal, H, roughness);
@@ -161,21 +163,7 @@ void main() {
   vec3 diffuse = kD * albedo * env_color / PI;
   vec3 specular = kS * F;
 
-  if (environment_mapping) {
-    // test if environment mapping works
-    frag_color = vec4(normal, 1.0);
-    return;
-    vec3 irradiance = texture(irradiance_map, normal).rgb;
-    diffuse = irradiance * albedo;
-    vec3 reflect_dir = reflect(-view_dir, normal);
-    vec3 prefilteredColor =
-        texture(prefilter_map, reflect_dir, roughness * MAX_REFLECTION_LOD).rgb;
-    vec2 brdf =
-        texture(brdf_lut, vec2(max(dot(normal, view_dir), 0.0), roughness)).rg;
-    specular = prefilteredColor * (F * brdf.x + brdf.y);
-  }
-
-  vec3 ambient = (kD * diffuse * specular) * ao;
+  vec3 ambient = (kD * diffuse + specular) * ao;
 
   vec3 color = ambient + Lo;
 
@@ -184,6 +172,7 @@ void main() {
   }
 
   frag_color = vec4(color, 1.0);
+
   float brightness = dot(frag_color.rgb, vec3(0.2126, 0.7152, 0.0722));
   bright_color = vec4(brightness, 0.0, 0.0, 1.0);
 }

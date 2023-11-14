@@ -31,7 +31,8 @@ namespace Rendering
         // constructors and deconstructor
     public:
         Scene(float width, float height)
-            : width(width),
+            : Configurable("Scene"),
+              width(width),
               height(height),
               aspect(height == 0.f ? 0.f : width / height)
         {
@@ -74,9 +75,8 @@ namespace Rendering
         float far = 100.0f;
         float fov = 45.0f;
         Core::Vector4 bg_color = Core::Vector4(1.f, 1.f, 1.f, 1.0f);
-        GLuint fbo = 0, fb_tex = 0, rbo = 0;
-        FBO_Ptr fbo_ptr = nullptr;
-        Rendering::Shader_Program *shader = nullptr;
+        // GLuint fbo = 0, fb_tex = 0, rbo = 0;
+        FBO_Ptr final_fbo = nullptr;
         std::vector<OGL_Model_Item> models;
         // constructors and deconstructor
     public:
@@ -95,9 +95,7 @@ namespace Rendering
         virtual void init();
 
         virtual void update() override = 0;
-        virtual void destroy()
-        {
-        }
+        virtual void destroy() {}
         virtual void render() override = 0;
         virtual void resize(float width, float height) override
         {
@@ -108,9 +106,14 @@ namespace Rendering
             else
             {
                 Scene::resize(width, height);
-                fbo_ptr->resize(width, height);
+                final_fbo->resize(width, height);
             }
         }
+        virtual Texture *get_output_texture()
+        {
+            return final_fbo->get_color_attachment();
+        }
+        virtual void init_final_fbo();
     };
 
     class OGL_Scene_3D;
@@ -136,13 +139,17 @@ namespace Rendering
     public:
         float gamma = 2.2f;
         float exposure = 1.0f;
-        // constructors and deconstructor
-        Rendering::Texture_Ptr sample_texture;
-
+        std::string skybox_path;
         std::vector<Camera_Item> cameras;
         int active_camera_index;
         // Rendering::OGL_Model_U_Ptr cube_model;
         std::vector<Light_Item> lights;
+        FBO_Ptr pbr_fbo = nullptr;
+        FBO_Ptr cubemap_fbo = nullptr;
+        FBO_Ptr irradiance_fbo = nullptr;
+        FBO_Ptr prefilter_fbo = nullptr;
+        FBO_Ptr brdf_fbo = nullptr;
+        Texture_Ptr brdf_lut = nullptr;
         // constructors and deconstructor
     public:
         OGL_Scene_3D(float width, float height);
@@ -154,11 +161,35 @@ namespace Rendering
         virtual void update();
         virtual void destroy();
         virtual void render();
-
-        void set_shader(Rendering::Shader_Program *shader)
+        virtual void resize(float width, float height) override
         {
-            this->shader = shader;
+            if (EQUAL_F(this->width, width) && EQUAL_F(this->height, height))
+            {
+                return;
+            }
+            else
+            {
+                OGL_Scene::resize(width, height);
+                pbr_fbo->resize(width, height);
+                // cubemap_fbo->resize(width, height);
+            }
         }
+        void equi_to_cubemap(const Core::Matrix4 &projection = Geometry::perspective(Geometry::radians(90.0f), 1.0f, 0.1f, 10.0f));
+        void update_gamma_exposure();
+
+    protected:
+        void render_skybox(const Core::Matrix4 &view, const Core::Matrix4 &projection);
+        void render_lights(const Core::Matrix4 &view, const Core::Matrix4 &projection);
+        void render_pbr(const Core::Matrix4 &view, const Core::Matrix4 &projection);
+        void tone_mapping(Texture *texture);
+
+    private:
+        void init_pbr_fbo();
+        void init_cubemap_fbo();
+        void init_irradiance_fbo();
+        void init_prefilter_fbo();
+        void init_brdf_fbo();
+        void init_brdf_lut();
     };
 
 } // namespace scene

@@ -5,6 +5,7 @@
 #include <glad/glad.h>
 #include <vector>
 #include <memory>
+#include "shader.h"
 
 namespace Rendering
 {
@@ -183,6 +184,7 @@ namespace Rendering
         void init();
         void destroy();
         void update();
+        void render(Shader_Program* shader);
         // static methods
     public:
         static OGL_Mesh_Ptr cube_mesh(float width = 1.0f, float height = 1.0f, float depth = 1.0f);

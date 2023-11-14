@@ -34,12 +34,12 @@ namespace GUI
     public:
         // attributes
     public:
-        float width=0.f;
-        float height=0.f;
-        float pos_x=0.f;
-        float pos_y=0.f;
-        bool active=true;
-        bool focused=false;
+        float width = 0.f;
+        float height = 0.f;
+        float pos_x = 0.f;
+        float pos_y = 0.f;
+        bool active = true;
+        bool focused = false;
         // constructors and deconstructor
     public:
         IMG_Widget(const std::string &name = "IMG_Widget", float x = 0, float y = 0, float width = 0, float height = 0, bool active = true);
@@ -163,7 +163,7 @@ namespace GUI
         void show_scene_property(Rendering::Scene *scene);
 
     protected:
-        void show_material_property(Rendering::Material *material);
+        void show_material_property(Rendering::Material_PBR *material);
         void show_transform_property(Core::Transform *transform);
     };
 
@@ -176,9 +176,9 @@ namespace GUI
         bool show_Log_window = false;
         bool show_Properties_window = false;
 
-        void save_to_file(const std::string& directory,const std::string& filename);
+        void save_to_file(const std::string &directory, const std::string &filename);
 
-        void load_from_file(const std::string& path);
+        void load_from_file(const std::string &path);
     };
 
     class UI_Settings_Widget;
@@ -201,7 +201,7 @@ namespace GUI
         void bind_settings(UI_Settings *settings);
 
     private:
-        void save_layout(const std::string &directory,const std::string &filename);
+        void save_layout(const std::string &directory, const std::string &filename);
     };
 
     class Scene_Widget;
@@ -233,5 +233,76 @@ namespace GUI
     public:
         void bind_scene(Rendering::Scene *scene) { this->scene = scene; }
     };
+
+    // class Cubemap_Dialog : public IMG_Widget
+    // {
+    //     // inherit from OGL_Widget
+    // public:
+    //     void show() override
+    //     {
+    //         // open modal dialog
+    //         ImGui::OpenPopup(name.c_str());
+    //         if (ImGui::BeginPopupModal(name.c_str(), NULL, ImGuiWindowFlags_AlwaysAutoResize))
+    //         {
+    //             // Positive X
+    //             ImGui::Text("Positive X");
+    //             ImGui::SameLine();
+    //             ImGui::TextWrapped("%s", paths[0].c_str());
+    //             load_map_button("Positive X", paths[0]);
+    //             // Negative X
+    //             ImGui::Text("Negative X");
+    //             ImGui::SameLine();
+    //             ImGui::TextWrapped("%s", paths[1].c_str());
+    //             load_map_button("Negative X", paths[1]);
+    //             // Positive Y
+    //             ImGui::Text("Positive Y");
+    //             ImGui::SameLine();
+    //             ImGui::TextWrapped("%s", paths[2].c_str());
+    //             load_map_button("Positive Y", paths[2]);
+    //             // Negative Y
+    //             ImGui::Text("Negative Y");
+    //             ImGui::SameLine();
+    //             ImGui::TextWrapped("%s", paths[3].c_str());
+    //             load_map_button("Negative Y", paths[3]);
+    //             // Positive Z
+    //             ImGui::Text("Positive Z");
+    //             ImGui::SameLine();
+    //             ImGui::TextWrapped("%s", paths[4].c_str());
+    //             load_map_button("Positive Z", paths[4]);
+    //             // Negative Z
+    //             ImGui::Text("Negative Z");
+    //             ImGui::SameLine();
+    //             ImGui::TextWrapped("%s", paths[5].c_str());
+    //             load_map_button("Negative Z", paths[5]);
+    //             // button ok
+    //             if (ImGui::Button("OK"))
+    //             {
+
+    //                 ImGui::CloseCurrentPopup();
+    //             }
+    //             // button cancel
+    //             if (ImGui::Button("Cancel"))
+    //             {
+    //                 ImGui::CloseCurrentPopup();
+    //             }
+    //             ImGui::EndPopup();
+    //         }
+    //     }
+    //     // void update() override;
+    //     void init() override {}
+    //     // attributes
+    // public:
+    //     std::string paths[6];
+    //     unsigned int state = 0;
+    //     // constructors and deconstructor
+    // public:
+    //     Cubemap_Dialog(const std::string &name = "Cubemap_Dialog", float x = 0, float y = 0, float width = 0, float height = 0, bool active = true)
+    //         : IMG_Widget(name, x, y, width, height, active){};
+    //     ~Cubemap_Dialog(){};
+    //     std::string get_path() const;
+    // };
+
+    void load_map_button(const std::string &name, std::string &path);
+    void update_material(Rendering::Material_PBR *material);
 };
 #endif

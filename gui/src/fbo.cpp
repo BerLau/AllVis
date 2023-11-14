@@ -34,10 +34,12 @@ namespace Rendering
             attachment->resize(width, height);
             attachment->unbind();
         }
-
-        this->rbo->bind();
-        this->rbo->resize(width, height);
-        this->rbo->unbind();
+        if (this->rbo)
+        {
+            this->rbo->bind();
+            this->rbo->resize(width, height);
+            this->rbo->unbind();
+        }
     }
 
     void FBO::attach_texture(Texture_Ptr texture)
@@ -123,6 +125,22 @@ namespace Rendering
             draw_buffers.push_back(GL_COLOR_ATTACHMENT0 + i);
         }
         glDrawBuffers(draw_buffers.size(), draw_buffers.data());
+    }
+
+    void FBO::clear(Core::Vector4 bg_color)
+    {
+        glClearColor(bg_color.x(), bg_color.y(), bg_color.z(), bg_color.w());
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+        glViewport(0, 0, this->width, this->height);
+    }
+
+    Texture *FBO::get_color_attachment(unsigned int index)
+    {
+        if (index < this->attachments.size())
+        {
+            return this->attachments[index].get();
+        }
+        return nullptr;
     }
 
     void FBO::create()

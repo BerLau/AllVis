@@ -1,7 +1,14 @@
-#version 330 core
+/*
+vertex shader for pbr shading
+in: vec3 position, vec3 normal, vec3 tangent, vec2 texCoord
+out: mat3 tbn, vec3 fragPos, vec2 texCoord
+uniform: mat4 model, mat4 view, mat4 projection, mat3 normalMatrix
+*/
+
+#version 420 core
 out mat3 tbn;
-out vec2 texcoord;
 out vec3 frag_position;
+out vec2 texcoord;
 
 layout(location = 0) in vec3 v_position;
 layout(location = 1) in vec3 v_normal;
@@ -35,14 +42,15 @@ struct Material {
   bool has_height_map;
 };
 uniform Material u_material;
+
 void main() {
   texcoord = v_texcoord;
   vec3 pos = v_position;
   if (u_material.has_height_map) {
-    float height = texture(u_material.height_map, v_texcoord).r;
-    pos += v_normal * height * 0.1;
+    float height_off = texture(u_material.height_map, v_texcoord).r - 0.5;
+    pos += normalize(v_normal) * height_off * 0.1;
   }
-  vec4 pos_view = u_view * u_model * vec4(v_position, 1.0);
+  vec4 pos_view = u_view * u_model * vec4(pos, 1.0);
   frag_position = pos_view.xyz;
   gl_Position = u_projection * pos_view;
   vec3 t = normalize(u_normal_matrix * v_tangent);

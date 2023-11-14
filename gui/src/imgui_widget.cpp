@@ -105,7 +105,7 @@ namespace GUI
             this->focused = ImGui::IsWindowFocused();
             // get the actual canvas size
             this->render();
-            this->show_framebuffer(scene->fbo_ptr->attachments.front()->texture_id, this->pos_x, this->pos_y, this->width, this->height);
+            this->show_framebuffer(scene->get_output_texture()->texture_id, this->pos_x, this->pos_y, this->width, this->height);
         }
         ImGui::End();
 
@@ -319,7 +319,7 @@ namespace GUI
             ImGui::BeginChild("scrolling", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
             for (auto msg : Log::get().messages)
             {
-                ImGui::TextWrapped("%s", msg.c_str());
+                ImGui::Text("%s", msg.c_str());
             }
             ImGui::EndChild();
             ImGui::End();
@@ -524,7 +524,8 @@ namespace GUI
 
     void Properties_Widget::show_ogl_model_property(Rendering::OGL_Model *model)
     {
-        show_material_property(model->material.get());
+        auto material = model->material.get();
+        show_material_property(dynamic_cast<Rendering::Material_PBR *>(material));
     }
 
     void Properties_Widget::show_light_property(Rendering::Light *light)
@@ -602,9 +603,40 @@ namespace GUI
                 ImGui::Text("OGL_Scene_3D");
                 ImGui::Separator();
                 ImGui::Text("gamma");
-                ImGui::DragFloat("##gamma", &ogl_3d->gamma, 0.1f, 0.01f, 10.0f);
+                // float slider
+                float gamma = ogl_3d->gamma;
+                ImGui::SliderFloat("##gamma", &ogl_3d->gamma, 0.01f, 5.0f, "%.2f");
                 ImGui::Text("exposure");
-                ImGui::DragFloat("##exposure", &ogl_3d->exposure, 0.1f, 0.01f, 10.0f);
+                // float slider
+                float exposure = ogl_3d->exposure;
+                ImGui::SliderFloat("##exposure", &ogl_3d->exposure, 0.01f, 20.0f, "%.2f");
+                if (!EQUAL_F(gamma, ogl_3d->gamma) || !EQUAL_F(exposure, ogl_3d->exposure))
+                {
+                    ogl_3d->update_gamma_exposure();
+                }
+
+                // set the sky box texture
+                ImGui::Text("Sky Box");
+                // tow columns
+                ImGui::Columns(2, nullptr, false);
+                if (ogl_3d->skybox_path != "")
+                {
+                    ImGui::TextWrapped("%s", ogl_3d->skybox_path.c_str());
+                    ImGui::NextColumn();
+                }
+                std::string new_path = ogl_3d->skybox_path;
+                load_map_button("Sky Box", new_path);
+                if (new_path != ogl_3d->skybox_path)
+                {
+                    if (!Rendering::Texture_Manager::instance().has_texture(new_path))
+                    {
+                        Rendering::Texture_Manager::instance().add_texture(new_path, Rendering::load_texture(new_path));
+                    }
+                    ogl_3d->skybox_path = new_path;
+                    ogl_3d->equi_to_cubemap();
+                }
+                // change back to one column
+                ImGui::Columns(1);
             }
         }
     }
@@ -615,7 +647,7 @@ namespace GUI
         {
             ImGuiFileDialog::Instance()->OpenDialog(name + "MapDlgKey", "Choose " + name, ".*,.png,.jpg,.jpeg,.bmp", path, 1, nullptr, ImGuiFileDialogFlags_Modal);
         }
-        if (ImGuiFileDialog::Instance()->Display(name + "MapDlgKey", ImGuiWindowFlags_NoCollapse, ImVec2(500, 300)))
+        if (ImGuiFileDialog::Instance()->Display(name + "MapDlgKey", ImGuiWindowFlags_NoCollapse, ImVec2(600, 400)))
         {
             // action if OK
             if (ImGuiFileDialog::Instance()->IsOk())
@@ -629,7 +661,7 @@ namespace GUI
         }
     }
 
-    void update_material(Rendering::Material *material)
+    void update_material(Rendering::Material_PBR *material)
     {
         auto &tex_manager = Rendering::Texture_Manager::instance();
 
@@ -676,7 +708,7 @@ namespace GUI
         material->height_map = tex_manager.get_texture(material->height_map_path);
     }
 
-    void Properties_Widget::show_material_property(Rendering::Material *material)
+    void Properties_Widget::show_material_property(Rendering::Material_PBR *material)
     {
         if (material != nullptr && material->editable)
         {
@@ -695,40 +727,133 @@ namespace GUI
             ImGui::SameLine();
             ImGui::Text("Is emissive");
 
+            // 2 columns
+            ImGui::Columns(2, nullptr, false);
+
             ImGui::Text("Albedo Map");
-            ImGui::TextWrapped("%s", material->albedo_map_path.c_str());
-            ImGui::SameLine();
-            load_map_button("Albedo Map", material->albedo_map_path);
+            ImGui::NextColumn();
+            ImGui::NextColumn();
+            if (material->albedo_map_path != "")
+            {
+                ImGui::TextWrapped("%s", material->albedo_map_path.c_str());
+                ImGui::NextColumn();
+                load_map_button("Albedo Map", material->albedo_map_path);
+                ImGui::NextColumn();
+            }
+            else
+            {
+                load_map_button("Albedo Map", material->albedo_map_path);
+                ImGui::NextColumn();
+                ImGui::NextColumn();
+            }
 
             ImGui::Text("Normal Map");
-            ImGui::TextWrapped("%s", material->normal_map_path.c_str());
-            ImGui::SameLine();
-            load_map_button("Normal Map", material->normal_map_path);
+            ImGui::NextColumn();
+            ImGui::NextColumn();
+            if (material->normal_map_path != "")
+            {
+                ImGui::TextWrapped("%s", material->normal_map_path.c_str());
+                ImGui::NextColumn();
+                load_map_button("Normal Map", material->normal_map_path);
+                ImGui::NextColumn();
+            }
+            else
+            {
+                load_map_button("Normal Map", material->normal_map_path);
+                ImGui::NextColumn();
+                ImGui::NextColumn();
+            }
 
             ImGui::Text("Height Map");
-            ImGui::TextWrapped("%s", material->height_map_path.c_str());
-            ImGui::SameLine();
-            load_map_button("Height Map", material->height_map_path);
+            ImGui::NextColumn();
+            ImGui::NextColumn();
+            if (material->height_map_path != "")
+            {
+                ImGui::TextWrapped("%s", material->height_map_path.c_str());
+                ImGui::NextColumn();
+                load_map_button("Height Map", material->height_map_path);
+                ImGui::NextColumn();
+            }
+            else
+            {
+                load_map_button("Height Map", material->height_map_path);
+                ImGui::NextColumn();
+                ImGui::NextColumn();
+            }
 
             ImGui::Text("Metallic Map");
-            ImGui::TextWrapped("%s", material->metallic_map_path.c_str());
-            ImGui::SameLine();
-            load_map_button("Metallic Map", material->metallic_map_path);
+            ImGui::NextColumn();
+            ImGui::NextColumn();
+
+            if (material->metallic_map_path != "")
+            {
+                ImGui::TextWrapped("%s", material->metallic_map_path.c_str());
+                ImGui::NextColumn();
+                load_map_button("Metallic Map", material->metallic_map_path);
+                ImGui::NextColumn();
+            }
+            else
+            {
+                load_map_button("Metallic Map", material->metallic_map_path);
+                ImGui::NextColumn();
+                ImGui::NextColumn();
+            }
 
             ImGui::Text("Roughness Map");
-            ImGui::TextWrapped("%s", material->roughness_map_path.c_str());
-            ImGui::SameLine();
-            load_map_button("Roughness Map", material->roughness_map_path);
+            ImGui::NextColumn();
+            ImGui::NextColumn();
+
+            if (material->roughness_map_path != "")
+            {
+                ImGui::TextWrapped("%s", material->roughness_map_path.c_str());
+                ImGui::NextColumn();
+                load_map_button("Roughness Map", material->roughness_map_path);
+                ImGui::NextColumn();
+            }
+            else
+            {
+                load_map_button("Roughness Map", material->roughness_map_path);
+                ImGui::NextColumn();
+                ImGui::NextColumn();
+            }
 
             ImGui::Text("AO Map");
-            ImGui::TextWrapped("%s", material->ao_map_path.c_str());
-            ImGui::SameLine();
-            load_map_button("AO Map", material->ao_map_path);
+            ImGui::NextColumn();
+            ImGui::NextColumn();
+            
+            if (material->ao_map_path != "")
+            {
+                ImGui::TextWrapped("%s", material->ao_map_path.c_str());
+                ImGui::NextColumn();
+                load_map_button("AO Map", material->ao_map_path);
+                ImGui::NextColumn();
+            }
+            else
+            {
+                load_map_button("AO Map", material->ao_map_path);
+                ImGui::NextColumn();
+                ImGui::NextColumn();
+            }
 
             ImGui::Text("Emissive Map");
-            ImGui::TextWrapped("%s", material->emissive_map_path.c_str());
-            ImGui::SameLine();
-            load_map_button("Emissive Map", material->emissive_map_path);
+            ImGui::NextColumn();
+            ImGui::NextColumn();
+
+            if (material->emissive_map_path != "")
+            {
+                ImGui::TextWrapped("%s", material->emissive_map_path.c_str());
+                ImGui::NextColumn();
+                load_map_button("Emissive Map", material->emissive_map_path);
+                ImGui::NextColumn();
+            }
+            else
+            {
+                load_map_button("Emissive Map", material->emissive_map_path);
+                ImGui::NextColumn();
+                ImGui::NextColumn();
+            }
+
+            ImGui::Columns(1);
             update_material(material);
         }
     }
@@ -855,6 +980,10 @@ namespace GUI
             if (selected_object && selected_object != scene)
             {
                 scene->focused_object = selected_object;
+            }
+            if (selected_object == nullptr)
+            {
+                selected_object = scene;
             }
         }
         ImGui::End();

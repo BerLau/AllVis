@@ -48,14 +48,20 @@ namespace Rendering
     public:
         Camera();
         Camera(const Core::Vector3 &position);
-        Camera(const Camera &camera) : transform(Core::Transform_Ptr(new Core::Transform(*camera.transform))), properties(Properties()) { init(); }
+        Camera(const Camera &camera) : Configurable(camera.name),
+                                       transform(Core::Transform_Ptr(new Core::Transform(*camera.transform))), properties(Properties())
+        {
+            init();
+        }
         Camera &operator=(const Camera &camera)
         {
             transform = Core::Transform_Ptr(new Core::Transform(*camera.transform));
             properties = camera.properties;
             return *this;
         }
-        Camera(Camera &&camera) : transform(std::move(camera.transform)), properties(camera.properties) { init(); }
+        Camera(Camera &&camera)
+            : Configurable(std::move(camera.name)),
+              transform(std::move(camera.transform)), properties(camera.properties) { init(); }
         Camera &operator=(Camera &&camera)
         {
             transform = std::move(camera.transform);

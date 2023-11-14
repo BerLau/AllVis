@@ -6,6 +6,7 @@
 #include <memory>
 #include <core.h>
 #include <unordered_map>
+#include <FreeImage.h>
 #include "ui_log.h"
 
 namespace Rendering
@@ -41,7 +42,6 @@ namespace Rendering
             {
                 static TexParams rslt(GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE);
                 return rslt;
-
             }
 
             static TexParams linear_repeat()
@@ -147,7 +147,6 @@ namespace Rendering
                 rslt.border_color[3] = a;
                 return rslt;
             }
-
         };
 
         struct Format
@@ -156,11 +155,13 @@ namespace Rendering
             GLenum format;
             GLenum type;
             GLenum target;
-            constexpr Format(GLenum internal_format = GL_RGBA, GLenum format = GL_RGBA, GLenum type = GL_UNSIGNED_BYTE, GLenum target = GL_TEXTURE_2D)
+            bool is_hdr = false;
+            constexpr Format(GLenum target = GL_TEXTURE_2D, GLenum internal_format = GL_RGBA, GLenum format = GL_RGBA, GLenum type = GL_UNSIGNED_BYTE, bool is_hdr = false)
                 : internal_format(internal_format),
                   format(format),
                   type(type),
-                  target(target)
+                  target(target),
+                  is_hdr(is_hdr)
             {
             }
         };
@@ -170,7 +171,7 @@ namespace Rendering
         GLuint texture_id = 0;
         Format format;
         TexParams params;
-        // Sampler *sampler = nullptr;
+        void *data = nullptr;
         // constructors and deconstructor
     public:
         Texture(Format format = Format(), TexParams params = TexParams());
@@ -180,7 +181,6 @@ namespace Rendering
         void bind() const;
         void unbind() const;
         void set_data(const void *data, size_t width, size_t height);
-        // void set_sampler(Sampler *sampler);
         void set_tex_params(const TexParams &params);
         void resize(size_t width, size_t height);
     };
@@ -211,6 +211,10 @@ namespace Rendering
         }
         void add_texture(const std::string &path, Texture *texture)
         {
+            if (texture == nullptr)
+            {
+                GUI::Log::get().error("Texture_Manager: texture is nullptr");
+            }
             textures.insert({path, Texture_Ptr(texture)});
             GUI::Log::get().info("Texture_Manager: texture added:" + path);
         }
@@ -237,6 +241,25 @@ namespace Rendering
             return singleton;
         }
     };
+    struct Img_Data
+    {
+        BYTE *data = nullptr;
+        int width = 0;
+        int height = 0;
+        int channels = 0;
+        GLenum format;
+        GLenum inner_format;
+        GLint type;
+        bool is_hdr = false;
+        void release()
+        {
+            delete[] data;
+        }
+    };
+
+    bool image_info(FIBITMAP *image, FREE_IMAGE_FORMAT file_type, unsigned int &texture_format, unsigned int &texture_inner_format, int &texture_type, int &channels, bool &is_hdr);
+    Img_Data image_data(const std::string &path, bool flip = false);
+
 }
 
 #endif // RENDER_TEXTURE_H

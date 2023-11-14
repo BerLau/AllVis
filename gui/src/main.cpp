@@ -111,7 +111,7 @@ void init_imgui(GLFWwindow *glfw_window)
 
     ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(glfw_window, true);
-    ImGui_ImplOpenGL3_Init("#version 330 core");
+    ImGui_ImplOpenGL3_Init("#version 420 core");
 }
 
 void glfw_error_callback(int error, const char *description)

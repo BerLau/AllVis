@@ -52,12 +52,13 @@ namespace Rendering
     {
         // attributes
     public:
-        Material_Ptr material = nullptr;
+        Material_PBR_Ptr material = nullptr;
 
         // constructors and deconstructor
     public:
-        OGL_Model(const std::string &name = "OGL_Model", OGL_Mesh_Ptr mesh = nullptr, Core::Transform_Ptr transform = Core::Transform_Ptr(new Core::Transform()), Material_Ptr material = Material_Ptr(new Material()))
-            : Model(name, Mesh_Ptr(std::move(mesh)), std::move(transform)),
+        OGL_Model(const std::string &name = "OGL_Model", OGL_Mesh_Ptr mesh = nullptr, Core::Transform_Ptr transform = Core::Transform_Ptr(new Core::Transform()), Material_PBR_Ptr material = Material_PBR_Ptr(new Material_PBR()))
+            : Configurable(name),
+              Model(name, Mesh_Ptr(std::move(mesh)), std::move(transform)),
               material(material) { init(); }
         virtual ~OGL_Model() { destroy(); }
         // methods

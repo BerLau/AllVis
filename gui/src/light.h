@@ -32,12 +32,16 @@ namespace Rendering
         OGL_Mesh *mesh = nullptr;
         // constructors and deconstructor
     public:
-        Light(Light_Type light_type = POINT_LIGHT, Core::Vector3 color = Core::Vector3{1.0, 1.0, 1.0}, float intensity = 1.0) : type(light_type), color(color), intensity(intensity), transform(std::move(Core::Transform_Ptr(new Core::Transform())))
+        Light(Light_Type light_type = POINT_LIGHT, Core::Vector3 color = Core::Vector3{1.0, 1.0, 1.0}, float intensity = 1.0)
+            : Configurable("Light"),
+              type(light_type), color(color), intensity(intensity), transform(std::move(Core::Transform_Ptr(new Core::Transform())))
         {
             mesh = OGL_Mesh::sphere_mesh().release();
             transform->set_scale(0.05);
         }
-        Light(Core::Transform *transform, Light_Type light_type = POINT_LIGHT, Core::Vector3 color = Core::Vector3{1.0, 1.0, 1.0}, float intensity = 1.0) : type(light_type), color(color), intensity(intensity), transform(Core::Transform_Ptr(transform))
+        Light(Core::Transform *transform, Light_Type light_type = POINT_LIGHT, Core::Vector3 color = Core::Vector3{1.0, 1.0, 1.0}, float intensity = 1.0)
+            : Configurable("Light"),
+              type(light_type), color(color), intensity(intensity), transform(Core::Transform_Ptr(transform))
         {
             mesh = OGL_Mesh::sphere_mesh().release();
             transform->set_scale(0.05);

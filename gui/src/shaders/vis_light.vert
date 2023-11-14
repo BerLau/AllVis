@@ -1,4 +1,4 @@
-#version 330 core
+#version 420 core
 out vec2 texcoord;
 out vec3 frag_position;
 out vec3 frag_normal;

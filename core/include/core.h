@@ -7,8 +7,9 @@
 #include "../src/matrix.h"
 #include "../src/quaternion.h"
 #include "../src/geometry.h"
-#include "../src/file.hpp"
+#include "../src/file.h"
 #include "../src/transform.h"
 #include "../src/configurable.h"
+#include "../src/tools.h"
 
 #endif // CORE_H

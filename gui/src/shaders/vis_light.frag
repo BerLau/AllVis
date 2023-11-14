@@ -1,4 +1,4 @@
-#version 330 core
+#version 420 core
 
 #define LIGHT_TYPE_DIRECTIONAL 0
 #define LIGHT_TYPE_POINT 1

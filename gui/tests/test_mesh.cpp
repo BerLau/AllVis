@@ -67,7 +67,7 @@ TEST(TestMesh, MEMCPY)
         {0.5f, 0.5f, 0.0f},   // top
         {-0.5f, 0.5f, 0.0f}   // top
     };
-    TexCoord tex_coords[] = {
+    TexCoord texcoords[] = {
         {0.0f, 0.0f}, // left
         {1.0f, 0.0f}, // right
         {1.0f, 1.0f}, // top
@@ -85,7 +85,7 @@ TEST(TestMesh, MEMCPY)
     for (int i = 0; i < 4; i++)
     {
         memcpy(mesh->vertex<float>(i, 0), &vertices[i], sizeof(Pos));
-        memcpy(mesh->vertex<float>(i, 1), &tex_coords[i], sizeof(TexCoord));
+        memcpy(mesh->vertex<float>(i, 1), &texcoords[i], sizeof(TexCoord));
     }
     memcpy(mesh->indices, indices, sizeof(indices));
 
@@ -97,7 +97,7 @@ TEST(TestMesh, MEMCPY)
         EXPECT_EQ(p[0], vertices[i].x);
         EXPECT_EQ(p[1], vertices[i].y);
         EXPECT_EQ(p[2], vertices[i].z);
-        EXPECT_EQ(t[0], tex_coords[i].u);
-        EXPECT_EQ(t[1], tex_coords[i].v);
+        EXPECT_EQ(t[0], texcoords[i].u);
+        EXPECT_EQ(t[1], texcoords[i].v);
     }
 }

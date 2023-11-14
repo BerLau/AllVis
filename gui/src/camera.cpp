@@ -4,14 +4,16 @@
 namespace Rendering
 {
     Camera::Camera()
-        : transform(Core::Transform_Ptr(new Core::Transform())),
+        : Configurable("Camera"),
+          transform(Core::Transform_Ptr(new Core::Transform())),
           properties(Properties())
     {
         init();
     }
 
     Camera::Camera(const Core::Vector3 &position)
-        : transform(Core::Transform_Ptr(new Core::Transform(position))),
+        : Configurable("Camera"),
+          transform(Core::Transform_Ptr(new Core::Transform(position))),
           properties(Properties())
     {
     }

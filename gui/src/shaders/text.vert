@@ -1,4 +1,4 @@
-#version 330 core
+#version 420 core
 layout (location = 0) in vec4 pos_tex;
 out vec2 TexCoords;
 uniform mat4 u_projection;

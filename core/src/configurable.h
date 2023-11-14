@@ -13,7 +13,7 @@ namespace Core
         bool editable = true;
         // constructors and deconstructor
     public:
-        Configurable(const std::string &name = "Configurable Object") : name(name){};
+        Configurable(const std::string &name) : name(name){};
         virtual ~Configurable() {}
         // methods
     };
