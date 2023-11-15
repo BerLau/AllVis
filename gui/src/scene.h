@@ -179,8 +179,8 @@ namespace Rendering
         }
         void equi_to_cubemap(const Core::Matrix4 &projection = Geometry::perspective(Geometry::radians(90.0f), 1.0f, 0.1f, 10.0f));
         void precompute_envrionment();
-        void compute_env_irradiance(Texture *env_map);
-        void compute_env_prefilter(Texture *env_irradiance_map);
+        void compute_env_irradiance(Texture *env_cubemap);
+        void compute_env_prefilter(Texture *env_cubemap);
         void compute_brdf_lut();
         void update_environment();
 

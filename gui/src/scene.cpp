@@ -43,7 +43,7 @@ namespace Rendering
         init_brdf_fbo();
 
         // add 5x5x5 cubes
-        const int row = 3; 
+        const int row = 3;
         // for (int i = 0; i < row; ++i)
         // {
         //     float z = -float(row) + i * float(row)/2.f;
@@ -70,19 +70,19 @@ namespace Rendering
 
         // float off_set = float(row)/4.f;
         float off_set = 0.f;
-        // add 5x5x5 spheres
+        int index = 0;
         for (int i = 0; i < row; ++i)
         {
-            float z = -float(row) + i * float(row)/2.f + off_set;
+            float z = -float(row) + i * float(row) / 2.f + off_set;
             for (int j = 0; j < row; ++j)
             {
-                float x = -float(row) + j * float(row)/2.f+ off_set;
+                float x = -float(row) + j * float(row) / 2.f + off_set;
                 for (int k = 0; k < row; ++k)
                 {
-                    float y = -float(row) + k * float(row)/2.f + off_set;
+                    float y = -float(row) + k * float(row) / 2.f + off_set;
                     Core::Vector3 pos = Core::Vector3(x, y, z);
                     auto sphere_model = Rendering::OGL_Model_Ptr(new Rendering::OGL_Model(
-                        "Sphere 1",
+                        "Sphere " + std::to_string(index++),
                         Rendering::OGL_Mesh::sphere_mesh(1.0, 32, 32)));
                     sphere_model->transform->set_position(pos);
                     sphere_model->material->color = Core::Vector3(RANDOM_RANGE_F(0.2, 1.0), RANDOM_RANGE_F(0.2, 1.0), RANDOM_RANGE_F(0.2, 1.0));
@@ -107,7 +107,7 @@ namespace Rendering
         lights.push_back({std::move(light), true});
 
         // set point lights
-        for (int i = 1; i <= 32; i++)
+        for (int i = 1; i <= 6; i++)
         {
             auto light = Rendering::Light_Ptr(new Rendering::Light());
             light->name = "light " + std::to_string(i);
@@ -170,9 +170,9 @@ namespace Rendering
     }
     void OGL_Scene_3D::render_skybox(const Core::Matrix4 &view, const Core::Matrix4 &projection)
     {
-        auto skybox_texture = cubemap_fbo->get_color_attachment(0);
+        // auto skybox_texture = cubemap_fbo->get_color_attachment(0);
         // auto skybox_texture =  irradiance_fbo->get_color_attachment(0);
-        // auto skybox_texture = prefilter_fbo->get_color_attachment(0);
+        auto skybox_texture = prefilter_fbo->get_color_attachment(0);
         if (!skybox_texture)
         {
             return;
@@ -184,7 +184,11 @@ namespace Rendering
         glActiveTexture(GL_TEXTURE0);
         skybox_texture->bind();
         skybox_shader->set_int("u_skybox", 0);
+        glDepthFunc(GL_LEQUAL);
+        glCullFace(GL_FRONT);
         Rendering::OGL_Mesh::instanced_cube_mesh()->render(skybox_shader);
+        glCullFace(GL_BACK);
+        glDepthFunc(GL_LESS);
         skybox_texture->unbind();
         skybox_shader->deactivate();
     }
@@ -271,7 +275,7 @@ namespace Rendering
             if (model.is_active)
             {
                 model.value->material->bind(3);
-                model.value->material->write_to_shader("u_material", pbr_shader,3);
+                model.value->material->write_to_shader("u_material", pbr_shader, 3);
                 model.value->draw(pbr_shader);
             }
         }
@@ -368,11 +372,11 @@ namespace Rendering
         prefilter_fbo->bind();
 
         auto cubemap_format = Texture::Format(GL_TEXTURE_CUBE_MAP, GL_RGB16F, GL_RGB, GL_FLOAT);
-        auto attachment = Texture_Ptr(new Texture(cubemap_format));
-        attachment->bind();
+        auto cubemap_params = Texture::TexParams::linear_mipmap_clamp_edge();
+        auto attachment = Texture_Ptr(new Texture(cubemap_format, cubemap_params));
         attachment->resize(128, 128);
         prefilter_fbo->attach_texture(attachment);
-        attachment->unbind();
+        attachment->generate_mipmap();
 
         auto depth_attachment_2 = Render_Buffer_Ptr(new Render_Buffer(128, 128));
         prefilter_fbo->attach_render_buffer(std::move(depth_attachment_2));
@@ -387,12 +391,10 @@ namespace Rendering
         brdf_fbo = FBO_Ptr(new FBO(512, 512));
         brdf_fbo->bind();
 
-        auto brdf_format = Texture::Format(GL_TEXTURE_2D, GL_RG16F, GL_RG, GL_FLOAT);
+        auto brdf_format = Texture::Format(GL_TEXTURE_2D, GL_RGBA16F, GL_RGBA, GL_FLOAT); // can be GL_RG16F to save memory
         auto attachment = Texture_Ptr(new Texture(brdf_format));
-        attachment->bind();
         attachment->resize(512, 512);
         brdf_fbo->attach_texture(attachment);
-        attachment->unbind();
 
         auto depth_attachment_2 = Render_Buffer_Ptr(new Render_Buffer(512, 512));
         brdf_fbo->attach_render_buffer(std::move(depth_attachment_2));
@@ -430,6 +432,8 @@ namespace Rendering
         // set exposure
         equi_to_cube_shader->set_float("u_exposure", this->exposure);
         auto skybox_texture = cubemap_fbo->get_color_attachment(0);
+        glCullFace(GL_FRONT);
+
         for (int i = 0; i < 6; i++)
         {
             equi_to_cube_shader->set_mat4("u_view", cube_views[i].data());
@@ -438,6 +442,7 @@ namespace Rendering
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             Rendering::OGL_Mesh::instanced_cube_mesh()->render(equi_to_cube_shader);
         }
+        glCullFace(GL_BACK);
         equi_texture->unbind();
         equi_to_cube_shader->deactivate();
         skybox_texture->generate_mipmap();
@@ -452,13 +457,13 @@ namespace Rendering
             return;
         }
         compute_env_irradiance(env_cubemap);
-        compute_env_prefilter(irradiance_fbo->get_color_attachment(0));
+        compute_env_prefilter(env_cubemap);
         compute_brdf_lut();
     }
 
-    void OGL_Scene_3D::compute_env_irradiance(Texture *env_map)
+    void OGL_Scene_3D::compute_env_irradiance(Texture *env_cubemap)
     {
-        if (!env_map)
+        if (!env_cubemap)
         {
             return;
         }
@@ -468,70 +473,79 @@ namespace Rendering
         auto irradiance_shader = Rendering::shader_program_factory.find_shader_program("env_irradiance_shader");
         irradiance_shader->activate();
         glActiveTexture(GL_TEXTURE0);
-        env_map->bind();
+        env_cubemap->bind();
         irradiance_shader->set_int("u_environment_map", 0);
         irradiance_shader->set_mat4("u_projection", cube_projection.data());
         auto irradiance_map = irradiance_fbo->get_color_attachment(0);
+        irradiance_fbo->bind();
         for (int i = 0; i < 6; i++)
         {
             irradiance_shader->set_mat4("u_view", cube_views[i].data());
             // set the render target to be the cube face
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, irradiance_map->texture_id, 0);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glCullFace(GL_FRONT);
             Rendering::OGL_Mesh::instanced_cube_mesh()->render(irradiance_shader);
+            glCullFace(GL_BACK);
         }
-        env_map->unbind();
+        env_cubemap->unbind();
+        irradiance_map->unbind();
         irradiance_shader->deactivate();
-        irradiance_map->generate_mipmap();
         irradiance_fbo->unbind();
     }
 
-    void OGL_Scene_3D::compute_env_prefilter(Texture *env_irradiance_map)
+    void OGL_Scene_3D::compute_env_prefilter(Texture *env_cubemap)
     {
-        if (!env_irradiance_map)
+        if (!env_cubemap)
         {
             return;
         }
-
-        prefilter_fbo->bind();
-        prefilter_fbo->clear(this->bg_color);
         auto prefilter_shader = Rendering::shader_program_factory.find_shader_program("env_prefilter_shader");
         prefilter_shader->activate();
+
+        prefilter_fbo->bind();
+        auto prefilter_map = prefilter_fbo->get_color_attachment(0);
+
         glActiveTexture(GL_TEXTURE0);
-        env_irradiance_map->bind();
+        env_cubemap->bind();
         prefilter_shader->set_int("u_environment_map", 0);
         prefilter_shader->set_mat4("u_projection", cube_projection.data());
-        const int max_mip_levels = 5;
 
+        const int max_mip_levels = 5;
         for (int mip = 0; mip < max_mip_levels; ++mip)
         {
             // resize framebuffer according to mip-level size.
-            unsigned int mip_width = 128 * std::pow(0.5, mip);
-            unsigned int mip_height = 128 * std::pow(0.5, mip);
-            prefilter_fbo->resize(mip_width, mip_height);
+            unsigned int mip_width = static_cast<unsigned int>(128 * std::pow(0.5, mip));
+            unsigned int mip_height = mip_width;
+            auto render_buffer = prefilter_fbo->rbo.get();
+            render_buffer->bind();
+            render_buffer->resize(mip_width, mip_height);
+            glViewport(0, 0, mip_width, mip_height);
             float roughness = (float)mip / (float)(max_mip_levels - 1);
             prefilter_shader->set_float("u_roughness", roughness);
-            auto prefilter_map = prefilter_fbo->get_color_attachment(0);
-            for (int i = 0; i < 6; i++)
+
+            for (int i = 0; i < 6; ++i)
             {
                 prefilter_shader->set_mat4("u_view", cube_views[i].data());
-                // set the render target to be the cube face
                 glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, prefilter_map->texture_id, mip);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                glCullFace(GL_FRONT);
                 Rendering::OGL_Mesh::instanced_cube_mesh()->render(prefilter_shader);
+                glCullFace(GL_BACK);
             }
         }
-        env_irradiance_map->unbind();
+        env_cubemap->unbind();
         prefilter_shader->deactivate();
         prefilter_fbo->unbind();
     }
 
     void OGL_Scene_3D::compute_brdf_lut()
     {
-        brdf_fbo->bind();
-        brdf_fbo->clear(this->bg_color);
+
         auto brdf_shader = Rendering::shader_program_factory.find_shader_program("env_brdf_shader");
         brdf_shader->activate();
+        brdf_fbo->bind();
+        brdf_fbo->clear();
         Rendering::OGL_Mesh::instanced_quad_mesh()->render(brdf_shader);
         brdf_shader->deactivate();
         brdf_fbo->unbind();

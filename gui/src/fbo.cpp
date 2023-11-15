@@ -130,7 +130,7 @@ namespace Rendering
 
     void FBO::clear(Core::Vector4 bg_color)
     {
-        glClearColor(bg_color.x(), bg_color.y(), bg_color.z(), bg_color.w());
+        // glClearColor(bg_color.x(), bg_color.y(), bg_color.z(), bg_color.w());
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
         glViewport(0, 0, this->width, this->height);
     }

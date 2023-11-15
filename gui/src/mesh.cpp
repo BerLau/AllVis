@@ -85,11 +85,11 @@ namespace Rendering
     void OGL_Mesh::render(Shader_Program *shader)
     {
         bind_buffer();
-        glCullFace(GL_FRONT);
-        glDepthFunc(GL_LEQUAL);
+        // glCullFace(GL_FRONT);
+        // glDepthFunc(GL_LEQUAL);
         glDrawElements(GL_TRIANGLES, index_count, GL_UNSIGNED_INT, 0);
-        glDepthFunc(GL_LESS);
-        glCullFace(GL_BACK);
+        // glDepthFunc(GL_LESS);
+        // glCullFace(GL_BACK);
         unbind_buffer();
     }
 

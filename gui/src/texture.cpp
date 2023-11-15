@@ -41,17 +41,18 @@ namespace Rendering
     void Texture::set_tex_params(const TexParams &params)
     {
         bind();
-        glTexParameteri(format.target, GL_TEXTURE_MIN_FILTER, params.min_filter);
-        glTexParameteri(format.target, GL_TEXTURE_MAG_FILTER, params.mag_filter);
         glTexParameteri(format.target, GL_TEXTURE_WRAP_S, params.wrap_s);
         glTexParameteri(format.target, GL_TEXTURE_WRAP_T, params.wrap_t);
         glTexParameteri(format.target, GL_TEXTURE_WRAP_R, params.wrap_r);
         glTexParameterfv(format.target, GL_TEXTURE_BORDER_COLOR, params.border_color);
+        glTexParameteri(format.target, GL_TEXTURE_MIN_FILTER, params.min_filter);
+        glTexParameteri(format.target, GL_TEXTURE_MAG_FILTER, params.mag_filter);
         unbind();
     }
 
     void Texture::resize(size_t width, size_t height)
     {
+        bind();
         if (format.target == GL_TEXTURE_2D)
         {
             glTexImage2D(format.target, 0, format.internal_format, width, height, 0, format.format, format.type, NULL);
@@ -63,6 +64,7 @@ namespace Rendering
                 glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, format.internal_format, width, height, 0, format.format, format.type, NULL);
             }
         }
+        unbind();
     }
 
     void Texture::generate_mipmap()
@@ -332,7 +334,7 @@ namespace Rendering
         auto tex_params = Texture::TexParams(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_REPEAT);
         Texture *texture = new Texture(format, tex_params);
         texture->set_data(img.data, img.width, img.height);
-
+        texture->generate_mipmap();
         img.release();
         return texture;
     }
