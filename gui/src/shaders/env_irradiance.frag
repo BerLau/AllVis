@@ -5,8 +5,8 @@ in: vec3 frag_position
 uniform: samplerCube u_environment_map
 */
 #version 420 core
-in vec3 frag_position;
 out vec4 frag_color;
+in vec3 frag_position;
 
 uniform samplerCube u_environment_map;
 
