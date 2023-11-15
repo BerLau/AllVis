@@ -6,6 +6,8 @@
 #include <vector>
 #include <memory>
 #include "shader.h"
+#include <typeinfo>
+#include <iostream>
 
 namespace Rendering
 {
@@ -22,128 +24,129 @@ namespace Rendering
         // Segment has 3 attributes: the number of the elements, the type of the elements, and the size of the type
         struct Segment
         {
-            unsigned int count;
-            GLenum type;
-            unsigned int stride;
-            unsigned int size = count * stride;
+            const unsigned int element_type;
+            const unsigned int element_size;
+            const unsigned int count;
+
+            constexpr Segment(unsigned int element_type, unsigned int element_size, unsigned int count) : element_type(element_type), element_size(element_size), count(count)
+            {
+            }
+            constexpr Segment() : element_type(0), element_size(0), count(0)
+            {
+            }
+            constexpr size_t size() const
+            {
+                return count * element_size;
+            }
         };
 
         class Layout
         {
             // attributes
         public:
-            unsigned int size;
             std::vector<Segment> segments;
-            Layout() : size(0), segments(std::vector<Segment>()) {}
+            Layout() {}
             ~Layout() {}
-            void add(unsigned int count, GLenum type, unsigned int type_size)
+            // methods
+        public:
+            void add_segment(unsigned int element_type, unsigned int element_size, unsigned int count)
             {
-                segments.push_back(Segment{count, type, type_size});
-                this->size += count * type_size;
+                segments.emplace_back(element_type, element_size, count);
             }
-            Segment &operator[](unsigned int index)
+            void add_segment(const Segment &segment)
             {
-                return segments[index];
+                segments.push_back(segment);
             }
-            unsigned int num_segments() const
+
+            size_t size() const
+            {
+                size_t rslt = 0;
+                for (auto &segment : segments)
+                {
+                    rslt += segment.size();
+                }
+                return rslt;
+            }
+
+            size_t count() const
             {
                 return segments.size();
             }
 
-            unsigned int offset(unsigned int index) const
+            const Segment &operator[](unsigned int index) const
             {
-                unsigned int offset = 0;
-                for (unsigned int i = 0; i < index; i++)
-                {
-                    offset += segments[i].size;
-                }
-                return offset;
-            }
-            unsigned int stride() const
-            {
-                unsigned int stride = 0;
-                for (unsigned int i = 0; i < segments.size(); i++)
-                {
-                    stride += segments[i].stride;
-                }
-                return stride;
-            }
-            unsigned int element_count() const
-            {
-                unsigned int element_count = 0;
-                for (unsigned int i = 0; i < segments.size(); i++)
-                {
-                    element_count += segments[i].count;
-                }
-                return element_count;
+                return segments[index];
             }
         };
         // attributes
 
     public:
-        char *vertices;
-        unsigned int *indices;
-        unsigned int vertex_count;
-        unsigned int index_count;
+        std::vector<char> vertices;
+        std::vector<unsigned int> indices;
         Layout layout;
 
     private:
         // constructors and deconstructor
     public:
-        Mesh(Layout layout, unsigned int vertex_count, unsigned int index_count)
-            : vertex_count(vertex_count),
-              index_count(index_count),
-              layout(layout)
+        Mesh(Layout layout)
+            : layout(layout)
         {
-            vertices = new char[vertex_count * layout.size];
-            indices = new unsigned int[index_count];
+        }
+        Mesh(Layout layout, unsigned int vertex_count, unsigned int index_count)
+            : layout(layout)
+        {
+            vertices.resize(layout.size() * vertex_count);
+            indices.resize(index_count);
         }
         virtual ~Mesh()
         {
-            destroy();
         }
         // methods
     public:
-        // template function to access vertex by index
-        template <typename T>
-        T *vertex(unsigned int index)
+        void resize(unsigned int vertex_count, unsigned int index_count)
         {
-            return (T *)(vertices + index * layout.size);
+            vertices.resize(layout.size() * vertex_count);
+            indices.resize(index_count);
+        }
+        void expand(unsigned int vertex_count, unsigned int index_count)
+        {
+            vertices.reserve(layout.size() * vertex_count);
+            indices.reserve(index_count);
+        }
+        void add_vertices(void *data, size_t size)
+        {
+            vertices.insert(vertices.end(), (char *)data, (char *)data + size);
+        }
+        void add_indices(unsigned int *data, size_t size)
+        {
+            indices.insert(indices.end(), data, data + size);
         }
 
-        template <typename T>
-        const T *vertex(unsigned int index) const
+        void add_vertex(void *data, size_t size)
         {
-            return (T *)(vertices + index * layout.size);
+            if (size == layout.size())
+            {
+                vertices.insert(vertices.end(), (char *)data, (char *)data + size);
+            }
+            else
+            {
+                std::cerr << "Error: size of data is not equal to size of layout" << std::endl;
+            }
         }
 
-        // template function to access vertex by index and segment
-        template <typename T>
-        T *vertex(unsigned int index, unsigned int segment)
+        void add_index(unsigned int data)
         {
-            return (T *)(vertices + index * layout.size + layout.offset(segment));
+            indices.push_back(data);
         }
 
-        template <typename T>
-        const T *vertex(unsigned int index, unsigned int segment) const
+        void *vertex(unsigned int index)
         {
-            return (T *)(vertices + index * layout.size + layout.offset(segment));
+            return &vertices[index * layout.size()];
         }
 
-        // function to access index by index
-        unsigned int &index(unsigned int index)
+        void *vertex_attr(unsigned int index, unsigned int offset)
         {
-            return indices[index];
-        }
-        const unsigned int &index(unsigned int index) const
-        {
-            return indices[index];
-        }
-        virtual void init() {}
-        virtual void destroy()
-        {
-            delete[] vertices;
-            delete[] indices;
+            return &vertices[index * layout.size() + offset];
         }
         // static methods
     };
@@ -162,8 +165,8 @@ namespace Rendering
         GLuint ebo;
         // constructors and deconstructor
     public:
-        OGL_Mesh(Layout layout, unsigned int vertex_count, unsigned int index_count)
-            : Mesh(layout, vertex_count, index_count),
+        OGL_Mesh(Layout layout)
+            : Mesh(layout),
               vao(0),
               vbo(0),
               ebo(0)
@@ -184,25 +187,24 @@ namespace Rendering
         void init();
         void destroy();
         void update();
-        void render(Shader_Program* shader);
+        void render(Shader_Program *shader);
         // static methods
     public:
         static OGL_Mesh_Ptr cube_mesh(float width = 1.0f, float height = 1.0f, float depth = 1.0f);
-        static OGL_Mesh_Ptr plane_mesh(float width = 1.0f, float height = 1.0f, unsigned int width_segments = 1, unsigned int height_segments = 1);
+        static OGL_Mesh_Ptr plane_mesh(float width = 1.0f, float height = 1.0f, unsigned int width_segments = 1, unsigned int height_segments = 1, float u_tile = 1.0f, float v_tile = 1.0f);
         static OGL_Mesh_Ptr sphere_mesh(float radius = 1.0f, unsigned int slices = 32, unsigned int stacks = 32);
         static OGL_Mesh_Ptr cylinder_mesh(float radius = 1.0f, float height = 1.0f, unsigned int radial_segments = 32, unsigned int height_segments = 1);
         static OGL_Mesh_Ptr cone_mesh(float radius = 1.0f, float height = 1.0f, unsigned int radial_segments = 32, unsigned int height_segments = 1);
         static OGL_Mesh_Ptr torus_mesh(float radius = 1.0f, float tube_radius = 0.5f, unsigned int radial_segments = 32, unsigned int tubular_segments = 32);
         static OGL_Mesh_Ptr quad_mesh(float width = 1.0f, float height = 1.0f);
 
-        static OGL_Mesh* instanced_cube_mesh();
-        static OGL_Mesh* instanced_plane_mesh();
-        static OGL_Mesh* instanced_sphere_mesh();
-        static OGL_Mesh* instanced_cylinder_mesh();
-        static OGL_Mesh* instanced_cone_mesh();
-        static OGL_Mesh* instanced_torus_mesh();
-        static OGL_Mesh* instanced_quad_mesh();
-
+        static OGL_Mesh *instanced_cube_mesh();
+        static OGL_Mesh *instanced_plane_mesh();
+        static OGL_Mesh *instanced_sphere_mesh();
+        static OGL_Mesh *instanced_cylinder_mesh();
+        static OGL_Mesh *instanced_cone_mesh();
+        static OGL_Mesh *instanced_torus_mesh();
+        static OGL_Mesh *instanced_quad_mesh();
     };
 
 }; // namespace Rendering

@@ -30,15 +30,18 @@ TEST(TestMesh, MESH_CONSTRUCTION)
     Norm normal{4.0f, 5.0f, 6.0f};
     Tex tex{7.0f, 8.0f};
     Rendering::Mesh::Layout layout;
-    layout.add(1, GL_FLOAT, sizeof(Pos));
-    layout.add(1, GL_FLOAT, sizeof(Norm));
-    layout.add(1, GL_FLOAT, sizeof(Tex));
+    // layout.add(1, GL_FLOAT, sizeof(Pos));
+    // layout.add(1, GL_FLOAT, sizeof(Norm));
+    // layout.add(1, GL_FLOAT, sizeof(Tex));
+    layout.add_segment(GL_FLOAT, sizeof(Pos), 3);
+    layout.add_segment(GL_FLOAT, sizeof(Norm), 3);
+    layout.add_segment(GL_FLOAT, sizeof(Tex), 2);
 
     Rendering::Mesh mesh(layout, 1, 0);
 
-    Pos *pos_ = mesh.vertex<Pos>(0,0);
-    Norm *norm_ = mesh.vertex<Norm>(0,1);
-    Tex *tex_ = mesh.vertex<Tex>(0,2);
+    Pos *pos_ = (Pos *)mesh.vertex_attr(0, 0);
+    Norm *norm_ = (Norm *)mesh.vertex_attr(0, 1);
+    Tex *tex_ = (Tex *)mesh.vertex_attr(0, 2);
 
     *pos_ = pos;
     *norm_ = normal;
@@ -79,25 +82,25 @@ TEST(TestMesh, MEMCPY)
         0, 2, 3};
 
     Rendering::Mesh::Layout layout;
-    layout.add(3, GL_FLOAT, sizeof(float));
-    layout.add(2, GL_FLOAT, sizeof(float));
+    layout.add_segment(GL_FLOAT, sizeof(Pos), 3);
+    layout.add_segment(GL_FLOAT, sizeof(TexCoord), 2);
     auto mesh = Rendering::Mesh_Ptr(new Rendering::Mesh(layout, 4, 6));
-    for (int i = 0; i < 4; i++)
-    {
-        memcpy(mesh->vertex<float>(i, 0), &vertices[i], sizeof(Pos));
-        memcpy(mesh->vertex<float>(i, 1), &texcoords[i], sizeof(TexCoord));
+    for(int i=0; i<4; ++i){
+        *(Pos*)mesh->vertex_attr(i, 0) = vertices[i];
+        *(TexCoord*)mesh->vertex_attr(i, 1) = texcoords[i];
     }
-    memcpy(mesh->indices, indices, sizeof(indices));
+    mesh->add_indices(indices, 6);
 
     for (int i = 0; i < 4; ++i)
     {
-        auto p = mesh->vertex<float>(i, 0);
-        auto t = mesh->vertex<float>(i, 1);
+        auto p = (Pos *)mesh->vertex_attr(i, 0); 
+        auto t = (TexCoord *)mesh->vertex_attr(i, 1);
 
-        EXPECT_EQ(p[0], vertices[i].x);
-        EXPECT_EQ(p[1], vertices[i].y);
-        EXPECT_EQ(p[2], vertices[i].z);
-        EXPECT_EQ(t[0], texcoords[i].u);
-        EXPECT_EQ(t[1], texcoords[i].v);
+        EXPECT_EQ(p->x, vertices[i].x);
+        EXPECT_EQ(p->y, vertices[i].y);
+        EXPECT_EQ(p->z, vertices[i].z);
+
+        EXPECT_EQ(t->u, texcoords[i].u);
+        EXPECT_EQ(t->v, texcoords[i].v);
     }
 }

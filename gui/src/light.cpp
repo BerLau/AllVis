@@ -13,7 +13,7 @@ void Rendering::Light::visualize(Shader_Program *shader)
         mesh->bind_buffer();
         // enable face culling
         glEnable(GL_CULL_FACE);
-        glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, mesh->indices.size(), GL_UNSIGNED_INT, 0);
         glDisable(GL_CULL_FACE);
         mesh->unbind_buffer();
     }

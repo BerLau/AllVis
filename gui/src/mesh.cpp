@@ -39,18 +39,18 @@ namespace Rendering
     {
         glBindVertexArray(vao);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, vertex_count * layout.size, vertices, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, vertices.size(), vertices.data(), GL_STATIC_DRAW);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, index_count * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 
         int offset = 0;
-        for (int i = 0; i < layout.num_segments(); i++)
+        for (int i = 0; i < layout.count(); i++)
         {
-            Segment &segment = layout[i];
-            glVertexAttribPointer(i, segment.count, segment.type, GL_FALSE, layout.size, (void *)offset);
+            Segment &segment = layout.segments[i];
+            glVertexAttribPointer(i, segment.count, segment.element_type, GL_FALSE, layout.size(), (void *)offset);
             glEnableVertexAttribArray(i);
-            offset += segment.size;
+            offset += segment.size();
         }
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
@@ -77,8 +77,8 @@ namespace Rendering
     void OGL_Mesh::update()
     {
         bind_buffer();
-        glBufferSubData(GL_ARRAY_BUFFER, 0, vertex_count * layout.size, vertices);
-        glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, index_count * sizeof(unsigned int), indices);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size(), vertices.data());
+        glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, indices.size() * sizeof(unsigned int), indices.data());
         unbind_buffer();
     }
 
@@ -87,7 +87,7 @@ namespace Rendering
         bind_buffer();
         // glCullFace(GL_FRONT);
         // glDepthFunc(GL_LEQUAL);
-        glDrawElements(GL_TRIANGLES, index_count, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
         // glDepthFunc(GL_LESS);
         // glCullFace(GL_BACK);
         unbind_buffer();
@@ -96,10 +96,11 @@ namespace Rendering
     OGL_Mesh_Ptr OGL_Mesh::cube_mesh(float width, float height, float depth)
     {
         Rendering::Mesh::Layout layout;
-        layout.add(3, GL_FLOAT, sizeof(float));
-        layout.add(3, GL_FLOAT, sizeof(float));
-        layout.add(3, GL_FLOAT, sizeof(float));
-        layout.add(2, GL_FLOAT, sizeof(float));
+
+        layout.add_segment(GL_FLOAT, sizeof(float), 3); // postion
+        layout.add_segment(GL_FLOAT, sizeof(float), 3); // normal
+        layout.add_segment(GL_FLOAT, sizeof(float), 3); // tangent
+        layout.add_segment(GL_FLOAT, sizeof(float), 2); // texture
 
         float pos_x = width / 2.0f;
         float pos_y = height / 2.0f;
@@ -171,22 +172,40 @@ namespace Rendering
             20, 21, 22, 20, 22, 23  // bottom
         };
 
-        auto mesh = OGL_Mesh_Ptr(new OGL_Mesh(layout, 24, 36));
-        memcpy(mesh->vertices, vertices, sizeof(vertices));
-        memcpy(mesh->indices, indices, sizeof(indices));
+        auto mesh = OGL_Mesh_Ptr(new OGL_Mesh(layout));
+        mesh->add_vertices((void *)vertices, sizeof(vertices));
+        mesh->add_indices(indices, sizeof(indices));
         mesh->init();
         return mesh;
     }
 
+    // OGL_Mesh_Ptr OGL_Mesh::plane_mesh(float width, float height, unsigned int width_segments, unsigned int height_segments, float u_tile = 1.0f, float v_tile = 1.0f)
+    // {
+    //     // create a xz plane
+    //     Rendering::Mesh::Layout layout;
+    //     layout.add_segment(GL_FLOAT, sizeof(float), 3); // postion
+    //     layout.add_segment(GL_FLOAT, sizeof(float), 3); // normal
+    //     layout.add_segment(GL_FLOAT, sizeof(float), 3); // tangent
+    //     layout.add_segment(GL_FLOAT, sizeof(float), 2); // texture
+
+    //     float pos_x = width / 2.0f;
+    //     float pos_z = height / 2.0f;
+    //     float neg_x = -pos_x;
+    //     float neg_z = -pos_z;
+
+    //     // auto mesh = OGL_Mesh_Ptr(new OGL_Mesh(layout, (width_segments + 1) * (height_segments + 1), width_segments * height_segments * 6));
+    // }
+
     OGL_Mesh_Ptr OGL_Mesh::sphere_mesh(float radius, unsigned int slices, unsigned int stacks)
     {
         Mesh::Layout layout;
-        layout.add(3, GL_FLOAT, sizeof(float)); // postion
-        layout.add(3, GL_FLOAT, sizeof(float)); // normal
-        layout.add(3, GL_FLOAT, sizeof(float)); // tangent
-        layout.add(2, GL_FLOAT, sizeof(float)); // texture
+        layout.add_segment(GL_FLOAT, sizeof(float), 3); // postion
+        layout.add_segment(GL_FLOAT, sizeof(float), 3); // normal
+        layout.add_segment(GL_FLOAT, sizeof(float), 3); // tangent
+        layout.add_segment(GL_FLOAT, sizeof(float), 2); // texture
+        auto mesh = OGL_Mesh_Ptr(new OGL_Mesh(layout));
 
-        std::vector<float> vertices;
+        std::vector<float> vertex;
         std::vector<unsigned int> indices;
 
         for (unsigned int i = 0; i <= slices; ++i)
@@ -208,22 +227,24 @@ namespace Rendering
                 float v = 1 - (float)j / stacks;
 
                 // push positions
-                vertices.push_back(x * radius);
-                vertices.push_back(y * radius);
-                vertices.push_back(z * radius);
+                vertex.push_back(x * radius);
+                vertex.push_back(y * radius);
+                vertex.push_back(z * radius);
                 // push normals
-                vertices.push_back(x);
-                vertices.push_back(y);
-                vertices.push_back(z);
+                vertex.push_back(x);
+                vertex.push_back(y);
+                vertex.push_back(z);
                 // push tangents
-                vertices.push_back(-sin_phi);
-                vertices.push_back(0);
-                vertices.push_back(cos_phi);
+                vertex.push_back(-sin_phi);
+                vertex.push_back(0);
+                vertex.push_back(cos_phi);
                 // push texture
-                vertices.push_back(u);
-                vertices.push_back(v);
+                vertex.push_back(u);
+                vertex.push_back(v);
             }
+
         }
+        mesh->add_vertices(vertex.data(), vertex.size() * sizeof(float));
 
         for (int i = 0; i < slices; i++)
         {
@@ -242,9 +263,8 @@ namespace Rendering
             }
         }
 
-        auto mesh = OGL_Mesh_Ptr(new OGL_Mesh(layout, vertices.size() / layout.element_count(), indices.size()));
-        memcpy(mesh->vertices, vertices.data(), vertices.size() * sizeof(float));
-        memcpy(mesh->indices, indices.data(), indices.size() * sizeof(unsigned int));
+        mesh->add_indices(indices.data(), indices.size() * sizeof(unsigned int));
+
         mesh->init();
         return mesh;
     }
@@ -252,8 +272,9 @@ namespace Rendering
     OGL_Mesh_Ptr OGL_Mesh::quad_mesh(float width, float height)
     {
         Mesh::Layout layout;
-        layout.add(2, GL_FLOAT, sizeof(float)); // postion
-        layout.add(2, GL_FLOAT, sizeof(float)); // texture
+        layout.add_segment(GL_FLOAT, sizeof(float), 2); // postion
+        layout.add_segment(GL_FLOAT, sizeof(float), 2); // texture
+        auto mesh = OGL_Mesh_Ptr(new OGL_Mesh(layout));
 
         float pos_x = width / 2.0f;
         float pos_y = height / 2.0f;
@@ -266,14 +287,11 @@ namespace Rendering
             pos_x, neg_y, 1.0f, 0.0f,
             pos_x, pos_y, 1.0f, 1.0f,
             neg_x, pos_y, 0.0f, 1.0f};
-        
-        unsigned int indices[] = {
-            0, 1, 2, 0, 2, 3
-        };
 
-        auto mesh = OGL_Mesh_Ptr(new OGL_Mesh(layout, 4, 6));
-        memcpy(mesh->vertices, vertices, sizeof(vertices));
-        memcpy(mesh->indices, indices, sizeof(indices));
+        unsigned int indices[] = {
+            0, 1, 2, 0, 2, 3};
+        mesh->add_vertices((void *)vertices, sizeof(vertices));
+        mesh->add_indices(indices, sizeof(indices));
         mesh->init();
         return mesh;
     }
