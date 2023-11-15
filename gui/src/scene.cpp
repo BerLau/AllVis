@@ -73,13 +73,13 @@ namespace Rendering
         int index = 0;
         for (int i = 0; i < row; ++i)
         {
-            float z = -float(row) + i * float(row) / 2.f + off_set;
+            float y = -float(row) + i * float(row) / 2.f + off_set;
             for (int j = 0; j < row; ++j)
             {
-                float x = -float(row) + j * float(row) / 2.f + off_set;
+                float z = -float(row) + j * float(row) / 2.f + off_set;
                 for (int k = 0; k < row; ++k)
                 {
-                    float y = -float(row) + k * float(row) / 2.f + off_set;
+                    float x = -float(row) + k * float(row) / 2.f + off_set;
                     Core::Vector3 pos = Core::Vector3(x, y, z);
                     auto sphere_model = Rendering::OGL_Model_Ptr(new Rendering::OGL_Model(
                         "Sphere " + std::to_string(index++),
@@ -132,10 +132,10 @@ namespace Rendering
         cameras.push_back({std::move(camera_2), false});
 
         // set skybox
-        skybox_path = "textures/TCom_JapanParkingGarageB_4K_hdri_sphere_tone.jpg";
-        auto sky_texture = load_texture(skybox_path);
-        Texture_Manager::instance().add_texture(skybox_path, sky_texture);
-        update_environment();
+        // skybox_path = "textures/TCom_JapanParkingGarageB_4K_hdri_sphere_tone.jpg";
+        // auto sky_texture = load_texture(skybox_path);
+        // Texture_Manager::instance().add_texture(skybox_path, sky_texture);
+        // update_environment();
     }
     void OGL_Scene_3D::update()
     {
@@ -157,7 +157,7 @@ namespace Rendering
         }
 
         pbr_fbo->bind();
-        pbr_fbo->clear(this->bg_color);
+        pbr_fbo->clear();
         render_pbr(view, projection);
         render_lights(view, projection);
         render_skybox(view, projection);
@@ -170,9 +170,9 @@ namespace Rendering
     }
     void OGL_Scene_3D::render_skybox(const Core::Matrix4 &view, const Core::Matrix4 &projection)
     {
-        // auto skybox_texture = cubemap_fbo->get_color_attachment(0);
-        // auto skybox_texture =  irradiance_fbo->get_color_attachment(0);
-        auto skybox_texture = prefilter_fbo->get_color_attachment(0);
+        auto skybox_texture = cubemap_fbo->get_color_attachment(0);
+        // auto skybox_texture = irradiance_fbo->get_color_attachment(0);
+        // auto skybox_texture = prefilter_fbo->get_color_attachment(0);
         if (!skybox_texture)
         {
             return;
@@ -181,9 +181,8 @@ namespace Rendering
         skybox_shader->activate();
         skybox_shader->set_mat4("u_view", view.data());
         skybox_shader->set_mat4("u_projection", projection.data());
-        glActiveTexture(GL_TEXTURE0);
-        skybox_texture->bind();
-        skybox_shader->set_int("u_skybox", 0);
+        skybox_texture->bind(PBR_TEXTURE_UNIT::SKYBOX);
+        skybox_shader->set_int("u_skybox", PBR_TEXTURE_UNIT::SKYBOX);
         glDepthFunc(GL_LEQUAL);
         glCullFace(GL_FRONT);
         Rendering::OGL_Mesh::instanced_cube_mesh()->render(skybox_shader);
@@ -214,72 +213,58 @@ namespace Rendering
 
     void OGL_Scene_3D::render_pbr(const Core::Matrix4 &view, const Core::Matrix4 &projection)
     {
-        auto pbr_shader = Rendering::shader_program_factory.find_shader_program("pbr_shader");
-        pbr_shader->activate();
+        Shader_Program *shader = nullptr;
 
         // set environment map
-        pbr_shader->set_bool("environment_mapping", true);
 
         auto irradiance_map = irradiance_fbo->get_color_attachment(0);
-        if (irradiance_map)
-        {
-            glActiveTexture(GL_TEXTURE0);
-            irradiance_map->bind();
-            pbr_shader->set_int("u_irradiance_map", 0);
-        }
-        else
-        {
-            pbr_shader->set_bool("environment_mapping", false);
-        }
-
-        // set prefilter map
         auto prefilter_map = prefilter_fbo->get_color_attachment(0);
-        if (prefilter_map)
-        {
-            glActiveTexture(GL_TEXTURE1);
-            prefilter_map->bind();
-            pbr_shader->set_int("u_prefilter_map", 1);
-        }
-        else
-        {
-            pbr_shader->set_bool("environment_mapping", false);
-        }
-
-        // set brdf lut
         auto brdf_lut = brdf_fbo->get_color_attachment(0);
-        if (brdf_lut)
+        // reset texture unit
+        if (skybox_path != "")
         {
-            glActiveTexture(GL_TEXTURE2);
-            brdf_lut->bind();
-            pbr_shader->set_int("u_brdf_lut", 2);
+            shader = Rendering::shader_program_factory.find_shader_program("pbr_ibl_shader");
+            shader->activate();
+            shader->set_bool("u_ibl_enable", true);
+
+            irradiance_map->bind(PBR_TEXTURE_UNIT::IRRADIANCE);
+            shader->set_int("u_irradiance_map", PBR_TEXTURE_UNIT::IRRADIANCE);
+
+            prefilter_map->bind(PBR_TEXTURE_UNIT::PREFILTER);
+            shader->set_int("u_prefilter_map", PBR_TEXTURE_UNIT::PREFILTER);
+
+            brdf_lut->bind(PBR_TEXTURE_UNIT::BRDF);
+            shader->set_int("u_brdf_lut", PBR_TEXTURE_UNIT::BRDF);
         }
         else
         {
-            pbr_shader->set_bool("environment_mapping", false);
+            shader = Rendering::shader_program_factory.find_shader_program("pbr_shader");
+            shader->activate();
+            shader->set_bool("u_ibl_enable", false);
+            shader->set_vec3("u_env_color", Core::Vector3(1.0f, 1.0f, 1.0f).data());
         }
 
-        pbr_shader->set_mat4("u_view", view.data());
-        pbr_shader->set_mat4("u_projection", projection.data());
+        shader->set_mat4("u_view", view.data());
+        shader->set_mat4("u_projection", projection.data());
 
         int active_light_num = 0;
         for (auto &light : lights)
         {
             if (light.is_active)
             {
-                light.value->write_to_shader("u_lights", active_light_num++, pbr_shader);
+                light.value->write_to_shader("u_lights", active_light_num++, shader);
             }
         }
-        pbr_shader->set_int("u_light_num", active_light_num);
+        shader->set_int("u_light_num", active_light_num);
         for (auto &model : models)
         {
             if (model.is_active)
             {
-                model.value->material->bind(3);
-                model.value->material->write_to_shader("u_material", pbr_shader, 3);
-                model.value->draw(pbr_shader);
+                model.value->material->write_to_shader("u_material", shader);
+                model.value->draw(shader);
             }
         }
-        pbr_shader->deactivate();
+        shader->deactivate();
     }
 
     void OGL_Scene_3D::tone_mapping(Texture *texture)
@@ -288,9 +273,8 @@ namespace Rendering
         tone_mapping_shader->activate();
         tone_mapping_shader->set_float("u_gamma", this->gamma);
         tone_mapping_shader->set_float("u_exposure", this->exposure);
-        glActiveTexture(GL_TEXTURE0);
-        texture->bind();
-        tone_mapping_shader->set_int("u_image", 0);
+        texture->bind(PBR_TEXTURE_UNIT::FINAL);
+        tone_mapping_shader->set_int("u_image", PBR_TEXTURE_UNIT::FINAL);
         Rendering::OGL_Mesh::instanced_quad_mesh()->render(tone_mapping_shader);
         texture->unbind();
         tone_mapping_shader->deactivate();
@@ -351,15 +335,13 @@ namespace Rendering
         irradiance_fbo->bind();
 
         auto cubemap_format = Texture::Format(GL_TEXTURE_CUBE_MAP, GL_RGB16F, GL_RGB, GL_FLOAT);
-        auto attachment = Texture_Ptr(new Texture(cubemap_format));
-        attachment->bind();
+        auto cubemap_params = Texture::TexParams::linear_clamp_edge();
+        auto attachment = Texture_Ptr(new Texture(cubemap_format, cubemap_params));
         attachment->resize(32, 32);
         irradiance_fbo->attach_texture(attachment);
-        attachment->unbind();
 
         auto depth_attachment_2 = Render_Buffer_Ptr(new Render_Buffer(32, 32));
         irradiance_fbo->attach_render_buffer(std::move(depth_attachment_2));
-        depth_attachment_2->unbind();
 
         irradiance_fbo->set_draw_buffers();
         irradiance_fbo->check_status();
@@ -416,8 +398,9 @@ namespace Rendering
         equi_to_cube_shader->set_mat4("u_projection", projection.data());
         cubemap_fbo->bind();
         glViewport(0, 0, 1024, 1024);
-        glActiveTexture(GL_TEXTURE0);
-        equi_texture->bind();
+        equi_texture->bind(PBR_TEXTURE_UNIT::EQUIRECTANGULAR);
+        equi_to_cube_shader->set_int("u_equirectangular_map", PBR_TEXTURE_UNIT::EQUIRECTANGULAR);
+
         if (equi_texture->format.is_hdr)
         {
             equi_to_cube_shader->set_bool("u_is_hdr", true);
@@ -426,7 +409,6 @@ namespace Rendering
         {
             equi_to_cube_shader->set_bool("u_is_hdr", false);
         }
-        equi_to_cube_shader->set_int("u_equirectangular_map", 0);
         // set gamma correction
         equi_to_cube_shader->set_float("u_gamma", this->gamma);
         // set exposure
@@ -467,17 +449,16 @@ namespace Rendering
         {
             return;
         }
-
+        auto irradiance_map = irradiance_fbo->get_color_attachment(0);
+        irradiance_map->bind();
         irradiance_fbo->bind();
-        irradiance_fbo->clear(this->bg_color);
+        irradiance_fbo->clear();
         auto irradiance_shader = Rendering::shader_program_factory.find_shader_program("env_irradiance_shader");
         irradiance_shader->activate();
-        glActiveTexture(GL_TEXTURE0);
-        env_cubemap->bind();
-        irradiance_shader->set_int("u_environment_map", 0);
+        env_cubemap->bind(PBR_TEXTURE_UNIT::SKYBOX);
+        irradiance_shader->set_int("u_environment_map", PBR_TEXTURE_UNIT::SKYBOX);
         irradiance_shader->set_mat4("u_projection", cube_projection.data());
-        auto irradiance_map = irradiance_fbo->get_color_attachment(0);
-        irradiance_fbo->bind();
+
         for (int i = 0; i < 6; i++)
         {
             irradiance_shader->set_mat4("u_view", cube_views[i].data());
@@ -506,9 +487,8 @@ namespace Rendering
         prefilter_fbo->bind();
         auto prefilter_map = prefilter_fbo->get_color_attachment(0);
 
-        glActiveTexture(GL_TEXTURE0);
-        env_cubemap->bind();
-        prefilter_shader->set_int("u_environment_map", 0);
+        env_cubemap->bind(PBR_TEXTURE_UNIT::SKYBOX);
+        prefilter_shader->set_int("u_environment_map", PBR_TEXTURE_UNIT::SKYBOX);
         prefilter_shader->set_mat4("u_projection", cube_projection.data());
 
         const int max_mip_levels = 5;

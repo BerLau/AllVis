@@ -51,7 +51,7 @@ void main() {
   vec3 pos = v_position;
   if (u_material.has_height_map) {
     float height_off = texture(u_material.height_map, v_texcoord).r - 0.5;
-    pos += normalize(v_normal) * height_off * 0.1;
+    pos += normalize(v_normal) * height_off * 0.02;
   }
   vec4 pos_view = u_view * u_model * vec4(pos, 1.0);
   frag_position = pos_view.xyz;

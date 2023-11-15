@@ -25,6 +25,12 @@ namespace Rendering
         glBindTexture(format.target, texture_id);
     }
 
+    void Texture::bind(int index) const
+    {
+        glActiveTexture(GL_TEXTURE0 + index);
+        glBindTexture(format.target, texture_id);
+    }
+
     void Texture::unbind() const
     {
         glBindTexture(format.target, 0);

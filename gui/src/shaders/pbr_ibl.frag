@@ -60,6 +60,10 @@ uniform mat4 u_view;
 uniform bool u_ibl_enable;
 const vec3 u_env_color = vec3(1.0, 1.0, 1.0);
 
+uniform samplerCube u_irradiance_map;
+uniform samplerCube u_prefilter_map;
+uniform sampler2D u_brdf_lut;
+
 float DistributionGGX(vec3 N, vec3 H, float roughness);
 float GeometrySchlickGGX(float NdotV, float roughness);
 float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness);
@@ -170,8 +174,17 @@ void main() {
   // compute Nomal, ViewDir in the world space
   vec3 N = normalize((u_view * vec4(normal, 0.0)).xyz);
   vec3 V = normalize((u_view * vec4(view_dir, 0.0)).xyz);
-  vec3 diffuse = kD * albedo * (u_env_color / PI);
-  vec3 specular = kS * F * u_env_color;
+
+  vec3 irradiance = texture(u_irradiance_map, N).rgb;
+  vec3 diffuse = irradiance * albedo;
+
+  const float MAX_REFLECTION_LOD = 4.0;
+  vec3 prefiltered_color = textureLod(u_prefilter_map, reflect(-V, normal),
+                                      roughness * MAX_REFLECTION_LOD)
+                               .rgb;
+  vec2 brdf = texture(u_brdf_lut, vec2(max(dot(N, V), 0.0), roughness)).rg;
+  vec3 specular = prefiltered_color * (F * brdf.x + brdf.y);
+
   vec3 ambient = (kD * diffuse + specular) * ao;
   vec3 color = Lo + ambient;
   if (u_material.is_emissive) {

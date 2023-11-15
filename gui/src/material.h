@@ -23,13 +23,12 @@ namespace Rendering
         virtual ~Material() {}
         // methods
     public:
-        virtual void bind(unsigned int start_index = 0) const = 0;
         virtual void unbind() const = 0;
-        virtual void write_to_shader(const std::string &m_name, Shader_Program *shader, unsigned int start_index = 0) = 0;
-        void write_to_shader(const std::string &m_name, unsigned int index, Shader_Program *shader, unsigned int start_index = 0)
+        virtual void write_to_shader(const std::string &m_name, Shader_Program *shader) = 0;
+        void write_to_shader(const std::string &m_name, unsigned int index, Shader_Program *shader)
         {
             auto name_i = m_name + "[" + std::to_string(index) + "]";
-            write_to_shader(name_i, shader, start_index);
+            write_to_shader(name_i, shader);
         }
         // static methods
     };
@@ -88,7 +87,6 @@ namespace Rendering
         ~Material_PBR() {}
         // methods
     public:
-        void bind(unsigned int start_index = 0) const;
         void unbind() const;
         void set_albedo(Core::Vector3 color) { color = color; }
         void set_metallic(float metallic) { this->metallic = metallic; }
@@ -109,7 +107,7 @@ namespace Rendering
         Texture *get_normal_map() const { return normal_map; }
         Texture *get_height_map() const { return height_map; }
 
-        void write_to_shader(const std::string &m_name, Shader_Program *shader, unsigned int start_index = 0);
+        void write_to_shader(const std::string &m_name, Shader_Program *shader);
     };
 
     class Material_PHONG;
@@ -124,7 +122,7 @@ namespace Rendering
     public:
         void bind(unsigned int start_index = 0) const;
         void unbind() const;
-        void write_to_shader(const std::string &m_name, Shader_Program *shader, unsigned int start_index = 0);
+        void write_to_shader(const std::string &m_name, Shader_Program *shader);
         // struct
     public:
         enum Map_Type

@@ -62,7 +62,10 @@ void init_opengl()
     glEnable(GL_CULL_FACE);
     // enable blending
     glEnable(GL_BLEND);
+    // set blending function
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    // enable seamless cubemap sampling
+    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 }
 
 GLFWwindow *init_glfw(int width, int height, int x_pos, int y_pos)

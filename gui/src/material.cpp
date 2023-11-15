@@ -1,5 +1,5 @@
 #include "material.h"
-
+#include "scene.h"
 namespace Rendering
 {
     Material_PBR::Material_PBR(Core::Vector3 color, float metallic, float roughness, float ao, Core::Vector3 emissive)
@@ -33,75 +33,9 @@ namespace Rendering
     {
     }
 
-    void Material_PBR::bind(unsigned int start_index) const
-    {
-        if (albedo_map)
-        {
-            glActiveTexture(GL_TEXTURE0 + start_index + 0);
-            albedo_map->bind();
-        }
-        if (normal_map)
-        {
-            glActiveTexture(GL_TEXTURE0 + start_index + 1);
-            normal_map->bind();
-        }
-        if (height_map)
-        {
-            glActiveTexture(GL_TEXTURE0 + start_index + 2);
-            height_map->bind();
-        }
-        if (metallic_map)
-        {
-            glActiveTexture(GL_TEXTURE0 + start_index + 3);
-            metallic_map->bind();
-        }
-        if (roughness_map)
-        {
-            glActiveTexture(GL_TEXTURE0 + start_index + 4);
-            roughness_map->bind();
-        }
-        if (ao_map)
-        {
-            glActiveTexture(GL_TEXTURE0 + start_index + 5);
-            ao_map->bind();
-        }
-        if (emissive_map)
-        {
-            glActiveTexture(GL_TEXTURE0 + start_index + 6);
-            emissive_map->bind();
-        }
-    }
-
     void Material_PBR::unbind() const
     {
-        if (albedo_map)
-        {
-            albedo_map->unbind();
-        }
-        if (metallic_map)
-        {
-            metallic_map->unbind();
-        }
-        if (roughness_map)
-        {
-            roughness_map->unbind();
-        }
-        if (ao_map)
-        {
-            ao_map->unbind();
-        }
-        if (emissive_map)
-        {
-            emissive_map->unbind();
-        }
-        if (normal_map)
-        {
-            normal_map->unbind();
-        }
-        if (height_map)
-        {
-            height_map->unbind();
-        }
+        glActiveTexture(GL_TEXTURE0);
     }
 
     void Material_PBR::set_map(Texture *tex, const std::string &path, Map_Type type)
@@ -141,64 +75,73 @@ namespace Rendering
         }
     }
 
-    void Material_PBR::write_to_shader(const std::string &m_name, Shader_Program *shader, unsigned int start_index)
+    void Material_PBR::write_to_shader(const std::string &m_name, Shader_Program *shader)
     {
         shader->set_vec3(m_name + ".color", get_albedo().data());
         shader->set_float(m_name + ".metallic", get_metallic());
         shader->set_float(m_name + ".roughness", get_roughness());
         shader->set_float(m_name + ".ao", get_ao());
-
-        if (get_albedo_map() != nullptr)
+        auto albedo_map = get_albedo_map();
+        if (albedo_map)
         {
             shader->set_bool(m_name + ".has_albedo_map", true);
-            glActiveTexture(GL_TEXTURE0 + start_index + 0);
-            shader->set_int(m_name + ".albedo_map", start_index + 0);
+            albedo_map->bind(PBR_TEXTURE_UNIT::ALBEDO);
+            shader->set_int(m_name + ".albedo_map", PBR_TEXTURE_UNIT::ALBEDO);
         }
         else
         {
             shader->set_bool(m_name + ".has_albedo_map", false);
         }
-        if (get_normal_map() != nullptr)
+        auto normal_map = get_normal_map();
+        if (normal_map)
         {
             shader->set_bool(m_name + ".has_normal_map", true);
-            glActiveTexture(GL_TEXTURE0 + start_index + 1);
-            shader->set_int(m_name + ".normal_map", start_index + 1);
+            normal_map->bind(PBR_TEXTURE_UNIT::NORMAL);
+            shader->set_int(m_name + ".normal_map", PBR_TEXTURE_UNIT::NORMAL);
         }
         else
         {
             shader->set_bool(m_name + ".has_normal_map", false);
         }
-        if (get_height_map() != nullptr)
+        auto height_map = get_height_map();
+        if (height_map)
         {
             shader->set_bool(m_name + ".has_height_map", true);
-            shader->set_int(m_name + ".height_map", start_index + 2);
+            height_map->bind(PBR_TEXTURE_UNIT::HEIGHT);
+            shader->set_int(m_name + ".height_map", PBR_TEXTURE_UNIT::HEIGHT);
         }
         else
         {
             shader->set_bool(m_name + ".has_height_map", false);
         }
-        if (get_metallic_map() != nullptr)
+        auto metallic_map = get_metallic_map();
+        if (metallic_map)
         {
             shader->set_bool(m_name + ".has_metallic_map", true);
-            shader->set_int(m_name + ".metallic_map", start_index + 3);
+            metallic_map->bind(PBR_TEXTURE_UNIT::METALLIC);
+            shader->set_int(m_name + ".metallic_map", PBR_TEXTURE_UNIT::METALLIC);
         }
         else
         {
             shader->set_bool(m_name + ".has_metallic_map", false);
         }
-        if (get_roughness_map() != nullptr)
+        auto roughness_map = get_roughness_map();
+        if (roughness_map)
         {
             shader->set_bool(m_name + ".has_roughness_map", true);
-            shader->set_int(m_name + ".roughness_map", start_index + 4);
+            roughness_map->bind(PBR_TEXTURE_UNIT::ROUGHNESS);
+            shader->set_int(m_name + ".roughness_map", PBR_TEXTURE_UNIT::ROUGHNESS);
         }
         else
         {
             shader->set_bool(m_name + ".has_roughness_map", false);
         }
-        if (get_ao_map() != nullptr)
+        auto ao_map = get_ao_map();
+        if (ao_map)
         {
             shader->set_bool(m_name + ".has_ao_map", true);
-            shader->set_int(m_name + ".ao_map", start_index + 5);
+            ao_map->bind(PBR_TEXTURE_UNIT::AO);
+            shader->set_int(m_name + ".ao_map", PBR_TEXTURE_UNIT::AO);
         }
         else
         {
@@ -208,10 +151,12 @@ namespace Rendering
         {
             shader->set_bool(m_name + ".is_emissive", true);
             shader->set_vec3(m_name + ".emissive", get_albedo().data());
-            if (get_emissive_map() != nullptr)
+            auto emissive_map = get_emissive_map();
+            if (emissive_map)
             {
                 shader->set_bool(m_name + ".has_emissive_map", true);
-                shader->set_int(m_name + ".emissive_map", start_index + 6);
+                emissive_map->bind(PBR_TEXTURE_UNIT::EMISSIVE);
+                shader->set_int(m_name + ".emissive_map", PBR_TEXTURE_UNIT::EMISSIVE);
             }
             else
             {
@@ -287,7 +232,7 @@ namespace Rendering
         }
     }
 
-    void Material_PHONG::write_to_shader(const std::string &m_name, Shader_Program *shader, unsigned int start_index)
+    void Material_PHONG::write_to_shader(const std::string &m_name, Shader_Program *shader)
     {
         shader->set_vec3(m_name + ".ambient", get_ambient().data());
         shader->set_vec3(m_name + ".diffuse", get_diffuse().data());
@@ -296,7 +241,8 @@ namespace Rendering
         if (get_ambient_map() != nullptr)
         {
             shader->set_bool(m_name + ".has_ambient_map", true);
-            shader->set_int(m_name + ".ambient_map", start_index + 0);
+            get_ambient_map()->bind(PHONG_TEXTURE_UNIT::AMBIENT);
+            shader->set_int(m_name + ".ambient_map", PHONG_TEXTURE_UNIT::AMBIENT);
         }
         else
         {
@@ -305,7 +251,8 @@ namespace Rendering
         if (get_diffuse_map() != nullptr)
         {
             shader->set_bool(m_name + ".has_diffuse_map", true);
-            shader->set_int(m_name + ".diffuse_map", start_index + 1);
+            get_diffuse_map()->bind(PHONG_TEXTURE_UNIT::DIFFUSE);
+            shader->set_int(m_name + ".diffuse_map", PHONG_TEXTURE_UNIT::DIFFUSE);
         }
         else
         {
@@ -314,7 +261,8 @@ namespace Rendering
         if (get_specular_map() != nullptr)
         {
             shader->set_bool(m_name + ".has_specular_map", true);
-            shader->set_int(m_name + ".specular_map", start_index + 2);
+            get_specular_map()->bind(PHONG_TEXTURE_UNIT::SPECULAR);
+            shader->set_int(m_name + ".specular_map", PHONG_TEXTURE_UNIT::SPECULAR);
         }
         else
         {
@@ -323,7 +271,8 @@ namespace Rendering
         if (get_normal_map() != nullptr)
         {
             shader->set_bool(m_name + ".has_normal_map", true);
-            shader->set_int(m_name + ".normal_map", start_index + 3);
+            get_normal_map()->bind(PHONG_TEXTURE_UNIT::NORMAL);
+            shader->set_int(m_name + ".normal_map", PHONG_TEXTURE_UNIT::NORMAL);
         }
         else
         {
@@ -332,7 +281,8 @@ namespace Rendering
         if (get_height_map() != nullptr)
         {
             shader->set_bool(m_name + ".has_height_map", true);
-            shader->set_int(m_name + ".height_map", start_index + 4);
+            get_height_map()->bind(PHONG_TEXTURE_UNIT::HEIGHT);
+            shader->set_int(m_name + ".height_map", PHONG_TEXTURE_UNIT::HEIGHT);
         }
         else
         {

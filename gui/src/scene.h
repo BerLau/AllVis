@@ -122,6 +122,36 @@ namespace Rendering
     using OGL_Scene_3D_W_Ptr = std::weak_ptr<OGL_Scene_3D>;
     using OGL_Scene_3D_Ptr = OGL_Scene_3D_U_Ptr;
 
+    struct PBR_TEXTURE_UNIT
+    {
+        static const int FINAL = 0;
+        static const int EQUIRECTANGULAR = 1;
+        static const int SKYBOX = 2;
+        static const int IRRADIANCE = 3;
+        static const int PREFILTER = 4;
+        static const int BRDF = 5;
+        static const int ALBEDO = 6;
+        static const int NORMAL = 7;
+        static const int METALLIC = 8;
+        static const int ROUGHNESS = 9;
+        static const int AO = 10;
+        static const int EMISSIVE = 11;
+        static const int HEIGHT = 12;
+        static const int SHADOW = 13;
+    };
+
+    struct PHONG_TEXTURE_UNIT
+    {
+        static const int FINAL = 0;
+        static const int AMBIENT = 1;
+        static const int DIFFUSE = 2;
+        static const int SPECULAR = 3;
+        static const int NORMAL = 4;
+        static const int HEIGHT = 5;
+        static const int SHADOW = 6;
+        static const int SKYBOX = 7;
+    };
+
     class OGL_Scene_3D : public OGL_Scene
     {
     public: // structures
@@ -149,6 +179,7 @@ namespace Rendering
         FBO_Ptr irradiance_fbo = nullptr;
         FBO_Ptr prefilter_fbo = nullptr;
         FBO_Ptr brdf_fbo = nullptr;
+
         // constructors and deconstructor
     public:
         OGL_Scene_3D(float width, float height);

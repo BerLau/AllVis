@@ -177,6 +177,7 @@ namespace Rendering
         // methods
     public:
         void bind() const;
+        void bind(int index) const;
         void unbind() const;
         void set_data(const void *data, size_t width, size_t height);
         void set_tex_params(const TexParams &params);
