@@ -722,11 +722,10 @@ namespace GUI
             ImGui::SliderFloat("##roughness", &material->roughness, 0.001f, 1.0f, "%.3f");
             ImGui::Text("AO");
             ImGui::SliderFloat("##ao", &material->ao, 0.001f, 1.0f, "%.3f");
-
-            ImGui::Checkbox("##Is emissive", &material->is_emissive);
-            ImGui::SameLine();
-            ImGui::Text("Is emissive");
-
+             ImGui::Text("Emissive Color");
+            ImGui::ColorEdit3("##emissive color", material->emissive_color.data());
+            ImGui::Text("Emissive Intensity");
+            ImGui::SliderFloat("##emissive intensity", &material->emissive_intensity, 0.001f, 1.0f, "%.3f");
             // 2 columns
             ImGui::Columns(2, nullptr, false);
 
@@ -820,7 +819,7 @@ namespace GUI
             ImGui::Text("AO Map");
             ImGui::NextColumn();
             ImGui::NextColumn();
-            
+
             if (material->ao_map_path != "")
             {
                 ImGui::TextWrapped("%s", material->ao_map_path.c_str());

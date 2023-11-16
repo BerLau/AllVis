@@ -15,7 +15,7 @@ namespace Core
         return values[index];
     }
 
-    Vector::Vector(size_t size) : Matrix(1, size)
+    Vector::Vector(size_t size) : Matrix(size, 1)
     {
     }
 

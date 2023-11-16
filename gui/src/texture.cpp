@@ -370,4 +370,15 @@ namespace Rendering
         return texture;
     }
 
+    Texture *Texture_Manager::create_default_texture()
+    {
+        // create a one-pixel placeholder texture
+        Texture::Format format = Texture::Format(GL_TEXTURE_2D, GL_RGBA16F, GL_RGBA, GL_FLOAT);
+        Texture::TexParams params = Texture::TexParams::linear_clamp_edge();
+        Texture *texture = new Texture(format, params);
+        float data[] = {1.f, 1.f, 1.f, 1.f};
+        texture->set_data(data, 1, 1);
+        return texture;
+    }
+
 } // namespace Rendering

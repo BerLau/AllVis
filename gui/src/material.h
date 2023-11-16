@@ -56,15 +56,17 @@ namespace Rendering
         // attributes
     public:
         Core::Vector3 color;
+        Core::Vector3 emissive_color;
         float metallic;
         float roughness;
         float ao;
-        bool is_emissive = false;
+        float emissive_intensity;
+
         std::string albedo_map_path = "";
         Texture *albedo_map = nullptr;
 
-        std::string metallic_map_path = "";
-        Texture *metallic_map = nullptr;
+        std::string normal_map_path = "";
+        Texture *normal_map = nullptr;
 
         std::string roughness_map_path = "";
         Texture *roughness_map = nullptr;
@@ -72,18 +74,18 @@ namespace Rendering
         std::string ao_map_path = "";
         Texture *ao_map = nullptr;
 
-        std::string emissive_map_path = "";
-        Texture *emissive_map = nullptr;
-
-        std::string normal_map_path = "";
-        Texture *normal_map = nullptr;
-
         std::string height_map_path = "";
         Texture *height_map = nullptr;
+
+        std::string metallic_map_path = "";
+        Texture *metallic_map = nullptr;
+
+        std::string emissive_map_path = "";
+        Texture *emissive_map = nullptr;
         // constructors and deconstructor
     public:
-        Material_PBR(Core::Vector3 color = Core::Vector3(0.5, 0.5, 0.5), float metallic = 0.5, float roughness = 0.5, float ao = 0.5, Core::Vector3 emissive = Core::Vector3(0.0f, 0.0f, 0.0f));
-        Material_PBR(Texture *albedo_map, Texture *metallic_map, Texture *roughness_map, Texture *ao_map, Texture *emissive_map = nullptr, Texture *normal_map = nullptr, Texture *height_map = nullptr);
+        Material_PBR(Core::Vector3 color = Core::Vector3(0.5, 0.5, 0.5), float metallic = 0.5, float roughness = 0.5, float ao = 0.5, Core::Vector3 emissive = Core::Vector3(0.0f, 0.0f, 0.0f), float emissive_intensity = 0.0f);
+        Material_PBR(Texture *albedo_map, Texture *normal_map = nullptr, Texture *roughness_map = nullptr, Texture *ao_map = nullptr, Texture *height_map = nullptr, Texture *metallic_map = nullptr, Texture *emissive_map = nullptr);
         ~Material_PBR() {}
         // methods
     public:
@@ -94,7 +96,6 @@ namespace Rendering
         void set_ao(float ao) { this->ao = ao; }
 
         void set_map(Texture *tex, const std::string &path, Map_Type type);
-        Core::Vector3 get_albedo() const { return color; }
         float get_metallic() const { return metallic; }
         float get_roughness() const { return roughness; }
         float get_ao() const { return ao; }

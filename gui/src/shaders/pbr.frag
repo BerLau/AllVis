@@ -29,7 +29,8 @@ struct Light {
 };
 
 struct Material {
-  vec3 color;
+  vec3 albedo;
+  vec3 emissive;
   float metallic;
   float roughness;
   float ao;
@@ -42,14 +43,14 @@ struct Material {
   sampler2D height_map;
   sampler2D emissive_map;
 
-  bool has_albedo_map;
-  bool has_metallic_map;
-  bool has_roughness_map;
-  bool has_ao_map;
-  bool has_normal_map;
-  bool is_emissive;
-  bool has_height_map;
-  bool has_emissive_map;
+  float emissive_intensity;
+  float emissive_texture_factor;
+  float normal_texture_factor;
+  float height_texture_factor;
+  float albedo_texture_factor;
+  float metallic_texture_factor;
+  float roughness_texture_factor;
+  float ao_texture_factor;
 };
 
 uniform Material u_material;
@@ -57,8 +58,7 @@ uniform Light u_lights[MAX_LIGHTS];
 uniform int u_light_num;
 uniform mat4 u_view;
 
-uniform bool u_ibl_enable;
-const vec3 u_env_color = vec3(1.0, 1.0, 1.0);
+uniform vec3 u_env_color;
 
 float DistributionGGX(vec3 N, vec3 H, float roughness);
 float GeometrySchlickGGX(float NdotV, float roughness);
@@ -71,45 +71,34 @@ const float MAX_REFLECTION_LOD = 4.0;
 vec3 to_srgb(vec3 color) { return pow(color, vec3(2.2)); }
 
 void main() {
-  vec3 normal = vec3(0.0, 0.0, 1.0);
-  if (u_material.has_normal_map) {
-    normal = texture(u_material.normal_map, texcoord).rgb;
-    normal = normalize(normal * 2.0 - 1.0);
-  }
+  vec3 tex_normal = texture(u_material.normal_map, texcoord).rgb;
+  tex_normal = normalize(tex_normal * 2.0 - 1.0);
+  vec3 normal = mix(vec3(0.0, 0.0, 1.0), tex_normal,
+                    vec3(u_material.normal_texture_factor));
   // view spaced normal
   normal = normalize((u_view * vec4(tbn * normal, 0.0)).xyz);
-
   // view spaced view direction
   vec3 view_dir = normalize(-frag_position);
 
-  vec3 albedo = u_material.color;
-  if (u_material.has_albedo_map) {
-    albedo = texture(u_material.albedo_map, texcoord).rgb;
-    to_srgb(albedo);
-  }
+  vec3 tex_albedo = texture(u_material.albedo_map, texcoord).rgb;
+  vec3 albedo = mix(u_material.albedo, tex_albedo,
+                    vec3(u_material.albedo_texture_factor));
 
-  float metallic = u_material.metallic;
-  if (u_material.has_metallic_map) {
-    metallic = texture(u_material.metallic_map, texcoord).r;
-  }
+  float tex_metallic = texture(u_material.metallic_map, texcoord).r,
+        metallic = mix(u_material.metallic, tex_metallic,
+                       u_material.metallic_texture_factor);
 
-  float roughness = u_material.roughness;
-  if (u_material.has_roughness_map) {
-    roughness = texture(u_material.roughness_map, texcoord).r;
-  }
+  float tex_roughness = texture(u_material.roughness_map, texcoord).r;
+  float roughness = mix(u_material.roughness, tex_roughness,
+                        u_material.roughness_texture_factor);
 
-  float ao = u_material.ao;
-  if (u_material.has_ao_map) {
-    ao = texture(u_material.ao_map, texcoord).r;
-  }
+  float tex_ao = texture(u_material.ao_map, texcoord).r;
+  float ao = mix(u_material.ao, tex_ao, u_material.ao_texture_factor);
 
-  vec3 emissive = vec3(0.0);
-  if (u_material.is_emissive) {
-    emissive = albedo;
-    if (u_material.has_emissive_map) {
-      emissive = texture(u_material.albedo_map, texcoord).rgb;
-    }
-  }
+  vec3 tex_emissive = texture(u_material.emissive_map, texcoord).rgb;
+  vec3 emissive = u_material.emissive_intensity *
+                  mix(u_material.emissive, tex_emissive,
+                      vec3(u_material.emissive_texture_factor));
 
   vec3 F0 = vec3(0.04);
   F0 = mix(F0, albedo, metallic);
@@ -173,10 +162,7 @@ void main() {
   vec3 diffuse = kD * albedo * (u_env_color / PI);
   vec3 specular = kS * F * u_env_color;
   vec3 ambient = (kD * diffuse + specular) * ao;
-  vec3 color = Lo + ambient;
-  if (u_material.is_emissive) {
-    color += emissive;
-  }
+  vec3 color = Lo + ambient + emissive;
 
   frag_color = vec4(color, 1.0);
 

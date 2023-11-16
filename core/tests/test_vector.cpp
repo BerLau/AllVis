@@ -229,8 +229,11 @@ TEST_F(VectorTest, VECTOR_MATRIX_MULTIPLICATION)
 {
     using namespace Core;
     Vector v1 = Vector::ones(4);
+    std::cout << v1 << std::endl;
     Matrix m = MatrixS::identity(4);
-    Vector v = v1 * m;
+    std::cout << m << std::endl;
+    Vector v = v1.transpose() * m;
+    std::cout << v << std::endl;
     EXPECT_EQ(v.size(), 4);
     EXPECT_FLOAT_EQ(v[0], 1);
     EXPECT_FLOAT_EQ(v[1], 1);
@@ -242,8 +245,15 @@ TEST_F(VectorTest, VECTOR3_MATRIX_MULTIPLICATION)
 {
     using namespace Core;
     Vector3 v1(1, 2, 3);
-    Vector3 v2(1, 2, 3);
-    Vector3 v = v1 * v2;
+    std::cout << v1 << std::endl;
+
+    Matrix3 m = Matrix3::identity();
+    m(0,0) = 1;
+    m(1,1) = 2;
+    m(2,2) = 3;
+    std::cout << m << std::endl;
+    Vector3 v = v1.transpose() * m;
+    std::cout << v << std::endl;
     EXPECT_FLOAT_EQ(v[0], 1);
     EXPECT_FLOAT_EQ(v[1], 4);
     EXPECT_FLOAT_EQ(v[2], 9);

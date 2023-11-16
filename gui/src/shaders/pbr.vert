@@ -21,7 +21,8 @@ uniform mat4 u_projection;
 uniform mat3 u_normal_matrix;
 
 struct Material {
-  vec3 color;
+  vec3 albedo;
+  vec3 emissive;
   float metallic;
   float roughness;
   float ao;
@@ -34,14 +35,14 @@ struct Material {
   sampler2D height_map;
   sampler2D emissive_map;
 
-  bool has_albedo_map;
-  bool has_metallic_map;
-  bool has_roughness_map;
-  bool has_ao_map;
-  bool has_normal_map;
-  bool is_emissive;
-  bool has_height_map;
-  bool has_emissive_map;
+  float emissive_intensity;
+  float emissive_texture_factor;
+  float normal_texture_factor;
+  float height_texture_factor;
+  float albedo_texture_factor;
+  float metallic_texture_factor;
+  float roughness_texture_factor;
+  float ao_texture_factor;
 };
 
 uniform Material u_material;
@@ -49,10 +50,9 @@ uniform Material u_material;
 void main() {
   texcoord = v_texcoord;
   vec3 pos = v_position;
-  if (u_material.has_height_map) {
-    float height_off = texture(u_material.height_map, v_texcoord).r - 0.5;
-    pos += normalize(v_normal) * height_off * 0.02;
-  }
+  float tex_height = texture(u_material.height_map, v_texcoord).r - 0.5;
+  float height_off = mix(0.0, tex_height, u_material.height_texture_factor);
+  pos += height_off * v_normal;
   vec4 pos_view = u_view * u_model * vec4(pos, 1.0);
   frag_position = pos_view.xyz;
   gl_Position = u_projection * pos_view;

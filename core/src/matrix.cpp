@@ -185,18 +185,18 @@ namespace Core
         return result;
     }
 
-    Vector Matrix::operator*(const Vector &other) const
-    {
-        Vector result(_rows);
-        for (size_t i = 0; i < _rows; ++i)
-        {
-            for (size_t j = 0; j < _cols; ++j)
-            {
-                result(i,j) += (*this)(i, j) * other(i,j);
-            }
-        }
-        return result;
-    }
+    // Vector Matrix::operator*(const Vector &other) const
+    // {
+    //     Vector result(_rows);
+    //     for (size_t i = 0; i < _rows; ++i)
+    //     {
+    //         for (size_t j = 0; j < _cols; ++j)
+    //         {
+    //             result(i,j) += (*this)(i, j) * other(i,j);
+    //         }
+    //     }
+    //     return result;
+    // }
 
     Matrix Matrix::operator-() const
     {

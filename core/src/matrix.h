@@ -52,7 +52,7 @@ namespace Core
         Matrix operator-(const Matrix &other) const;
         Matrix operator*(float scalar) const;
         Matrix operator*(const Matrix &other) const;
-        Vector operator*(const Vector &other) const;
+        // Vector operator*(const Vector &other) const;
         Matrix operator-() const;
 
         Matrix &operator+=(const Matrix &other) { return *this = *this + other; }

@@ -93,10 +93,10 @@ namespace Rendering
         // methods
     public:
         virtual void init();
-
         virtual void update() override = 0;
         virtual void destroy() {}
         virtual void render() override = 0;
+        virtual void finalize_output() = 0;
         virtual void resize(float width, float height) override
         {
             if (EQUAL_F(this->width, width) && EQUAL_F(this->height, height))
@@ -205,9 +205,9 @@ namespace Rendering
         }
         virtual Texture *get_output_texture()
         {
-            // return brdf_fbo->get_color_attachment();
             return final_fbo->get_color_attachment();
         }
+        virtual void finalize_output() override;
         void equi_to_cubemap(const Core::Matrix4 &projection = Geometry::perspective(Geometry::radians(90.0f), 1.0f, 0.1f, 10.0f));
         void precompute_envrionment();
         void compute_env_irradiance(Texture *env_cubemap);

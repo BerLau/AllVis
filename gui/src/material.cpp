@@ -2,34 +2,38 @@
 #include "scene.h"
 namespace Rendering
 {
-    Material_PBR::Material_PBR(Core::Vector3 color, float metallic, float roughness, float ao, Core::Vector3 emissive)
+    Material_PBR::Material_PBR(Core::Vector3 color, float metallic, float roughness, float ao, Core::Vector3 emissive_color, float emissive_intensity)
         : Material("Material_PBR"),
           color(color),
+          emissive_color(emissive_color),
           metallic(metallic),
           roughness(std::fmax(roughness, 0.00001)),
           ao(ao),
+          emissive_intensity(emissive_intensity),
           albedo_map(nullptr),
-          metallic_map(nullptr),
+          normal_map(nullptr),
           roughness_map(nullptr),
           ao_map(nullptr),
-          emissive_map(nullptr),
-          normal_map(nullptr),
-          height_map(nullptr)
+          height_map(nullptr),
+          metallic_map(nullptr),
+          emissive_map(nullptr)
     {
     }
-    Material_PBR::Material_PBR(Texture *albedo_map, Texture *metallic_map, Texture *roughness_map, Texture *ao_map, Texture *emissive_map, Texture *normal_map, Texture *height_map)
+    Material_PBR::Material_PBR(Texture *albedo_map, Texture *normal_map, Texture *roughness_map, Texture *ao_map, Texture *height_map, Texture *metallic_map, Texture *emissive_map)
         : Material("Material_PBR"),
           color(Core::Vector3(1.0f, 1.0f, 1.0f)),
+          emissive_color(Core::Vector3(0.0f, 0.0f, 0.0f)),
           metallic(0.0f),
           roughness(0.00001f),
           ao(1.0f),
+          emissive_intensity(0.0f),
           albedo_map(albedo_map),
-          metallic_map(metallic_map),
+          normal_map(normal_map),
           roughness_map(roughness_map),
           ao_map(ao_map),
-          emissive_map(emissive_map),
-          normal_map(normal_map),
-          height_map(height_map)
+          height_map(height_map),
+          metallic_map(metallic_map),
+          emissive_map(emissive_map)
     {
     }
 
@@ -77,95 +81,105 @@ namespace Rendering
 
     void Material_PBR::write_to_shader(const std::string &m_name, Shader_Program *shader)
     {
-        shader->set_vec3(m_name + ".color", get_albedo().data());
+        auto place_holder_map = Texture_Manager::instance().get_default();
         shader->set_float(m_name + ".metallic", get_metallic());
         shader->set_float(m_name + ".roughness", get_roughness());
         shader->set_float(m_name + ".ao", get_ao());
+        shader->set_vec3(m_name + ".albedo", color.data());
+        shader->set_vec3(m_name + ".emissive", emissive_color.data());
         auto albedo_map = get_albedo_map();
         if (albedo_map)
         {
-            shader->set_bool(m_name + ".has_albedo_map", true);
+            shader->set_float(m_name + ".albedo_texture_factor", 1.f);
             albedo_map->bind(PBR_TEXTURE_UNIT::ALBEDO);
             shader->set_int(m_name + ".albedo_map", PBR_TEXTURE_UNIT::ALBEDO);
         }
         else
         {
-            shader->set_bool(m_name + ".has_albedo_map", false);
+            place_holder_map->bind(PBR_TEXTURE_UNIT::ALBEDO);
+            shader->set_int(m_name + ".albedo_map", PBR_TEXTURE_UNIT::ALBEDO);
+            shader->set_float(m_name + ".albedo_texture_factor", 0.f);
         }
         auto normal_map = get_normal_map();
         if (normal_map)
         {
-            shader->set_bool(m_name + ".has_normal_map", true);
+            shader->set_float(m_name + ".normal_texture_factor", 1.f);
             normal_map->bind(PBR_TEXTURE_UNIT::NORMAL);
             shader->set_int(m_name + ".normal_map", PBR_TEXTURE_UNIT::NORMAL);
         }
         else
         {
-            shader->set_bool(m_name + ".has_normal_map", false);
+            place_holder_map->bind(PBR_TEXTURE_UNIT::NORMAL);
+            shader->set_int(m_name + ".normal_map", PBR_TEXTURE_UNIT::NORMAL);
+            shader->set_float(m_name + ".normal_texture_factor", 0.f);
         }
         auto height_map = get_height_map();
         if (height_map)
         {
-            shader->set_bool(m_name + ".has_height_map", true);
+            shader->set_float(m_name + ".height_texture_factor", 1.f);
             height_map->bind(PBR_TEXTURE_UNIT::HEIGHT);
             shader->set_int(m_name + ".height_map", PBR_TEXTURE_UNIT::HEIGHT);
         }
         else
         {
-            shader->set_bool(m_name + ".has_height_map", false);
+            place_holder_map->bind(PBR_TEXTURE_UNIT::HEIGHT);
+            shader->set_int(m_name + ".height_map", PBR_TEXTURE_UNIT::HEIGHT);
+            shader->set_float(m_name + ".height_texture_factor", 0.f);
         }
         auto metallic_map = get_metallic_map();
         if (metallic_map)
         {
-            shader->set_bool(m_name + ".has_metallic_map", true);
+            shader->set_float(m_name + ".metallic_texture_factor", 1.f);
             metallic_map->bind(PBR_TEXTURE_UNIT::METALLIC);
             shader->set_int(m_name + ".metallic_map", PBR_TEXTURE_UNIT::METALLIC);
         }
         else
         {
-            shader->set_bool(m_name + ".has_metallic_map", false);
+            place_holder_map->bind(PBR_TEXTURE_UNIT::METALLIC);
+            shader->set_int(m_name + ".metallic_map", PBR_TEXTURE_UNIT::METALLIC);
+            shader->set_float(m_name + ".metallic_texture_factor", 0.f);
         }
         auto roughness_map = get_roughness_map();
         if (roughness_map)
         {
-            shader->set_bool(m_name + ".has_roughness_map", true);
+            shader->set_float(m_name + ".roughness_texture_factor", 1.f);
             roughness_map->bind(PBR_TEXTURE_UNIT::ROUGHNESS);
             shader->set_int(m_name + ".roughness_map", PBR_TEXTURE_UNIT::ROUGHNESS);
         }
         else
         {
-            shader->set_bool(m_name + ".has_roughness_map", false);
+            place_holder_map->bind(PBR_TEXTURE_UNIT::ROUGHNESS);
+            shader->set_int(m_name + ".roughness_map", PBR_TEXTURE_UNIT::ROUGHNESS);
+            shader->set_float(m_name + ".roughness_texture_factor", 0.f);
         }
         auto ao_map = get_ao_map();
         if (ao_map)
         {
-            shader->set_bool(m_name + ".has_ao_map", true);
+            shader->set_float(m_name + ".ao_texture_factor", 1.f);
             ao_map->bind(PBR_TEXTURE_UNIT::AO);
             shader->set_int(m_name + ".ao_map", PBR_TEXTURE_UNIT::AO);
         }
         else
         {
-            shader->set_bool(m_name + ".has_ao_map", false);
+            place_holder_map->bind(PBR_TEXTURE_UNIT::AO);
+            shader->set_int(m_name + ".ao_map", PBR_TEXTURE_UNIT::AO);
+            shader->set_float(m_name + ".ao_texture_factor", 0.f);
         }
-        if (is_emissive)
+        shader->set_float(m_name + ".emissive_intensity", emissive_intensity);
+
+        shader->set_vec3(m_name + ".emissive", emissive_color.data());
+        auto emissive_map = get_emissive_map();
+        if (emissive_map)
         {
-            shader->set_bool(m_name + ".is_emissive", true);
-            shader->set_vec3(m_name + ".emissive", get_albedo().data());
-            auto emissive_map = get_emissive_map();
-            if (emissive_map)
-            {
-                shader->set_bool(m_name + ".has_emissive_map", true);
-                emissive_map->bind(PBR_TEXTURE_UNIT::EMISSIVE);
-                shader->set_int(m_name + ".emissive_map", PBR_TEXTURE_UNIT::EMISSIVE);
-            }
-            else
-            {
-                shader->set_bool(m_name + ".has_emissive_map", false);
-            }
+            shader->set_float(m_name + ".emissive_texture_factor", 1.0f);
+            emissive_map->bind(PBR_TEXTURE_UNIT::EMISSIVE);
+            shader->set_int(m_name + ".emissive_map", PBR_TEXTURE_UNIT::EMISSIVE);
         }
         else
         {
-            shader->set_bool(m_name + ".is_emissive", false);
+            place_holder_map->bind(PBR_TEXTURE_UNIT::EMISSIVE);
+            shader->set_int(m_name + ".emissive_map", PBR_TEXTURE_UNIT::EMISSIVE);
+            shader->set_float(m_name + ".emissive_texture_factor", 0.f);
         }
     }
 

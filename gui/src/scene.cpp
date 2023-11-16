@@ -163,10 +163,7 @@ namespace Rendering
         render_skybox(view, projection);
         pbr_fbo->unbind();
 
-        final_fbo->bind();
-        final_fbo->clear(this->bg_color);
-        tone_mapping(pbr_fbo->get_color_attachment(0));
-        final_fbo->unbind();
+        finalize_output();
     }
     void OGL_Scene_3D::render_skybox(const Core::Matrix4 &view, const Core::Matrix4 &projection)
     {
@@ -241,7 +238,8 @@ namespace Rendering
             shader = Rendering::shader_program_factory.find_shader_program("pbr_shader");
             shader->activate();
             shader->set_bool("u_ibl_enable", false);
-            shader->set_vec3("u_env_color", Core::Vector3(1.0f, 1.0f, 1.0f).data());
+            Core::Vector3 background = this->bg_color;
+            shader->set_vec3("u_env_color", background.data());
         }
 
         shader->set_mat4("u_view", view.data());
@@ -269,6 +267,8 @@ namespace Rendering
 
     void OGL_Scene_3D::tone_mapping(Texture *texture)
     {
+        glDisable(GL_DEPTH_TEST);
+        // set background color
         auto tone_mapping_shader = Rendering::shader_program_factory.find_shader_program("tone_mapping_shader");
         tone_mapping_shader->activate();
         tone_mapping_shader->set_float("u_gamma", this->gamma);
@@ -278,6 +278,7 @@ namespace Rendering
         Rendering::OGL_Mesh::instanced_quad_mesh()->render(tone_mapping_shader);
         texture->unbind();
         tone_mapping_shader->deactivate();
+        glEnable(GL_DEPTH_TEST);
     }
 
     void OGL_Scene_3D::init_pbr_fbo()
@@ -384,6 +385,14 @@ namespace Rendering
         brdf_fbo->set_draw_buffers();
         brdf_fbo->check_status();
         brdf_fbo->unbind();
+    }
+
+    void OGL_Scene_3D::finalize_output()
+    {
+        final_fbo->bind();
+        final_fbo->clear();
+        tone_mapping(pbr_fbo->get_color_attachment(0));
+        final_fbo->unbind();
     }
 
     void OGL_Scene_3D::equi_to_cubemap(const Core::Matrix4 &projection)

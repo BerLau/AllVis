@@ -76,7 +76,7 @@ TEST(TestRandom, random_range_int)
 
 TEST(TestRandom, random_max_float)
 {
-    float max = -1.5f;
+    float max = 1.5f;
     for (int i = 0; i < 100; i++)
     {
         for (int j = 0; j < 100; j++)

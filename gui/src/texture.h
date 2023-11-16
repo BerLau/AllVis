@@ -193,12 +193,16 @@ namespace Rendering
         // attributes
     private:
         std::unordered_map<std::string, Texture_Ptr> textures;
+        Texture_Ptr default_texture = nullptr;
         // constructors
     public:
         ~Texture_Manager(){};
 
     private:
-        Texture_Manager() {}
+        Texture_Manager()
+        {
+            default_texture = Texture_Ptr(create_default_texture());
+        }
         // methods
     public:
         Texture *get_texture(const std::string &path)
@@ -233,6 +237,11 @@ namespace Rendering
         {
             textures.clear();
         }
+
+        Texture* get_default()
+        {
+            return default_texture.get();
+        }
         // static methods
     public:
         static Texture_Manager &instance()
@@ -240,6 +249,8 @@ namespace Rendering
             static Texture_Manager singleton;
             return singleton;
         }
+
+        static Texture *create_default_texture();
     };
     struct Img_Data
     {
@@ -258,7 +269,6 @@ namespace Rendering
     };
 
     Img_Data image_data(const std::string &path, bool flip = false);
-
     Img_Data read_jpg(const std::string &path, bool flip = false);
     Img_Data read_png(const std::string &path, bool flip = false);
     Img_Data read_bmp(const std::string &path, bool flip = false);

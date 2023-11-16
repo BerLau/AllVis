@@ -441,8 +441,11 @@ namespace Core
     TEST(TestMatrix, MatrixVectorMultiplication)
     {
         Matrix m = MatrixS::identity(4);
+        std::cout << m << std::endl;
         Vector v = Vector::ones(4);
+        std::cout << v << std::endl;
         Vector v2 = m * v;
+        std::cout << v2 << std::endl;
         EXPECT_EQ(v2.size(), 4);
         EXPECT_FLOAT_EQ(v2[0], 1);
         EXPECT_FLOAT_EQ(v2[1], 1);
@@ -486,7 +489,7 @@ namespace Core
             0, 0, 1, 2,
             0, 0, 0, 1};
 
-        Matrix4 m(v,true);
+        Matrix4 m(v, true);
 
         Matrix4 mt = m.transpose();
         glm::mat4 glm_m = glm::make_mat4(v);

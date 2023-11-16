@@ -144,9 +144,15 @@ namespace Rendering
             return &vertices[index * layout.size()];
         }
 
-        void *vertex_attr(unsigned int index, unsigned int offset)
+        template <typename T>
+        T *vertex_attr(unsigned int index, unsigned int offset)
         {
-            return &vertices[index * layout.size() + offset];
+            if (offset + sizeof(T) > layout.size())
+            {
+                std::cerr << "Error: offset + sizeof(T) > layout.size()" << std::endl;
+                return nullptr;
+            }
+            return (T *)vertex(index) + offset;
         }
         // static methods
     };
