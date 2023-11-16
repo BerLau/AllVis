@@ -58,11 +58,11 @@ uniform Light u_lights[MAX_LIGHTS];
 uniform int u_light_num;
 uniform mat4 u_view;
 
-const vec3 u_env_color = vec3(1.0, 1.0, 1.0);
-
+uniform vec3 u_env_color;
 uniform samplerCube u_irradiance_map;
 uniform samplerCube u_prefilter_map;
 uniform sampler2D u_brdf_lut;
+uniform float u_ibl_enable;
 
 float DistributionGGX(vec3 N, vec3 H, float roughness);
 float GeometrySchlickGGX(float NdotV, float roughness);
@@ -81,7 +81,6 @@ void main() {
                     vec3(u_material.normal_texture_factor));
   // view spaced normal
   normal = normalize((u_view * vec4(tbn * normal, 0.0)).xyz);
-
   // view spaced view direction
   vec3 view_dir = normalize(-frag_position);
 
@@ -168,7 +167,6 @@ void main() {
   vec3 irradiance = texture(u_irradiance_map, N).rgb;
   vec3 diffuse = irradiance * albedo;
 
-  const float MAX_REFLECTION_LOD = 4.0;
   vec3 prefiltered_color = textureLod(u_prefilter_map, reflect(-V, normal),
                                       roughness * MAX_REFLECTION_LOD)
                                .rgb;

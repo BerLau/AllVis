@@ -59,6 +59,10 @@ uniform int u_light_num;
 uniform mat4 u_view;
 
 uniform vec3 u_env_color;
+uniform samplerCube u_irradiance_map;
+uniform samplerCube u_prefilter_map;
+uniform sampler2D u_brdf_lut;
+uniform float u_ibl_enable;
 
 float DistributionGGX(vec3 N, vec3 H, float roughness);
 float GeometrySchlickGGX(float NdotV, float roughness);
@@ -159,6 +163,7 @@ void main() {
   // compute Nomal, ViewDir in the world space
   vec3 N = normalize((u_view * vec4(normal, 0.0)).xyz);
   vec3 V = normalize((u_view * vec4(view_dir, 0.0)).xyz);
+  
   vec3 diffuse = kD * albedo * (u_env_color / PI);
   vec3 specular = kS * F * u_env_color;
   vec3 ambient = (kD * diffuse + specular) * ao;

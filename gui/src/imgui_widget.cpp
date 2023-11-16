@@ -719,9 +719,9 @@ namespace GUI
             ImGui::Text("Metallic");
             ImGui::SliderFloat("##metallic", &material->metallic, 0.0f, 1.0f, "%.3f");
             ImGui::Text("Roughness");
-            ImGui::SliderFloat("##roughness", &material->roughness, 0.001f, 1.0f, "%.3f");
+            ImGui::SliderFloat("##roughness", &material->roughness, 0.0f, 1.0f, "%.3f");
             ImGui::Text("AO");
-            ImGui::SliderFloat("##ao", &material->ao, 0.001f, 1.0f, "%.3f");
+            ImGui::SliderFloat("##ao", &material->ao, 0.0f, 1.0f, "%.3f");
              ImGui::Text("Emissive Color");
             ImGui::ColorEdit3("##emissive color", material->emissive_color.data());
             ImGui::Text("Emissive Intensity");
