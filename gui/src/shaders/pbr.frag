@@ -34,6 +34,7 @@ struct Material {
   float metallic;
   float roughness;
   float ao;
+  float height_scale;
 
   sampler2D albedo_map;
   sampler2D metallic_map;
@@ -77,19 +78,19 @@ vec3 to_srgb(vec3 color) { return pow(color, vec3(2.2)); }
 void main() {
   vec3 tex_normal = texture(u_material.normal_map, texcoord).rgb;
   tex_normal = normalize(tex_normal * 2.0 - 1.0);
-  vec3 normal = mix(vec3(0.0, 0.0, 1.0), tex_normal,
-                    vec3(u_material.normal_texture_factor));
+  vec3 normal =
+      mix(vec3(0.0, 0.0, 1.0), tex_normal, u_material.normal_texture_factor);
   // view spaced normal
   normal = normalize((u_view * vec4(tbn * normal, 0.0)).xyz);
   // view spaced view direction
   vec3 view_dir = normalize(-frag_position);
 
   vec3 tex_albedo = texture(u_material.albedo_map, texcoord).rgb;
-  vec3 albedo = mix(u_material.albedo, tex_albedo,
-                    vec3(u_material.albedo_texture_factor));
+  vec3 albedo =
+      mix(u_material.albedo, tex_albedo, u_material.albedo_texture_factor);
 
-  float tex_metallic = texture(u_material.metallic_map, texcoord).r,
-        metallic = mix(u_material.metallic, tex_metallic,
+  float tex_metallic = texture(u_material.metallic_map, texcoord).r;
+  float metallic = mix(u_material.metallic, tex_metallic,
                        u_material.metallic_texture_factor);
 
   float tex_roughness = texture(u_material.roughness_map, texcoord).r;
@@ -100,9 +101,9 @@ void main() {
   float ao = mix(u_material.ao, tex_ao, u_material.ao_texture_factor);
 
   vec3 tex_emissive = texture(u_material.emissive_map, texcoord).rgb;
-  vec3 emissive = u_material.emissive_intensity *
-                  mix(u_material.emissive, tex_emissive,
-                      vec3(u_material.emissive_texture_factor));
+  vec3 emissive =
+      u_material.emissive_intensity * mix(u_material.emissive, tex_emissive,
+                                          u_material.emissive_texture_factor);
 
   vec3 F0 = vec3(0.04);
   F0 = mix(F0, albedo, metallic);
@@ -163,10 +164,12 @@ void main() {
   // compute Nomal, ViewDir in the world space
   vec3 N = normalize((u_view * vec4(normal, 0.0)).xyz);
   vec3 V = normalize((u_view * vec4(view_dir, 0.0)).xyz);
-  
+  vec3 R = reflect(-V, N);
+
   vec3 diffuse = kD * albedo * (u_env_color / PI);
   vec3 specular = kS * F * u_env_color;
-  vec3 ambient = (kD * diffuse + specular) * ao;
+
+  vec3 ambient = (diffuse + specular) * ao;
   vec3 color = Lo + ambient + emissive;
 
   frag_color = vec4(color, 1.0);

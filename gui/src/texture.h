@@ -193,7 +193,8 @@ namespace Rendering
         // attributes
     private:
         std::unordered_map<std::string, Texture_Ptr> textures;
-        Texture_Ptr default_texture = nullptr;
+        Texture_Ptr default_2d_texture = nullptr;
+        Texture_Ptr default_cubemap_texture = nullptr;
         // constructors
     public:
         ~Texture_Manager(){};
@@ -201,7 +202,8 @@ namespace Rendering
     private:
         Texture_Manager()
         {
-            default_texture = Texture_Ptr(create_default_texture());
+            default_2d_texture = Texture_Ptr(create_default_texture());
+            default_cubemap_texture = Texture_Ptr(create_default_cubemap_texture());
         }
         // methods
     public:
@@ -238,9 +240,14 @@ namespace Rendering
             textures.clear();
         }
 
-        Texture* get_default()
+        Texture* get_default_2d()
         {
-            return default_texture.get();
+            return default_2d_texture.get();
+        }
+
+        Texture* get_default_cubemap()
+        {
+            return default_2d_texture.get();
         }
         // static methods
     public:
@@ -251,6 +258,7 @@ namespace Rendering
         }
 
         static Texture *create_default_texture();
+        static Texture *create_default_cubemap_texture();
     };
     struct Img_Data
     {

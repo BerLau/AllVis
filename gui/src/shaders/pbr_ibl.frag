@@ -34,6 +34,7 @@ struct Material {
   float metallic;
   float roughness;
   float ao;
+  float height_scale;
 
   sampler2D albedo_map;
   sampler2D metallic_map;
@@ -77,8 +78,8 @@ vec3 to_srgb(vec3 color) { return pow(color, vec3(2.2)); }
 void main() {
   vec3 tex_normal = texture(u_material.normal_map, texcoord).rgb;
   tex_normal = normalize(tex_normal * 2.0 - 1.0);
-  vec3 normal = mix(vec3(0.0, 0.0, 1.0), tex_normal,
-                    vec3(u_material.normal_texture_factor));
+  vec3 normal =
+      mix(vec3(0.0, 0.0, 1.0), tex_normal, u_material.normal_texture_factor);
   // view spaced normal
   normal = normalize((u_view * vec4(tbn * normal, 0.0)).xyz);
   // view spaced view direction
@@ -163,17 +164,18 @@ void main() {
   // compute Nomal, ViewDir in the world space
   vec3 N = normalize((u_view * vec4(normal, 0.0)).xyz);
   vec3 V = normalize((u_view * vec4(view_dir, 0.0)).xyz);
+  vec3 R = reflect(-V, N);
 
   vec3 irradiance = texture(u_irradiance_map, N).rgb;
-  vec3 diffuse = irradiance * albedo;
+  vec3 diffuse = kD * albedo * irradiance;
 
-  vec3 prefiltered_color = textureLod(u_prefilter_map, reflect(-V, normal),
-                                      roughness * MAX_REFLECTION_LOD)
-                               .rgb;
+  vec3 prefiltered_color =
+      textureLod(u_prefilter_map, R, roughness * MAX_REFLECTION_LOD).rgb;
   vec2 brdf = texture(u_brdf_lut, vec2(max(dot(N, V), 0.0), roughness)).rg;
-  vec3 specular = prefiltered_color * (F * brdf.x + brdf.y);
 
-  vec3 ambient = (kD * diffuse + specular) * ao;
+  vec3 specular = kS * prefiltered_color * (F * brdf.x + brdf.y);
+
+  vec3 ambient = (diffuse + specular) * ao;
   vec3 color = Lo + ambient + emissive;
 
   frag_color = vec4(color, 1.0);

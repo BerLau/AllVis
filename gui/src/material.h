@@ -61,6 +61,7 @@ namespace Rendering
         float roughness;
         float ao;
         float emissive_intensity;
+        float height_scale;
 
         std::string albedo_map_path = "";
         Texture *albedo_map = nullptr;
@@ -84,7 +85,7 @@ namespace Rendering
         Texture *emissive_map = nullptr;
         // constructors and deconstructor
     public:
-        Material_PBR(Core::Vector3 color = Core::Vector3(0.5, 0.5, 0.5), float metallic = 0.5, float roughness = 0.5, float ao = 0.5, Core::Vector3 emissive = Core::Vector3(0.0f, 0.0f, 0.0f), float emissive_intensity = 0.0f);
+        Material_PBR(Core::Vector3 color = Core::Vector3(0.5, 0.5, 0.5), float metallic = 0.5, float roughness = 0.5, float ao = 0.5, Core::Vector3 emissive = Core::Vector3(0.0f, 0.0f, 0.0f), float emissive_intensity = 0.0f, float height_scale = 0.0f);
         Material_PBR(Texture *albedo_map, Texture *normal_map = nullptr, Texture *roughness_map = nullptr, Texture *ao_map = nullptr, Texture *height_map = nullptr, Texture *metallic_map = nullptr, Texture *emissive_map = nullptr);
         ~Material_PBR() {}
         // methods
@@ -99,6 +100,10 @@ namespace Rendering
         float get_metallic() const { return metallic; }
         float get_roughness() const { return roughness; }
         float get_ao() const { return ao; }
+        float get_height_scale() const { return height_scale; }
+        Core::Vector3 get_albedo() const { return color; }
+        Core::Vector3 get_emissive() const { return emissive_color; }
+
 
         Texture *get_albedo_map() const { return albedo_map; }
         Texture *get_metallic_map() const { return metallic_map; }

@@ -2,7 +2,7 @@
 #include "scene.h"
 namespace Rendering
 {
-    Material_PBR::Material_PBR(Core::Vector3 color, float metallic, float roughness, float ao, Core::Vector3 emissive_color, float emissive_intensity)
+    Material_PBR::Material_PBR(Core::Vector3 color, float metallic, float roughness, float ao, Core::Vector3 emissive_color, float emissive_intensity, float height_scale)
         : Material("Material_PBR"),
           color(color),
           emissive_color(emissive_color),
@@ -10,6 +10,7 @@ namespace Rendering
           roughness(roughness),
           ao(ao),
           emissive_intensity(emissive_intensity),
+          height_scale(height_scale),
           albedo_map(nullptr),
           normal_map(nullptr),
           roughness_map(nullptr),
@@ -27,6 +28,7 @@ namespace Rendering
           roughness(0.0f),
           ao(1.0f),
           emissive_intensity(0.0f),
+          height_scale(0.f),
           albedo_map(albedo_map),
           normal_map(normal_map),
           roughness_map(roughness_map),
@@ -81,12 +83,13 @@ namespace Rendering
 
     void Material_PBR::write_to_shader(const std::string &m_name, Shader_Program *shader)
     {
-        auto place_holder_map = Texture_Manager::instance().get_default();
+        auto place_holder_map = Texture_Manager::instance().get_default_2d();
         shader->set_float(m_name + ".metallic", get_metallic());
         shader->set_float(m_name + ".roughness", get_roughness());
         shader->set_float(m_name + ".ao", get_ao());
-        shader->set_vec3(m_name + ".albedo", color.data());
-        shader->set_vec3(m_name + ".emissive", emissive_color.data());
+        shader->set_float(m_name + ".height_scale", get_height_scale());
+        shader->set_vec3(m_name + ".albedo", get_albedo().data());
+        shader->set_vec3(m_name + ".emissive", get_emissive().data());
         auto albedo_map = get_albedo_map();
         if (albedo_map)
         {

@@ -722,7 +722,7 @@ namespace GUI
             ImGui::SliderFloat("##roughness", &material->roughness, 0.0f, 1.0f, "%.3f");
             ImGui::Text("AO");
             ImGui::SliderFloat("##ao", &material->ao, 0.0f, 1.0f, "%.3f");
-             ImGui::Text("Emissive Color");
+            ImGui::Text("Emissive Color");
             ImGui::ColorEdit3("##emissive color", material->emissive_color.data());
             ImGui::Text("Emissive Intensity");
             ImGui::SliderFloat("##emissive intensity", &material->emissive_intensity, 0.001f, 1.0f, "%.3f");
@@ -763,41 +763,6 @@ namespace GUI
                 ImGui::NextColumn();
             }
 
-            ImGui::Text("Height Map");
-            ImGui::NextColumn();
-            ImGui::NextColumn();
-            if (material->height_map_path != "")
-            {
-                ImGui::TextWrapped("%s", material->height_map_path.c_str());
-                ImGui::NextColumn();
-                load_map_button("Height Map", material->height_map_path);
-                ImGui::NextColumn();
-            }
-            else
-            {
-                load_map_button("Height Map", material->height_map_path);
-                ImGui::NextColumn();
-                ImGui::NextColumn();
-            }
-
-            ImGui::Text("Metallic Map");
-            ImGui::NextColumn();
-            ImGui::NextColumn();
-
-            if (material->metallic_map_path != "")
-            {
-                ImGui::TextWrapped("%s", material->metallic_map_path.c_str());
-                ImGui::NextColumn();
-                load_map_button("Metallic Map", material->metallic_map_path);
-                ImGui::NextColumn();
-            }
-            else
-            {
-                load_map_button("Metallic Map", material->metallic_map_path);
-                ImGui::NextColumn();
-                ImGui::NextColumn();
-            }
-
             ImGui::Text("Roughness Map");
             ImGui::NextColumn();
             ImGui::NextColumn();
@@ -830,6 +795,45 @@ namespace GUI
             else
             {
                 load_map_button("AO Map", material->ao_map_path);
+                ImGui::NextColumn();
+                ImGui::NextColumn();
+            }
+
+            ImGui::Text("Height Map");
+            ImGui::NextColumn();
+            ImGui::NextColumn();
+            if (material->height_map_path != "")
+            {
+                ImGui::TextWrapped("%s", material->height_map_path.c_str());
+                ImGui::NextColumn();
+                load_map_button("Height Map", material->height_map_path);
+                // reset column 1
+                ImGui::Columns(1);
+                ImGui::Text("Height Scale");
+                ImGui::SliderFloat("##height_scale", &material->height_scale, 0.0f, 1.0f, "%.3f");
+                ImGui::Columns(2, nullptr, false);
+            }
+            else
+            {
+                load_map_button("Height Map", material->height_map_path);
+                ImGui::NextColumn();
+                ImGui::NextColumn();
+            }
+
+            ImGui::Text("Metallic Map");
+            ImGui::NextColumn();
+            ImGui::NextColumn();
+
+            if (material->metallic_map_path != "")
+            {
+                ImGui::TextWrapped("%s", material->metallic_map_path.c_str());
+                ImGui::NextColumn();
+                load_map_button("Metallic Map", material->metallic_map_path);
+                ImGui::NextColumn();
+            }
+            else
+            {
+                load_map_button("Metallic Map", material->metallic_map_path);
                 ImGui::NextColumn();
                 ImGui::NextColumn();
             }

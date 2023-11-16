@@ -168,8 +168,10 @@ namespace Rendering
     void OGL_Scene_3D::render_skybox(const Core::Matrix4 &view, const Core::Matrix4 &projection)
     {
         auto skybox_texture = cubemap_fbo->get_color_attachment(0);
-        // auto skybox_texture = irradiance_fbo->get_color_attachment(0);
-        // auto skybox_texture = prefilter_fbo->get_color_attachment(0);
+        if (!skybox_texture)
+        {
+            skybox_texture = Texture_Manager::instance().get_default_cubemap();
+        }
         if (!skybox_texture)
         {
             return;

@@ -26,6 +26,7 @@ struct Material {
   float metallic;
   float roughness;
   float ao;
+  float height_scale;
 
   sampler2D albedo_map;
   sampler2D metallic_map;
@@ -52,7 +53,7 @@ void main() {
   vec3 pos = v_position;
   float tex_height = texture(u_material.height_map, v_texcoord).r - 0.5;
   float height_off = mix(0.0, tex_height, u_material.height_texture_factor);
-  pos += height_off * v_normal;
+  pos += height_off * v_normal * u_material.height_scale;
   vec4 pos_view = u_view * u_model * vec4(pos, 1.0);
   frag_position = pos_view.xyz;
   gl_Position = u_projection * pos_view;

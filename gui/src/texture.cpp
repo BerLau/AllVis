@@ -372,12 +372,29 @@ namespace Rendering
 
     Texture *Texture_Manager::create_default_texture()
     {
-        // create a one-pixel placeholder texture
-        Texture::Format format = Texture::Format(GL_TEXTURE_2D, GL_RGBA16F, GL_RGBA, GL_FLOAT);
+        // create a one-pixel placeholder 2d texture
+        Texture::Format format = Texture::Format(GL_TEXTURE_2D, GL_RGBA, GL_RGBA, GL_FLOAT);
         Texture::TexParams params = Texture::TexParams::linear_clamp_edge();
         Texture *texture = new Texture(format, params);
         float data[] = {1.f, 1.f, 1.f, 1.f};
         texture->set_data(data, 1, 1);
+        return texture;
+    }
+
+    Texture *Texture_Manager::create_default_cubemap_texture()
+    {
+        // create a one-pixel placeholder cubemap texture
+        Texture::Format format = Texture::Format(GL_TEXTURE_CUBE_MAP, GL_RGBA, GL_RGBA, GL_FLOAT);
+        Texture::TexParams params = Texture::TexParams::linear_clamp_edge();
+        Texture *texture = new Texture(format, params);
+        float data[] = {1.f, 1.f, 1.f, 1.f};
+        texture->bind();
+        for (int i = 0; i < 6; i++)
+        {
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, format.internal_format, 1, 1, 0, format.format, format.type, data);
+        }
+        texture->generate_mipmap();
+        texture->unbind();
         return texture;
     }
 
