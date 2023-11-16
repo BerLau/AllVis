@@ -16,8 +16,8 @@ void destroy(GLFWwindow *glfw_window);
 
 int main()
 {
-    srand(time(NULL));
-    // srand(114514);
+    // srand(time(NULL));
+    srand(10240);
     auto glfw_window = init_glfw(800, 600, 0, 0);
     init_glad();
     init_opengl();

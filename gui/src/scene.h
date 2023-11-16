@@ -180,6 +180,12 @@ namespace Rendering
         FBO_Ptr prefilter_fbo = nullptr;
         FBO_Ptr brdf_fbo = nullptr;
 
+        Texture* skybox_texture = nullptr;
+        Texture* irradiance_texture = nullptr;
+        Texture* prefilter_texture = nullptr;
+        Texture* brdf_texture = nullptr;
+        
+
         // constructors and deconstructor
     public:
         OGL_Scene_3D(float width, float height);

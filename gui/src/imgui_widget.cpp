@@ -725,7 +725,7 @@ namespace GUI
             ImGui::Text("Emissive Color");
             ImGui::ColorEdit3("##emissive color", material->emissive_color.data());
             ImGui::Text("Emissive Intensity");
-            ImGui::SliderFloat("##emissive intensity", &material->emissive_intensity, 0.001f, 1.0f, "%.3f");
+            ImGui::SliderFloat("##emissive intensity", &material->emissive_intensity, 0.0f, 1.0f, "%.3f");
             // 2 columns
             ImGui::Columns(2, nullptr, false);
 

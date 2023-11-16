@@ -50,9 +50,12 @@ namespace Rendering
         glTexParameteri(format.target, GL_TEXTURE_WRAP_S, params.wrap_s);
         glTexParameteri(format.target, GL_TEXTURE_WRAP_T, params.wrap_t);
         glTexParameteri(format.target, GL_TEXTURE_WRAP_R, params.wrap_r);
-        glTexParameterfv(format.target, GL_TEXTURE_BORDER_COLOR, params.border_color);
         glTexParameteri(format.target, GL_TEXTURE_MIN_FILTER, params.min_filter);
         glTexParameteri(format.target, GL_TEXTURE_MAG_FILTER, params.mag_filter);
+        if (params.wrap_s == GL_CLAMP_TO_BORDER || params.wrap_t == GL_CLAMP_TO_BORDER || params.wrap_r == GL_CLAMP_TO_BORDER)
+        {
+            glTexParameterfv(format.target, GL_TEXTURE_BORDER_COLOR, params.border_color);
+        }
         unbind();
     }
 
@@ -78,6 +81,25 @@ namespace Rendering
         bind();
         glGenerateMipmap(format.target);
         unbind();
+    }
+
+    void Texture::update_pixels(const void *data, size_t x_offset, size_t y_offset, size_t width, size_t height)
+    {
+        if (format.target == GL_TEXTURE_2D)
+        {
+            bind();
+            glTexSubImage2D(format.target, 0, x_offset, y_offset, width, height, format.format, format.type, data);
+            unbind();
+        }
+        else
+        {
+            bind();
+            for (int i = 0; i < 6; ++i)
+            {
+                glTexSubImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, x_offset, y_offset, width, height, format.format, format.type, data);
+            }
+            unbind();
+        }
     }
 
     Img_Data image_data(const std::string &path, bool flip)
@@ -337,7 +359,7 @@ namespace Rendering
         format.format = img.format;
         format.type = img.type;
 
-        auto tex_params = Texture::TexParams(GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_REPEAT);
+        auto tex_params = Texture::TexParams::linear_mipmap_clamp_edge();
         Texture *texture = new Texture(format, tex_params);
         texture->set_data(img.data, img.width, img.height);
         texture->generate_mipmap();
@@ -370,30 +392,30 @@ namespace Rendering
         return texture;
     }
 
-    Texture *Texture_Manager::create_default_texture()
+    Texture *Texture_Manager::create_1pixel_2d_texture(float r, float g, float b, float a)
+
     {
         // create a one-pixel placeholder 2d texture
         Texture::Format format = Texture::Format(GL_TEXTURE_2D, GL_RGBA, GL_RGBA, GL_FLOAT);
-        Texture::TexParams params = Texture::TexParams::linear_clamp_edge();
+        Texture::TexParams params = Texture::TexParams::nearest_clamp_edge();
         Texture *texture = new Texture(format, params);
-        float data[] = {1.f, 1.f, 1.f, 1.f};
+        float data[] = {r, g, b, a};
         texture->set_data(data, 1, 1);
         return texture;
     }
 
-    Texture *Texture_Manager::create_default_cubemap_texture()
+    Texture *Texture_Manager::create_1pixel_cubemap_texture(float r, float g, float b, float a)
     {
         // create a one-pixel placeholder cubemap texture
         Texture::Format format = Texture::Format(GL_TEXTURE_CUBE_MAP, GL_RGBA, GL_RGBA, GL_FLOAT);
-        Texture::TexParams params = Texture::TexParams::linear_clamp_edge();
+        Texture::TexParams params = Texture::TexParams::nearest_clamp_edge();
         Texture *texture = new Texture(format, params);
-        float data[] = {1.f, 1.f, 1.f, 1.f};
+        float data[] = {r, g, b, a};
         texture->bind();
-        for (int i = 0; i < 6; i++)
+        for (int i = 0; i < 6; ++i)
         {
             glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, format.internal_format, 1, 1, 0, format.format, format.type, data);
         }
-        texture->generate_mipmap();
         texture->unbind();
         return texture;
     }

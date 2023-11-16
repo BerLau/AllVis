@@ -59,11 +59,9 @@ uniform Light u_lights[MAX_LIGHTS];
 uniform int u_light_num;
 uniform mat4 u_view;
 
-uniform vec3 u_env_color;
 uniform samplerCube u_irradiance_map;
 uniform samplerCube u_prefilter_map;
 uniform sampler2D u_brdf_lut;
-uniform float u_ibl_enable;
 
 float DistributionGGX(vec3 N, vec3 H, float roughness);
 float GeometrySchlickGGX(float NdotV, float roughness);
@@ -166,8 +164,14 @@ void main() {
   vec3 V = normalize((u_view * vec4(view_dir, 0.0)).xyz);
   vec3 R = reflect(-V, N);
 
-  vec3 diffuse = kD * albedo * (u_env_color / PI);
-  vec3 specular = kS * F * u_env_color;
+  vec3 irradiance = texture(u_irradiance_map, N).rgb;
+  vec3 diffuse = kD * albedo * irradiance;
+
+  vec3 prefiltered_color =
+      textureLod(u_prefilter_map, R, roughness * MAX_REFLECTION_LOD).rgb;
+  vec2 brdf = texture(u_brdf_lut, vec2(max(dot(N, V), 0.0), roughness)).rg;
+
+  vec3 specular = kS * prefiltered_color * (F * brdf.x + brdf.y);
 
   vec3 ambient = (diffuse + specular) * ao;
   vec3 color = Lo + ambient + emissive;

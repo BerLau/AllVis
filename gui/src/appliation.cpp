@@ -37,10 +37,6 @@ namespace GUI
         Rendering::shader_program_factory.add_shader_from_file("./shaders/pbr.frag", GL_FRAGMENT_SHADER, "pbr_fragment");
         Rendering::shader_program_factory.add_shader_program("pbr_shader", "pbr_vertex", "pbr_fragment");
 
-        // Rendering::shader_program_factory.add_shader_from_file("./shaders/pbr.vert", GL_VERTEX_SHADER, "pbr_vertex");
-        Rendering::shader_program_factory.add_shader_from_file("./shaders/pbr_ibl.frag", GL_FRAGMENT_SHADER, "pbr_ibl_fragment");
-        Rendering::shader_program_factory.add_shader_program("pbr_ibl_shader", "pbr_vertex", "pbr_ibl_fragment");
-
         Rendering::shader_program_factory.add_shader_from_file("./shaders/vis_light.vert", GL_VERTEX_SHADER, "light_vertex");
         Rendering::shader_program_factory.add_shader_from_file("./shaders/vis_light.frag", GL_FRAGMENT_SHADER, "light_fragment");
         Rendering::shader_program_factory.add_shader_program("light_shader", "light_vertex", "light_fragment");

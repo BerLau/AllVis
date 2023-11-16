@@ -183,6 +183,7 @@ namespace Rendering
         void set_tex_params(const TexParams &params);
         void resize(size_t width, size_t height);
         void generate_mipmap();
+        void update_pixels(const void *data, size_t x_offset, size_t y_offset, size_t width, size_t height);
     };
 
     Texture *load_texture(const std::string &path);
@@ -202,8 +203,8 @@ namespace Rendering
     private:
         Texture_Manager()
         {
-            default_2d_texture = Texture_Ptr(create_default_texture());
-            default_cubemap_texture = Texture_Ptr(create_default_cubemap_texture());
+            default_2d_texture = Texture_Ptr(create_1pixel_2d_texture());
+            default_cubemap_texture = Texture_Ptr(create_1pixel_cubemap_texture());
         }
         // methods
     public:
@@ -247,7 +248,7 @@ namespace Rendering
 
         Texture* get_default_cubemap()
         {
-            return default_2d_texture.get();
+            return default_cubemap_texture.get();
         }
         // static methods
     public:
@@ -257,8 +258,8 @@ namespace Rendering
             return singleton;
         }
 
-        static Texture *create_default_texture();
-        static Texture *create_default_cubemap_texture();
+        static Texture *create_1pixel_2d_texture(float r = 1.0f, float g = 1.0f, float b = 1.0f, float a = 1.0f);
+        static Texture *create_1pixel_cubemap_texture(float r = 1.0f, float g = 1.0f, float b = 1.0f, float a = 1.0f);
     };
     struct Img_Data
     {
