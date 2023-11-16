@@ -64,11 +64,11 @@ namespace Rendering
     {
         // structures
     public:
-        struct OGL_Model_Item
-        {
-            OGL_Model_Ptr value = nullptr;
-            bool is_active = true;
-        };
+        // struct OGL_Model_Item
+        // {
+        //     OGL_Model_Ptr value = nullptr;
+        //     bool is_active = true;
+        // };
         // attributes
     public:
         float near = 0.1f;
@@ -77,7 +77,7 @@ namespace Rendering
         Core::Vector4 bg_color = Core::Vector4(1.f, 1.f, 1.f, 1.0f);
         // GLuint fbo = 0, fb_tex = 0, rbo = 0;
         FBO_Ptr final_fbo = nullptr;
-        std::vector<OGL_Model_Item> models;
+        std::vector<OGL_Model_Ptr> models;
         // constructors and deconstructor
     public:
         // cast properties to OGL_Scene::Properties

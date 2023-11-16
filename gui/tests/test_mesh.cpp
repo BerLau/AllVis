@@ -30,12 +30,9 @@ TEST(TestMesh, MESH_CONSTRUCTION)
     Norm normal{4.0f, 5.0f, 6.0f};
     Tex tex{7.0f, 8.0f};
     Rendering::Mesh::Layout layout;
-    // layout.add(1, GL_FLOAT, sizeof(Pos));
-    // layout.add(1, GL_FLOAT, sizeof(Norm));
-    // layout.add(1, GL_FLOAT, sizeof(Tex));
-    layout.add_segment(GL_FLOAT, sizeof(Pos), 3);
-    layout.add_segment(GL_FLOAT, sizeof(Norm), 3);
-    layout.add_segment(GL_FLOAT, sizeof(Tex), 2);
+    layout.add_segment(GL_FLOAT, sizeof(Pos), 1);
+    layout.add_segment(GL_FLOAT, sizeof(Norm), 1);
+    layout.add_segment(GL_FLOAT, sizeof(Tex), 1);
 
     Rendering::Mesh mesh(layout, 1, 0);
 
@@ -43,11 +40,31 @@ TEST(TestMesh, MESH_CONSTRUCTION)
     Norm *norm_ = mesh.vertex_attr<Norm>(0, 1);
     Tex *tex_ = mesh.vertex_attr<Tex>(0, 2);
 
-    *pos_ = pos;
-    *norm_ = normal;
-    *tex_ = tex;
+    //debug
+    float* data_f = (float*)mesh.vertex(0); 
 
-    EXPECT_TRUE(true);
+    pos_->x = pos.x;
+    pos_->y = pos.y;
+    pos_->z = pos.z;
+
+    norm_->x = normal.x;
+    norm_->y = normal.y;
+    norm_->z = normal.z;
+
+    tex_->u = tex.u;
+    tex_->v = tex.v;
+
+
+    EXPECT_EQ(pos_->x, pos.x);
+    EXPECT_EQ(pos_->y, pos.y);
+    EXPECT_EQ(pos_->z, pos.z);
+
+    EXPECT_EQ(norm_->x, normal.x);
+    EXPECT_EQ(norm_->y, normal.y);
+    EXPECT_EQ(norm_->z, normal.z);
+
+    EXPECT_EQ(tex_->u, tex.u);
+    EXPECT_EQ(tex_->v, tex.v);
 }
 
 TEST(TestMesh, MEMCPY)
@@ -92,7 +109,7 @@ TEST(TestMesh, MEMCPY)
         p->y = vertices[i].y;
         p->z = vertices[i].z;
 
-        TexCoord* t = mesh->vertex_attr<TexCoord>(i, 1);
+        TexCoord *t = mesh->vertex_attr<TexCoord>(i, 1);
         t->u = texcoords[i].u;
         t->v = texcoords[i].v;
     }

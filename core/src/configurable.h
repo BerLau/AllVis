@@ -11,6 +11,7 @@ namespace Core
     public:
         std::string name;
         bool editable = true;
+        bool active = true;
         // constructors and deconstructor
     public:
         Configurable(const std::string &name) : name(name){};

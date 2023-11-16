@@ -8,6 +8,7 @@
 #include "shader.h"
 #include <typeinfo>
 #include <iostream>
+#include <cstring>
 
 namespace Rendering
 {
@@ -51,7 +52,7 @@ namespace Rendering
         public:
             void add_segment(unsigned int element_type, unsigned int element_size, unsigned int count)
             {
-                segments.emplace_back(element_type, element_size, count);
+                segments.push_back(Segment(element_type, element_size, count));
             }
             void add_segment(const Segment &segment)
             {
@@ -95,8 +96,7 @@ namespace Rendering
         Mesh(Layout layout, unsigned int vertex_count, unsigned int index_count)
             : layout(layout)
         {
-            vertices.resize(layout.size() * vertex_count);
-            indices.resize(index_count);
+            resize(vertex_count, index_count);
         }
         virtual ~Mesh()
         {
@@ -113,20 +113,27 @@ namespace Rendering
             vertices.reserve(layout.size() * vertex_count);
             indices.reserve(index_count);
         }
-        void add_vertices(void *data, size_t size)
+        void add_vertices(void *data, size_t byte_size)
         {
-            vertices.insert(vertices.end(), (char *)data, (char *)data + size);
+            // resize vertices
+            vertices.resize(vertices.size() + byte_size);
+            // copy data to vertices
+            memcpy(&vertices[vertices.size() - byte_size], data, byte_size);
         }
-        void add_indices(unsigned int *data, size_t size)
+        void add_indices(unsigned int *data, size_t byte_size)
         {
-            indices.insert(indices.end(), data, data + size);
+            // resize indices
+            indices.resize(indices.size() + byte_size);
+            // copy data to indices
+            memcpy(&indices[indices.size() - byte_size], data, byte_size);
         }
 
-        void add_vertex(void *data, size_t size)
+        void add_vertex(void *data, size_t byte_size)
         {
-            if (size == layout.size())
+            if (byte_size == layout.size())
             {
-                vertices.insert(vertices.end(), (char *)data, (char *)data + size);
+                vertices.resize(vertices.size() + byte_size);
+                memcpy(&vertices[vertices.size() - byte_size], data, byte_size);
             }
             else
             {
@@ -145,14 +152,24 @@ namespace Rendering
         }
 
         template <typename T>
-        T *vertex_attr(unsigned int index, unsigned int offset)
+        T *vertex_attr(unsigned int index, unsigned int attr_index)
         {
-            if (offset + sizeof(T) > layout.size())
+            if (attr_index >= layout.count())
             {
                 std::cerr << "Error: offset + sizeof(T) > layout.size()" << std::endl;
                 return nullptr;
             }
-            return (T *)vertex(index) + offset;
+            size_t offset = 0;
+            for (unsigned int i = 0; i < attr_index; ++i)
+            {
+                offset += layout[i].size();
+            }
+            return (T *)&vertices[index * layout.size() + offset];
+        }
+        void clear()
+        {
+            vertices.clear();
+            indices.clear();
         }
         // static methods
     };

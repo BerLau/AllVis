@@ -925,12 +925,12 @@ namespace GUI
                         for (int i = 0; i < ogl_scene->models.size(); i++)
                         {
                             auto &model = ogl_scene->models[i];
-                            const std::string &label = model.value->name + "##model" + std::to_string(i);
-                            ImGui::Checkbox(("##" + label).c_str(), &model.is_active);
+                            const std::string &label = model->name + "##model" + std::to_string(i);
+                            ImGui::Checkbox(("##" + label).c_str(), &model->active);
                             ImGui::SameLine();
-                            if (ImGui::Selectable(label.c_str(), selected_object == model.value.get()))
+                            if (ImGui::Selectable(label.c_str(), selected_object == model.get()))
                             {
-                                selected_object = model.value.get();
+                                selected_object = model.get();
                             }
                         }
                         ImGui::TreePop();

@@ -66,13 +66,13 @@ namespace Rendering
         //             cube_model->material->metallic = RANDOM_RANGE_F(0.2, 1.0);
         //             cube_model->material->roughness = RANDOM_RANGE_F(0.2, 1.0);
         //             cube_model->material->ao = RANDOM_RANGE_F(0.1, 0.5);
-        //             models.push_back({std::move(cube_model), true});
+        //             models.push_back(std::move(cube_model));
         //         }
         //     }
         // }
 
-        // float off_set = float(row)/4.f;
-        float off_set = 0.f;
+        float off_set = float(row)/4.f;
+        // float off_set = 0.f;
         int index = 0;
         for (int i = 0; i < row; ++i)
         {
@@ -93,7 +93,7 @@ namespace Rendering
                     sphere_model->material->roughness = RANDOM_RANGE_F(0.2, 1.0);
                     sphere_model->material->ao = RANDOM_RANGE_F(0.1, 0.5);
                     sphere_model->transform->scale(0.5);
-                    models.push_back({std::move(sphere_model), true});
+                    models.push_back(std::move(sphere_model));
                 }
             }
         }
@@ -110,7 +110,7 @@ namespace Rendering
         lights.push_back({std::move(light), true});
 
         // set point lights
-        for (int i = 1; i <= 6; i++)
+        for (int i = 1; i <= 16; i++)
         {
             auto light = Rendering::Light_Ptr(new Rendering::Light());
             light->name = "light " + std::to_string(i);
@@ -169,6 +169,7 @@ namespace Rendering
         render_lights(view, projection);
         render_skybox(view, projection);
         pbr_fbo->unbind();
+
 
         finalize_output();
     }
@@ -245,10 +246,10 @@ namespace Rendering
         shader->set_int("u_light_num", active_light_num);
         for (auto &model : models)
         {
-            if (model.is_active)
+            if (model->active)
             {
-                model.value->material->write_to_shader("u_material", shader);
-                model.value->draw(shader);
+                model->material->write_to_shader("u_material", shader);
+                model->draw(shader);
             }
         }
         shader->deactivate();

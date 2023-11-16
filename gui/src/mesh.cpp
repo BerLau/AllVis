@@ -242,8 +242,8 @@ namespace Rendering
                 vertex.push_back(u);
                 vertex.push_back(v);
             }
-
         }
+        
         mesh->add_vertices(vertex.data(), vertex.size() * sizeof(float));
 
         for (int i = 0; i < slices; i++)
