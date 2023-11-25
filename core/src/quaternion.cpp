@@ -1,8 +1,8 @@
 #include "quaternion.h"
 #include <cmath>
 #include <tuple>
-#include "geometry.h"
-#include "global.hpp"
+#include "global.h"
+#include "geometry/general.h"
 
 namespace Core
 {

@@ -1,12 +1,11 @@
-#include <lmath.h>
-#include <core.h>
 #include <stdio.h>
-
+#include "math/base.h"
+#include "vector.h"
 int main()
 {
     int a = 2;
     printf("a = %d, ", a);
-    if (Arithmetics::sign<int>(a) == 1)
+    if (Core::Math::sign(a) == 1)
     {
         printf("which is positive\n");
     }

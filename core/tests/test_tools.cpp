@@ -14,3 +14,11 @@ TEST(Tools, split_str)
     ASSERT_EQ(result[4], "10");
     ASSERT_EQ(result[5], "");
 }
+
+TEST(Tools, reverse_str)
+{
+    std::string s = "abcdefghijklmn";
+    std::string r = "nmlkjihgfedcba";
+    Tools::reverse_str(r.data(),s.length());
+    EXPECT_TRUE(s == r);
+}

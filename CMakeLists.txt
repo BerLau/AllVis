@@ -47,7 +47,6 @@ enable_testing()
 add_subdirectory(external)
 add_subdirectory(configuration)
 add_subdirectory(core)
-add_subdirectory(math)
 add_subdirectory(gui)
 add_subdirectory(examples)
 

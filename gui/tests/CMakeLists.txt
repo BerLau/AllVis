@@ -19,7 +19,6 @@ target_link_libraries(${EXE_NAME}
     glfw
     glad
     freetype
-    math
     core
     stb_image
     tiff

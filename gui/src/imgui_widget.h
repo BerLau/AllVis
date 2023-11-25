@@ -9,13 +9,13 @@
 #include <memory>
 #include <fstream>
 #include <sstream>
-#include <core.h>
 #include "ui_log.h"
 #include <map>
 #include "shader.h"
 #include "text_render.h"
 #include "scene.h"
 #include "light.h"
+#include "transform.h"
 
 #include <freetype2/ft2build.h>
 #include FT_FREETYPE_H

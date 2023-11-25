@@ -1,6 +1,6 @@
 /*
 fragment shader for pbr shading
-in: mat3 tbn, vec3 frag_position, vec2 texcoord
+in: mat3 tbn, vec3 frag_position, vec2 frag_texcoord
 out: vec4 fragColor, vec4 brightColor
 uniform: Material u_material, Light u_lights[MAX_LIGHTS], int u_light_num,
 mat4 u_view, bool u_ibl_enable, vec3 u_env_color, samplerCube
@@ -18,7 +18,7 @@ layout(location = 1) out vec4 bright_color;
 
 in mat3 tbn;
 in vec3 frag_position;
-in vec2 texcoord;
+in vec2 frag_texcoord;
 
 struct Light {
   vec3 position;
@@ -69,36 +69,83 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness);
 vec3 fresnelSchlick(float cosTheta, vec3 F0);
 vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness);
 
+vec2 parrallax_occlusion(vec2 uv, vec3 view_dir) {
+  const float min_layers = 8;
+  const float max_layers = 32;
+  float num_layers =
+      mix(max_layers, min_layers, abs(dot(vec3(0.0, 0.0, 1.0), view_dir)));
+  // calculate the size of each layer
+  float layer_depth = 1.0 / num_layers;
+  // depth of current layer
+  float curr_layer_depth = 0.0;
+  // the amount to shift the texture coordinates per layer (from vector P)
+  vec2 P = view_dir.xy / view_dir.z * u_material.height_scale;
+  vec2 d_texcoord = P / num_layers;
+
+  // get initial values
+  vec2 curr_texcoord = uv;
+  float curr_depth = texture(u_material.height_map, curr_texcoord).r;
+
+  while (curr_layer_depth < curr_depth) {
+    // shift texture coordinates along direction of P
+    curr_texcoord -= d_texcoord;
+    // get depthmap value at current texture coordinates
+    curr_depth = texture(u_material.height_map, curr_texcoord).r;
+    // get depth of next layer
+    curr_layer_depth += layer_depth;
+  }
+  // get texture coordinates before collision (reverse operations)
+  vec2 prev_texcoord = curr_texcoord + d_texcoord;
+
+  // get depth after and before collision for linear interpolation
+  float afterDepth = curr_depth - curr_layer_depth;
+  float beforeDepth = texture(u_material.height_map, prev_texcoord).r -
+                      curr_layer_depth + layer_depth;
+
+  // interpolation of texture coordinates
+  float weight = afterDepth / (afterDepth - beforeDepth);
+  vec2 texcoord_out = prev_texcoord * weight + curr_texcoord * (1.0 - weight);
+
+  return texcoord_out;
+}
+
 const float MAX_REFLECTION_LOD = 4.0;
 
-vec3 to_srgb(vec3 color) { return pow(color, vec3(2.2)); }
-
+vec3 sgrb_to_linear(vec3 srgb) {
+  vec3 linear = pow(srgb, vec3(2.2));
+  return linear;
+}
 void main() {
-  vec3 tex_normal = texture(u_material.normal_map, texcoord).rgb;
+  vec3 view_dir = normalize(-frag_position);
+
+  vec2 uv = frag_texcoord;
+  vec2 uv_offset = parrallax_occlusion(uv, view_dir);
+  uv = mix(uv, uv_offset, u_material.height_texture_factor);
+
+  vec3 tex_normal = texture(u_material.normal_map, uv).rgb;
   tex_normal = normalize(tex_normal * 2.0 - 1.0);
   vec3 normal =
       mix(vec3(0.0, 0.0, 1.0), tex_normal, u_material.normal_texture_factor);
   // view spaced normal
   normal = normalize((u_view * vec4(tbn * normal, 0.0)).xyz);
   // view spaced view direction
-  vec3 view_dir = normalize(-frag_position);
 
-  vec3 tex_albedo = texture(u_material.albedo_map, texcoord).rgb;
+  vec3 tex_albedo = sgrb_to_linear(texture(u_material.albedo_map, uv).rgb);
   vec3 albedo =
       mix(u_material.albedo, tex_albedo, u_material.albedo_texture_factor);
 
-  float tex_metallic = texture(u_material.metallic_map, texcoord).r;
+  float tex_metallic = texture(u_material.metallic_map, uv).r;
   float metallic = mix(u_material.metallic, tex_metallic,
                        u_material.metallic_texture_factor);
 
-  float tex_roughness = texture(u_material.roughness_map, texcoord).r;
+  float tex_roughness = texture(u_material.roughness_map, uv).r;
   float roughness = mix(u_material.roughness, tex_roughness,
                         u_material.roughness_texture_factor);
 
-  float tex_ao = texture(u_material.ao_map, texcoord).r;
+  float tex_ao = texture(u_material.ao_map, uv).r;
   float ao = mix(u_material.ao, tex_ao, u_material.ao_texture_factor);
 
-  vec3 tex_emissive = texture(u_material.emissive_map, texcoord).rgb;
+  vec3 tex_emissive = texture(u_material.emissive_map, uv).rgb;
   vec3 emissive =
       u_material.emissive_intensity * mix(u_material.emissive, tex_emissive,
                                           u_material.emissive_texture_factor);

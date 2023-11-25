@@ -6,8 +6,8 @@
 #include <memory>
 #include "mesh.h"
 #include "shader.h"
-#include "core.h"
 #include "material.h"
+#include "transform.h"
 
 namespace Rendering
 {
@@ -23,15 +23,15 @@ namespace Rendering
     public:
         Core::Transform_Ptr transform;
 
-    private:
-        Mesh_Ptr mesh;
+    protected:
+        std::vector<Mesh_Ptr> mesh_list;
         // constructors and deconstructor
     public:
         Model(const std::string &name = "Model", Mesh_Ptr mesh = nullptr, Core::Transform_Ptr transform = Core::Transform_Ptr(new Core::Transform()))
             : Configurable(name),
-              mesh(std::move(mesh)),
               transform(std::move(transform))
         {
+            mesh_list.push_back(std::move(mesh));
         }
         virtual ~Model() {}
         // methods
@@ -39,7 +39,7 @@ namespace Rendering
         virtual void init() = 0;
         virtual void update() = 0;
         virtual void destroy() = 0;
-        virtual Mesh *get_mesh() const { return mesh.get(); }
+        virtual Mesh *get_mesh(size_t index = 0) const { return mesh_list.size() ? mesh_list[index].get() : nullptr; }
     };
 
     class OGL_Model;
@@ -68,7 +68,7 @@ namespace Rendering
         virtual void init();
         virtual void destroy() {}
         Core::Matrix4 get_model_matrix() const;
-        virtual OGL_Mesh *get_mesh() const { return dynamic_cast<OGL_Mesh *>(Model::get_mesh()); }
+        virtual OGL_Mesh *get_mesh(size_t index = 0) const { return dynamic_cast<OGL_Mesh *>(Model::get_mesh(index)); }
     };
 
 } // namespace Rendering

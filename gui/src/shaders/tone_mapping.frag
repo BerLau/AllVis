@@ -45,7 +45,7 @@ vec3 gamma_correct(vec3 x, float gamma)
 void main()
 {
     vec3 color = texture(u_image, texcoord).rgb;
-    // color = aces_approx_tone_mapping(color * u_exposure);
-    // color = gamma_correct(color, u_gamma);
+    // color = aces_tone_mapping(color * u_exposure);
+    color = gamma_correct(color, u_gamma);
     frag_color = vec4(color, 1.0);
 }

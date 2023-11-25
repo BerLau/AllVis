@@ -1,9 +1,10 @@
 #pragma once
 #ifndef MATERIAL_H
 #define MATERIAL_H
-#include "core.h"
 #include "texture.h"
 #include "shader.h"
+#include "configurable.h"
+#include "vector.h"
 
 namespace Rendering
 {

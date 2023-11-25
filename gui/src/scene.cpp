@@ -1,4 +1,5 @@
 #include "scene.h"
+#include "geometry/general.h"
 namespace Rendering
 {
     void OGL_Scene::init()
@@ -45,21 +46,37 @@ namespace Rendering
         compute_brdf_lut();
         brdf_texture = brdf_fbo->get_color_attachment(0);
 
+        auto plane = Rendering::OGL_Model_Ptr(new Rendering::OGL_Model(
+            "Plane",
+            Rendering::OGL_Mesh::plane_mesh(10.0f, 10.0f)));
+            // Rendering::OGL_Mesh::plane_mesh(10.0f, 10.0f, 10, 10)));
+        plane->transform->set_position(Core::Vector3(0.0f, -1.0f, 0.0f));
+        plane->transform->angle_axis_rotate(Core::Geometry::radians(-90.0f), Core::Vector3(1.0f, 0.0f, 0.0f));
+        plane->material->color = Core::Vector3(RANDOM_RANGE_F(0.2, 1.0), RANDOM_RANGE_F(0.2, 1.0), RANDOM_RANGE_F(0.2, 1.0));
+        plane->transform->scale(0.5);
+        plane->material->metallic = RANDOM_RANGE_F(0.2, 1.0);
+        plane->material->roughness = RANDOM_RANGE_F(0.2, 1.0);
+        plane->material->ao = RANDOM_RANGE_F(0.1, 0.5);
+        models.push_back(std::move(plane));
         // add 5x5x5 cubes
-        const int row = 3;
+        // const int row = 3;
+        // int index = 0;
         // for (int i = 0; i < row; ++i)
         // {
-        //     float z = -float(row) + i * float(row)/2.f;
+        //     float z = -float(row) + i * float(row) / 2.f;
         //     for (int j = 0; j < 3; ++j)
         //     {
-        //         float x = -float(row) + j * float(row)/2.f;
+        //         float x = -float(row) + j * float(row) / 2.f;
         //         for (int k = 0; k < row; ++k)
         //         {
-        //             float y = -float(row) + k * float(row)/2.f;
+        //             float y = -float(row) + k * float(row) / 2.f;
         //             Core::Vector3 pos = Core::Vector3(x, y, z);
+        //             // auto cube_model = Rendering::OGL_Model_Ptr(new Rendering::OGL_Model(
+        //             //     "Cube " + std::to_string(index++),
+        //             //     Rendering::OGL_Mesh::cube_mesh(1.0f, 1.0f, 1.0f)));
         //             auto cube_model = Rendering::OGL_Model_Ptr(new Rendering::OGL_Model(
-        //                 "Cube 1",
-        //                 Rendering::OGL_Mesh::cube_mesh(1.0f, 1.0f, 1.0f)));
+        //             "Circle " + std::to_string(index++),
+        //             Rendering::OGL_Mesh::circle_mesh(1.0f, 32)));
         //             cube_model->material->color = Core::Vector3(RANDOM_RANGE_F(0.2, 1.0), RANDOM_RANGE_F(0.2, 1.0), RANDOM_RANGE_F(0.2, 1.0));
         //             cube_model->transform->scale(0.5);
         //             cube_model->transform->set_position(pos);
@@ -71,32 +88,32 @@ namespace Rendering
         //     }
         // }
 
-        float off_set = float(row)/4.f;
-        // float off_set = 0.f;
-        int index = 0;
-        for (int i = 0; i < row; ++i)
-        {
-            float y = -float(row) + i * float(row) / 2.f + off_set;
-            for (int j = 0; j < row; ++j)
-            {
-                float z = -float(row) + j * float(row) / 2.f + off_set;
-                for (int k = 0; k < row; ++k)
-                {
-                    float x = -float(row) + k * float(row) / 2.f + off_set;
-                    Core::Vector3 pos = Core::Vector3(x, y, z);
-                    auto sphere_model = Rendering::OGL_Model_Ptr(new Rendering::OGL_Model(
-                        "Sphere " + std::to_string(index++),
-                        Rendering::OGL_Mesh::sphere_mesh(1.0, 32, 32)));
-                    sphere_model->transform->set_position(pos);
-                    sphere_model->material->color = Core::Vector3(RANDOM_RANGE_F(0.2, 1.0), RANDOM_RANGE_F(0.2, 1.0), RANDOM_RANGE_F(0.2, 1.0));
-                    sphere_model->material->metallic = RANDOM_RANGE_F(0.2, 1.0);
-                    sphere_model->material->roughness = RANDOM_RANGE_F(0.2, 1.0);
-                    sphere_model->material->ao = RANDOM_RANGE_F(0.1, 0.5);
-                    sphere_model->transform->scale(0.5);
-                    models.push_back(std::move(sphere_model));
-                }
-            }
-        }
+        // float off_set = float(row) / 4.f;
+        // // float off_set = 0.f;
+        // index = 0;
+        // for (int i = 0; i < row; ++i)
+        // {
+        //     float y = -float(row) + i * float(row) / 2.f + off_set;
+        //     for (int j = 0; j < row; ++j)
+        //     {
+        //         float z = -float(row) + j * float(row) / 2.f + off_set;
+        //         for (int k = 0; k < row; ++k)
+        //         {
+        //             float x = -float(row) + k * float(row) / 2.f + off_set;
+        //             Core::Vector3 pos = Core::Vector3(x, y, z);
+        //             auto sphere_model = Rendering::OGL_Model_Ptr(new Rendering::OGL_Model(
+        //                 "Sphere " + std::to_string(index++),
+        //                 Rendering::OGL_Mesh::sphere_mesh(1.0, 32, 32)));
+        //             sphere_model->transform->set_position(pos);
+        //             sphere_model->material->color = Core::Vector3(RANDOM_RANGE_F(0.2, 1.0), RANDOM_RANGE_F(0.2, 1.0), RANDOM_RANGE_F(0.2, 1.0));
+        //             sphere_model->material->metallic = RANDOM_RANGE_F(0.2, 1.0);
+        //             sphere_model->material->roughness = RANDOM_RANGE_F(0.2, 1.0);
+        //             sphere_model->material->ao = RANDOM_RANGE_F(0.1, 0.5);
+        //             sphere_model->transform->scale(0.5);
+        //             models.push_back(std::move(sphere_model));
+        //         }
+        //     }
+        // }
 
         // set lights
         // set directional light
@@ -110,7 +127,7 @@ namespace Rendering
         lights.push_back({std::move(light), true});
 
         // set point lights
-        for (int i = 1; i <= 16; i++)
+        for (int i = 1; i <= 9; i++)
         {
             auto light = Rendering::Light_Ptr(new Rendering::Light());
             light->name = "light " + std::to_string(i);
@@ -138,7 +155,7 @@ namespace Rendering
         // skybox_path = "textures/TCom_JapanParkingGarageB_4K_hdri_sphere_tone.jpg";
         // auto sky_texture = load_texture(skybox_path);
         // Texture_Manager::instance().add_texture(skybox_path, sky_texture);
-        // update_environment();
+        // update_skybox();
     }
     void OGL_Scene_3D::update()
     {
@@ -151,12 +168,12 @@ namespace Rendering
     void OGL_Scene_3D::render()
     {
         using namespace Core;
-        Matrix4 projection = Geometry::perspective(Geometry::radians(this->fov), this->aspect, this->near, this->far);
+        Matrix4 projection = Core::Geometry::perspective(Core::Geometry::radians(this->fov), this->aspect, this->near, this->far);
         Matrix4 view = Core::Matrix4::identity();
         if (active_camera_index >= 0)
         {
             auto &active_camera = cameras[active_camera_index].value;
-            view = Geometry::look_at(active_camera->get_position(), active_camera->get_focus(), active_camera->get_up());
+            view = Core::Geometry::look_at(active_camera->get_position(), active_camera->get_focus(), active_camera->get_up());
         }
         if (skybox_path == "")
         {
@@ -166,11 +183,10 @@ namespace Rendering
         pbr_fbo->bind();
         pbr_fbo->clear();
         render_pbr(view, projection);
+
         render_lights(view, projection);
         render_skybox(view, projection);
         pbr_fbo->unbind();
-
-
         finalize_output();
     }
     void OGL_Scene_3D::render_skybox(const Core::Matrix4 &view, const Core::Matrix4 &projection)
@@ -214,7 +230,6 @@ namespace Rendering
         Shader_Program *shader = nullptr;
 
         // set environment map
-
         auto irradiance_map = irradiance_texture ? irradiance_texture : Texture_Manager::instance().get_default_cubemap();
         auto prefilter_map = prefilter_texture ? prefilter_texture : Texture_Manager::instance().get_default_cubemap();
         auto brdf_lut = brdf_texture;
@@ -230,7 +245,6 @@ namespace Rendering
 
         brdf_lut->bind(PBR_TEXTURE_UNIT::BRDF);
         shader->set_int("u_brdf_lut", PBR_TEXTURE_UNIT::BRDF);
-
 
         shader->set_mat4("u_view", view.data());
         shader->set_mat4("u_projection", projection.data());
@@ -399,19 +413,6 @@ namespace Rendering
         glViewport(0, 0, 1024, 1024);
         equi_texture->bind(PBR_TEXTURE_UNIT::EQUIRECTANGULAR);
         equi_to_cube_shader->set_int("u_equirectangular_map", PBR_TEXTURE_UNIT::EQUIRECTANGULAR);
-
-        if (equi_texture->format.is_hdr)
-        {
-            equi_to_cube_shader->set_bool("u_is_hdr", true);
-        }
-        else
-        {
-            equi_to_cube_shader->set_bool("u_is_hdr", false);
-        }
-        // set gamma correction
-        equi_to_cube_shader->set_float("u_gamma", this->gamma);
-        // set exposure
-        equi_to_cube_shader->set_float("u_exposure", this->exposure);
         auto cubemap_texture = cubemap_fbo->get_color_attachment(0);
         glCullFace(GL_FRONT);
 
@@ -526,7 +527,7 @@ namespace Rendering
         brdf_fbo->unbind();
     }
 
-    void OGL_Scene_3D::update_environment()
+    void OGL_Scene_3D::update_skybox()
     {
         equi_to_cubemap();
         skybox_texture = cubemap_fbo->get_color_attachment(0);

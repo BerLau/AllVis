@@ -1,5 +1,6 @@
 #include "fbo.h"
-
+#include "global.h"
+#include <iostream>
 namespace Rendering
 {
     void FBO::destroy()

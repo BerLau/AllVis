@@ -1,5 +1,6 @@
 #include "transform.h"
 
+#include "geometry/geometry3d.h"
 namespace Core
 {
     Transform::Transform(const Core::Vector3 &pos, const EulerAngle &euler_angle, const Core::Vector3 &scale)
@@ -254,10 +255,17 @@ namespace Core
         }
     }
 
-    void Transform::angle_axis_rotate(float angle_rad, Vector3 axis)
+    void Transform::angle_axis_rotate(float angle_rad, Vector3 axis, bool local)
     {
-        Quaternion offset = Geometry::angle_axis(angle_rad, axis.normalize());
-        m_orientation = (offset * m_orientation).normalize();
+        Quaternion offset = Geometry::angle_axis(angle_rad, axis);
+        if (local)
+        {
+            m_orientation = (offset * m_orientation).normalize();
+        }
+        else
+        {
+            m_orientation = (m_orientation * offset).normalize();
+        }
     }
 
     void Transform::scale(float x, float y, float z)

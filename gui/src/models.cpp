@@ -18,24 +18,27 @@ namespace Rendering
     }
     void OGL_Model::draw(Shader_Program *shader)
     {
-        auto mesh_ = get_mesh();
-        if (mesh_ == nullptr || shader == nullptr)
-        {
-            return;
-        }
-        Core::Matrix4 model = get_model_matrix();
-        Core::Matrix3 normal_matrix = transform->get_normal_matrix();
-        shader->activate();
-        // material->bind();
-        // material->write_to_shader("u_material", shader);
-        shader->set_mat4("u_model", model.data());
-        shader->set_mat3("u_normal_matrix", normal_matrix.data());
-        mesh_->bind_buffer();
-        // enable face culling
         glEnable(GL_CULL_FACE);
-        glDrawElements(GL_TRIANGLES, mesh_->indices.size(), GL_UNSIGNED_INT, 0);
+        for (int i = 0; i < mesh_list.size(); ++i)
+        {
+            auto mesh_ = get_mesh(i);
+            if (mesh_ == nullptr || shader == nullptr)
+            {
+                return;
+            }
+            Core::Matrix4 model = get_model_matrix();
+            Core::Matrix3 normal_matrix = transform->get_normal_matrix();
+            shader->activate();
+            // material->bind();
+            // material->write_to_shader("u_material", shader);
+            shader->set_mat4("u_model", model.data());
+            shader->set_mat3("u_normal_matrix", normal_matrix.data());
+            mesh_->bind_buffer();
+            // enable face culling
+            glDrawElements(GL_TRIANGLES, mesh_->indices.size(), GL_UNSIGNED_INT, 0);
+            mesh_->unbind_buffer();
+        }
         glDisable(GL_CULL_FACE);
-        mesh_->unbind_buffer();
     }
 
     void OGL_Model::update()
@@ -48,7 +51,7 @@ namespace Rendering
         auto mesh_ = get_mesh();
         if (mesh_ != nullptr)
         {
-            mesh_->init();
+            mesh_->setup_buffers();
         }
     }
 

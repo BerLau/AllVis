@@ -29,16 +29,9 @@ namespace Rendering
             const unsigned int element_size;
             const unsigned int count;
 
-            constexpr Segment(unsigned int element_type, unsigned int element_size, unsigned int count) : element_type(element_type), element_size(element_size), count(count)
-            {
-            }
-            constexpr Segment() : element_type(0), element_size(0), count(0)
-            {
-            }
-            constexpr size_t size() const
-            {
-                return count * element_size;
-            }
+            constexpr Segment(unsigned int element_type, unsigned int element_size, unsigned int count) : element_type(element_type), element_size(element_size), count(count) {}
+            constexpr Segment() : element_type(0), element_size(0), count(0) {}
+            constexpr size_t size() const { return count * element_size; }
         };
 
         class Layout
@@ -46,6 +39,7 @@ namespace Rendering
             // attributes
         public:
             std::vector<Segment> segments;
+            std::vector<size_t> prefix_byte_sizes;
             Layout() {}
             ~Layout() {}
             // methods
@@ -53,31 +47,14 @@ namespace Rendering
             void add_segment(unsigned int element_type, unsigned int element_size, unsigned int count)
             {
                 segments.push_back(Segment(element_type, element_size, count));
+                prefix_byte_sizes.push_back(prefix_byte_sizes.empty() ? 0 : prefix_byte_sizes.back() + segments.back().size());
             }
-            void add_segment(const Segment &segment)
-            {
-                segments.push_back(segment);
-            }
+            void add_segment(const Segment &segment) { segments.push_back(segment); }
+            size_t size() const;
+            size_t count() const { return segments.size(); }
+            size_t bytes_off(unsigned int index) const { return prefix_byte_sizes[index]; }
 
-            size_t size() const
-            {
-                size_t rslt = 0;
-                for (auto &segment : segments)
-                {
-                    rslt += segment.size();
-                }
-                return rslt;
-            }
-
-            size_t count() const
-            {
-                return segments.size();
-            }
-
-            const Segment &operator[](unsigned int index) const
-            {
-                return segments[index];
-            }
+            const Segment &operator[](unsigned int index) const { return segments[index]; }
         };
         // attributes
 
@@ -89,88 +66,45 @@ namespace Rendering
     private:
         // constructors and deconstructor
     public:
-        Mesh(Layout layout)
-            : layout(layout)
-        {
-        }
+        Mesh(Layout layout) : layout(layout) {}
         Mesh(Layout layout, unsigned int vertex_count, unsigned int index_count)
-            : layout(layout)
-        {
-            resize(vertex_count, index_count);
-        }
-        virtual ~Mesh()
-        {
-        }
+            : layout(layout) { resize(vertex_count, index_count); }
+        virtual ~Mesh() {}
         // methods
     public:
-        void resize(unsigned int vertex_count, unsigned int index_count)
-        {
-            vertices.resize(layout.size() * vertex_count);
-            indices.resize(index_count);
-        }
-        void expand(unsigned int vertex_count, unsigned int index_count)
-        {
-            vertices.reserve(layout.size() * vertex_count);
-            indices.reserve(index_count);
-        }
-        void add_vertices(void *data, size_t byte_size)
-        {
-            // resize vertices
-            vertices.resize(vertices.size() + byte_size);
-            // copy data to vertices
-            memcpy(&vertices[vertices.size() - byte_size], data, byte_size);
-        }
-        void add_indices(unsigned int *data, size_t byte_size)
-        {
-            // resize indices
-            indices.resize(indices.size() + byte_size);
-            // copy data to indices
-            memcpy(&indices[indices.size() - byte_size], data, byte_size);
-        }
-
-        void add_vertex(void *data, size_t byte_size)
-        {
-            if (byte_size == layout.size())
-            {
-                vertices.resize(vertices.size() + byte_size);
-                memcpy(&vertices[vertices.size() - byte_size], data, byte_size);
-            }
-            else
-            {
-                std::cerr << "Error: size of data is not equal to size of layout" << std::endl;
-            }
-        }
-
-        void add_index(unsigned int data)
-        {
-            indices.push_back(data);
-        }
-
-        void *vertex(unsigned int index)
-        {
-            return &vertices[index * layout.size()];
-        }
+        void resize(unsigned int vertex_count, unsigned int index_count);
+        void reserve(unsigned int vertex_count, unsigned int index_count);
 
         template <typename T>
-        T *vertex_attr(unsigned int index, unsigned int attr_index)
-        {
-            if (attr_index >= layout.count())
-            {
-                std::cerr << "Error: offset + sizeof(T) > layout.size()" << std::endl;
-                return nullptr;
-            }
-            size_t offset = 0;
-            for (unsigned int i = 0; i < attr_index; ++i)
-            {
-                offset += layout[i].size();
-            }
-            return (T *)&vertices[index * layout.size() + offset];
-        }
-        void clear()
-        {
-            vertices.clear();
-            indices.clear();
-        }
+        void append_vertex(T *data, size_t count);
+
+        template <typename T>
+        void set_vertex(size_t index, T *data);
+
+        void *vertex(unsigned int index) { return &vertices[index * layout.size()]; }
+
+        template <typename T>
+        T *vertex_attr(unsigned int index, unsigned int attr_index);
+
+        template <typename T>
+        void append_vertex(T *data);
+
+        template <typename T>
+        void append_vertex_attr(unsigned int attr_index, T *data);
+
+        template <typename T>
+        void set_vertex_attr(unsigned int index, unsigned int attr_index, T *data);
+
+        unsigned int index(unsigned int index) { return indices[index]; }
+        void set_index(unsigned int index, unsigned int data) { indices[index] = data; }
+        void set_index(unsigned int index, unsigned int *data, unsigned int count) { memcpy(&indices[index], data, count * sizeof(unsigned int)); }
+        void append_index(unsigned int data) { indices.push_back(data); }
+        void append_index(unsigned int *data, size_t count) { indices.insert(indices.end(), data, data + count); }
+
+        void clear();
+
+        size_t vertex_count() const { return vertices.size() / layout.size(); }
+        size_t index_count() const { return indices.size(); }
         // static methods
     };
 
@@ -188,17 +122,10 @@ namespace Rendering
         GLuint ebo;
         // constructors and deconstructor
     public:
-        OGL_Mesh(Layout layout)
-            : Mesh(layout),
-              vao(0),
-              vbo(0),
-              ebo(0)
-        {
-        }
-        virtual ~OGL_Mesh()
-        {
-            destroy();
-        }
+        OGL_Mesh(Layout layout) : Mesh(layout), vao(0), vbo(0), ebo(0) {}
+        OGL_Mesh(Layout layout, unsigned int vertex_count, unsigned int index_count)
+            : Mesh(layout, vertex_count, index_count), vao(0), vbo(0), ebo(0) {}
+        virtual ~OGL_Mesh() { destroy(); }
         // methods
     public:
         void create_vao();
@@ -207,14 +134,16 @@ namespace Rendering
         void bind_buffer();
         void unbind_buffer();
         void map_buffers();
-        void init();
+        void setup_buffers();
         void destroy();
         void update();
         void render(Shader_Program *shader);
         // static methods
     public:
         static OGL_Mesh_Ptr cube_mesh(float width = 1.0f, float height = 1.0f, float depth = 1.0f);
-        static OGL_Mesh_Ptr plane_mesh(float width = 1.0f, float height = 1.0f, unsigned int width_segments = 1, unsigned int height_segments = 1, float u_tile = 1.0f, float v_tile = 1.0f);
+        static OGL_Mesh_Ptr plane_mesh(float width = 1.0f, float height = 1.0f);
+        static OGL_Mesh_Ptr grid_mesh(float width = 1.0f, float height = 1.0f, unsigned int width_segments = 1, unsigned int height_segments = 1);
+        static OGL_Mesh_Ptr circle_mesh(float radius = 1.0f, unsigned int segments = 32);
         static OGL_Mesh_Ptr sphere_mesh(float radius = 1.0f, unsigned int slices = 32, unsigned int stacks = 32);
         static OGL_Mesh_Ptr cylinder_mesh(float radius = 1.0f, float height = 1.0f, unsigned int radial_segments = 32, unsigned int height_segments = 1);
         static OGL_Mesh_Ptr cone_mesh(float radius = 1.0f, float height = 1.0f, unsigned int radial_segments = 32, unsigned int height_segments = 1);
@@ -229,6 +158,71 @@ namespace Rendering
         static OGL_Mesh *instanced_torus_mesh();
         static OGL_Mesh *instanced_quad_mesh();
     };
+
+    template <typename T>
+    inline void Mesh::append_vertex(T *data, size_t count)
+    {
+        size_t offset = vertices.size();
+        size_t byte_size = count * sizeof(T);
+        vertices.resize(offset + byte_size);
+        memcpy(&vertices[offset], (void *)data, byte_size);
+    }
+
+    template <typename T>
+    inline void Mesh::set_vertex(size_t index, T *data)
+    {
+        size_t offset = index * layout.size();
+        memcpy(&vertices[offset], (void *)data, layout.size());
+    }
+
+    template <typename T>
+    inline T *Mesh::vertex_attr(unsigned int index, unsigned int attr_index)
+    {
+        if (attr_index >= layout.count())
+        {
+            std::cerr << "Error: offset + sizeof(T) > layout.size()" << std::endl;
+            return nullptr;
+        }
+        size_t offset = 0;
+        for (unsigned int i = 0; i < attr_index; ++i)
+        {
+            offset += layout[i].size();
+        }
+        return (T *)&vertices[index * layout.size() + offset];
+    }
+
+    template <typename T>
+    inline void Mesh::append_vertex(T *data)
+    {
+        size_t offset = vertices.size();
+        vertices.resize(offset + layout.size());
+        memcpy(&vertices[offset], (void *)data, layout.size());
+    }
+
+    template <typename T>
+    inline void Mesh::append_vertex_attr(unsigned int attr_index, T *data)
+    {
+        if (attr_index >= layout.count())
+        {
+            std::cerr << "Error: offset + sizeof(T) > layout.size()" << std::endl;
+            return;
+        }
+        size_t offset = vertices.size();
+        vertices.resize(offset + layout[attr_index].size());
+        memcpy(&vertices[offset], (void *)data, layout[attr_index].size());
+    }
+
+    template <typename T>
+    inline void Mesh::set_vertex_attr(unsigned int index, unsigned int attr_index, T *data)
+    {
+        if (attr_index >= layout.count())
+        {
+            std::cerr << "Error: offset + sizeof(T) > layout.size()" << std::endl;
+            return;
+        }
+        size_t offset = index * layout.size() + layout.bytes_off(attr_index);
+        memcpy(&vertices[offset], (void *)data, layout[attr_index].size());
+    }
 
 }; // namespace Rendering
 

@@ -113,7 +113,7 @@ TEST(TestMesh, MEMCPY)
         t->u = texcoords[i].u;
         t->v = texcoords[i].v;
     }
-    mesh->add_indices(indices, 6);
+    mesh->append_index(indices, 6);
 
     for (int i = 0; i < 4; ++i)
     {

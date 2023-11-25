@@ -1,5 +1,6 @@
 #include "camera.h"
 #include "config.h"
+#include "geometry/geometry3d.h"
 
 namespace Rendering
 {
@@ -64,7 +65,7 @@ namespace Rendering
         Core::Vector3 front = transform->get_front();
         Core::Vector3 up = transform->get_up();
         Core::Vector3 center = pos + front * properties.focus_distance;
-        return Geometry::look_at(pos, center, up);
+        return Core::Geometry::look_at(pos, center, up);
     }
 
     Core::Vector3 Camera::get_position() const
@@ -74,10 +75,10 @@ namespace Rendering
 
     void Camera::focus_on(Core::Vector3 target, Core::Vector3 up)
     {
-        Core::Vector3 front = Geometry::normalize(target - transform->get_position());
-        up = Geometry::normalize(up);
+        Core::Vector3 front = Core::Geometry::normalize(target - transform->get_position());
+        up = Core::Geometry::normalize(up);
         transform->look_at(-front, up);
-        properties.focus_distance = Geometry::distance(target, transform->get_position());
+        properties.focus_distance = Core::Geometry::distance(target, transform->get_position());
     }
 
 } // namespace Scene

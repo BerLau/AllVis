@@ -1,5 +1,7 @@
 #include "text_render.h"
 #include "ui_log.h"
+#include "global.h"
+#include <iostream>
 namespace Rendering
 {
     void Text_Render::init()

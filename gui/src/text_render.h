@@ -3,9 +3,9 @@
 #define GUI_TEXT_RENDER_H
 
 #include <glad/glad.h>
-#include <core.h>
 #include "shader.h"
 #include <freetype2/ft2build.h>
+#include "vector.h"
 #include FT_FREETYPE_H
 
 namespace Rendering

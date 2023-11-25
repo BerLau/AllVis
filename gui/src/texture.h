@@ -4,7 +4,6 @@
 
 #include <glad/glad.h>
 #include <memory>
-#include <core.h>
 #include <unordered_map>
 #include "ui_log.h"
 

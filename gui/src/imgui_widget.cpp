@@ -4,7 +4,6 @@
 #include <iostream>
 #include <fstream>
 #include "ui_log.h"
-#include <lmath.h>
 #include <filesystem>
 #include "ImGuiFileDialog.h"
 namespace GUI
@@ -610,10 +609,6 @@ namespace GUI
                 // float slider
                 float exposure = ogl_3d->exposure;
                 ImGui::SliderFloat("##exposure", &ogl_3d->exposure, 0.01f, 20.0f, "%.2f");
-                if (!EQUAL_F(gamma, ogl_3d->gamma) || !EQUAL_F(exposure, ogl_3d->exposure))
-                {
-                    ogl_3d->update_environment();
-                }
 
                 // set the sky box texture
                 ImGui::Text("Sky Box");
@@ -633,7 +628,7 @@ namespace GUI
                         Rendering::Texture_Manager::instance().add_texture(new_path, Rendering::load_texture(new_path));
                     }
                     ogl_3d->skybox_path = new_path;
-                    ogl_3d->update_environment();
+                    ogl_3d->update_skybox();
                 }
                 // change back to one column
                 ImGui::Columns(1);

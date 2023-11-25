@@ -2,9 +2,10 @@
 #ifndef RENDERING_LIGHT_H
 #define RENDERING_LIGHT_H
 
-#include <core.h>
 #include <memory>
 #include "models.h"
+#include "configurable.h"
+#include "transform.h"
 
 namespace Rendering
 {

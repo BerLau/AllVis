@@ -2,7 +2,7 @@
 #include <stdexcept>
 #include "vector.h"
 #include <iostream>
-#include "global.hpp"
+#include "global.h"
 
 namespace Core
 {

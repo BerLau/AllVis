@@ -2,6 +2,7 @@
 #include <gui.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include "geometry/geometry3d.h"
 
 // bool Expect_Matrix_Equal(const Core::Matrix4 &m1, const glm::mat4 &m2)
 // {
@@ -25,7 +26,7 @@ TEST(TestCamera, LookAt)
     Core::Vector3 pos = Core::Vector3(0.f, 2.0f, 4.0f);
     Core::Vector3 center = Core::Vector3(0.0f, 1.0f, 2.0f);
     Core::Vector3 up = Core::Vector3(0.0f, 2.0f, 0.0f);
-    Core::Matrix4 r = Geometry::look_at(pos, center, up);
+    Core::Matrix4 r = Core::Geometry::look_at(pos, center, up);
 
     Rendering::Camera camera(pos);
     camera.focus_on(center, up);

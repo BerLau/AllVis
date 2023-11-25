@@ -172,3 +172,14 @@ TEST(TestGeometry, AngleAxis)
     EXPECT_FLOAT_EQ(q.y, q_glm.y);
     EXPECT_FLOAT_EQ(q.z, q_glm.z);
 }
+
+TEST(TestGeometry, point_line_position)
+{
+    Core::Vector2 a(0.8, 4);
+    Core::Vector2 b(3.7, 11.25);
+    Core::Vector2 point = {2.5, 8.25};
+
+    int r = Geometry::point_line_position(point, a, b);
+    EXPECT_EQ(r, 0);
+
+}

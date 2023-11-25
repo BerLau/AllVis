@@ -4,6 +4,9 @@
 #include "stb_image.h"
 #include <tiffio.h>
 #include <cstring>
+#include <iostream>
+#include "file.h"
+#include "tools.h"
 
 namespace Rendering
 {
@@ -359,7 +362,7 @@ namespace Rendering
         format.format = img.format;
         format.type = img.type;
 
-        auto tex_params = Texture::TexParams::linear_mipmap_clamp_edge();
+        auto tex_params = Texture::TexParams::linear_mipmap_repeat();
         Texture *texture = new Texture(format, tex_params);
         texture->set_data(img.data, img.width, img.height);
         texture->generate_mipmap();
@@ -372,7 +375,7 @@ namespace Rendering
         Texture::Format format;
         format.target = GL_TEXTURE_CUBE_MAP;
 
-        auto paths = Tools::split_str(path, ";");
+        auto paths = Core::Tools::split_str(path, ";");
         Texture *texture = new Texture(format);
         for (int i = 0; i < 6; i++)
         {

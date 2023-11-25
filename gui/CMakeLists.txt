@@ -47,7 +47,6 @@ glfw
 imgui 
 core 
 freetype
-math
 stb_image
 tiff
 )
@@ -58,7 +57,6 @@ glfw
 imgui
 core
 freetype
-math
 stb_image
 tiff
 )

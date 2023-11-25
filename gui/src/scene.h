@@ -10,6 +10,9 @@
 #include "camera.h"
 #include "light.h"
 #include "fbo.h"
+#include "geometry/geometry3d.h"
+#include "global.h"
+
 
 namespace Rendering
 {
@@ -185,7 +188,6 @@ namespace Rendering
         Texture* prefilter_texture = nullptr;
         Texture* brdf_texture = nullptr;
         
-
         // constructors and deconstructor
     public:
         OGL_Scene_3D(float width, float height);
@@ -214,12 +216,12 @@ namespace Rendering
             return final_fbo->get_color_attachment();
         }
         virtual void finalize_output() override;
-        void equi_to_cubemap(const Core::Matrix4 &projection = Geometry::perspective(Geometry::radians(90.0f), 1.0f, 0.1f, 10.0f));
+        void equi_to_cubemap(const Core::Matrix4 &projection = Core::Geometry::perspective(Core::Geometry::radians(90.0f), 1.0f, 0.1f, 10.0f));
         void precompute_envrionment();
         void compute_env_irradiance(Texture *env_cubemap);
         void compute_env_prefilter(Texture *env_cubemap);
         void compute_brdf_lut();
-        void update_environment();
+        void update_skybox();
 
     protected:
         void render_skybox(const Core::Matrix4 &view, const Core::Matrix4 &projection);
@@ -235,14 +237,14 @@ namespace Rendering
         void init_brdf_fbo();
     };
 
-    static const Core::Matrix4 cube_projection = Geometry::perspective(Geometry::radians(90.0f), 1.0f, 0.1f, 10.0f);
+    static const Core::Matrix4 cube_projection = Core::Geometry::perspective(Core::Geometry::radians(90.0f), 1.0f, 0.1f, 10.0f);
     static const Core::Matrix4 cube_views[6] = {
-        Geometry::look_at(Core::Vector3(0.0f, 0.0f, 0.0f), Core::Vector3(1.0f, 0.0f, 0.0f), Core::Vector3(0.0f, -1.0f, 0.0f)),
-        Geometry::look_at(Core::Vector3(0.0f, 0.0f, 0.0f), Core::Vector3(-1.0f, 0.0f, 0.0f), Core::Vector3(0.0f, -1.0f, 0.0f)),
-        Geometry::look_at(Core::Vector3(0.0f, 0.0f, 0.0f), Core::Vector3(0.0f, 1.0f, 0.0f), Core::Vector3(0.0f, 0.0f, 1.0f)),
-        Geometry::look_at(Core::Vector3(0.0f, 0.0f, 0.0f), Core::Vector3(0.0f, -1.0f, 0.0f), Core::Vector3(0.0f, 0.0f, -1.0f)),
-        Geometry::look_at(Core::Vector3(0.0f, 0.0f, 0.0f), Core::Vector3(0.0f, 0.0f, 1.0f), Core::Vector3(0.0f, -1.0f, 0.0f)),
-        Geometry::look_at(Core::Vector3(0.0f, 0.0f, 0.0f), Core::Vector3(0.0f, 0.0f, -1.0f), Core::Vector3(0.0f, -1.0f, 0.0f))};
+        Core::Geometry::look_at(Core::Vector3(0.0f, 0.0f, 0.0f), Core::Vector3(1.0f, 0.0f, 0.0f), Core::Vector3(0.0f, -1.0f, 0.0f)),
+        Core::Geometry::look_at(Core::Vector3(0.0f, 0.0f, 0.0f), Core::Vector3(-1.0f, 0.0f, 0.0f), Core::Vector3(0.0f, -1.0f, 0.0f)),
+        Core::Geometry::look_at(Core::Vector3(0.0f, 0.0f, 0.0f), Core::Vector3(0.0f, 1.0f, 0.0f), Core::Vector3(0.0f, 0.0f, 1.0f)),
+        Core::Geometry::look_at(Core::Vector3(0.0f, 0.0f, 0.0f), Core::Vector3(0.0f, -1.0f, 0.0f), Core::Vector3(0.0f, 0.0f, -1.0f)),
+        Core::Geometry::look_at(Core::Vector3(0.0f, 0.0f, 0.0f), Core::Vector3(0.0f, 0.0f, 1.0f), Core::Vector3(0.0f, -1.0f, 0.0f)),
+        Core::Geometry::look_at(Core::Vector3(0.0f, 0.0f, 0.0f), Core::Vector3(0.0f, 0.0f, -1.0f), Core::Vector3(0.0f, -1.0f, 0.0f))};
 
 } // namespace scene
 

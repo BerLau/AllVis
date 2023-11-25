@@ -1,8 +1,9 @@
 #pragma once
 #ifndef CAMERA_H
 #define CAMERA_H
-
-#include "core.h"
+#include <memory>
+#include "configurable.h"
+#include "transform.h"
 
 namespace Rendering
 {
