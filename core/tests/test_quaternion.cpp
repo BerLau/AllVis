@@ -1,9 +1,10 @@
 #include <gtest/gtest.h>
-#include "core.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include "test_utils.h"
+#include "quaternion.h"
+#include "math/base.h"
 
 using namespace Core;
 
@@ -26,10 +27,10 @@ TEST(TestQuaternion, from_matrix4)
     std::cout << "q: " << q.w << ", " << q.x << ", " << q.y << ", " << q.z << std::endl;
     std::cout << "q_glm: " << q_glm.w << ", " << q_glm.x << ", " << q_glm.y << ", " << q_glm.z << std::endl;
 
-    EXPECT_TRUE(EQUAL_F(q.w, q_glm.w));
-    EXPECT_TRUE(EQUAL_F(q.x, q_glm.x));
-    EXPECT_TRUE(EQUAL_F(q.y, q_glm.y));
-    EXPECT_TRUE(EQUAL_F(q.z, q_glm.z));
+    EXPECT_TRUE(Math::equal(q.w, q_glm.w));
+    EXPECT_TRUE(Math::equal(q.x, q_glm.x));
+    EXPECT_TRUE(Math::equal(q.y, q_glm.y));
+    EXPECT_TRUE(Math::equal(q.z, q_glm.z));
 }
 
 TEST(TestQuaternion, from_matrix3)
@@ -49,10 +50,10 @@ TEST(TestQuaternion, from_matrix3)
     std::cout << "q: " << q.w << ", " << q.x << ", " << q.y << ", " << q.z << std::endl;
     std::cout << "q_glm: " << q_glm.w << ", " << q_glm.x << ", " << q_glm.y << ", " << q_glm.z << std::endl;
 
-    EXPECT_TRUE(EQUAL_F(q.w, q_glm.w));
-    EXPECT_TRUE(EQUAL_F(q.x, q_glm.x));
-    EXPECT_TRUE(EQUAL_F(q.y, q_glm.y));
-    EXPECT_TRUE(EQUAL_F(q.z, q_glm.z));
+    EXPECT_TRUE(Math::equal(q.w, q_glm.w));
+    EXPECT_TRUE(Math::equal(q.x, q_glm.x));
+    EXPECT_TRUE(Math::equal(q.y, q_glm.y));
+    EXPECT_TRUE(Math::equal(q.z, q_glm.z));
 }
 
 TEST(TestQuaternion, from_axis_angle)
@@ -68,10 +69,10 @@ TEST(TestQuaternion, from_axis_angle)
     std::cout << "q: " << q.w << ", " << q.x << ", " << q.y << ", " << q.z << std::endl;
     std::cout << "q_glm: " << q_glm.w << ", " << q_glm.x << ", " << q_glm.y << ", " << q_glm.z << std::endl;
 
-    EXPECT_TRUE(EQUAL_F(q.w, q_glm.w));
-    EXPECT_TRUE(EQUAL_F(q.x, q_glm.x));
-    EXPECT_TRUE(EQUAL_F(q.y, q_glm.y));
-    EXPECT_TRUE(EQUAL_F(q.z, q_glm.z));
+    EXPECT_TRUE(Math::equal(q.w, q_glm.w));
+    EXPECT_TRUE(Math::equal(q.x, q_glm.x));
+    EXPECT_TRUE(Math::equal(q.y, q_glm.y));
+    EXPECT_TRUE(Math::equal(q.z, q_glm.z));
 }
 
 TEST(TestQuaternion, from_euler_angle)
@@ -91,10 +92,10 @@ TEST(TestQuaternion, from_euler_angle)
     std::cout << "q: " << q.w << ", " << q.x << ", " << q.y << ", " << q.z << std::endl;
     std::cout << "q_glm: " << q_glm.w << ", " << q_glm.x << ", " << q_glm.y << ", " << q_glm.z << std::endl;
 
-    EXPECT_TRUE(EQUAL_F(q.w, q_glm.w));
-    EXPECT_TRUE(EQUAL_F(q.x, q_glm.x));
-    EXPECT_TRUE(EQUAL_F(q.y, q_glm.y));
-    EXPECT_TRUE(EQUAL_F(q.z, q_glm.z));
+    EXPECT_TRUE(Math::equal(q.w, q_glm.w));
+    EXPECT_TRUE(Math::equal(q.x, q_glm.x));
+    EXPECT_TRUE(Math::equal(q.y, q_glm.y));
+    EXPECT_TRUE(Math::equal(q.z, q_glm.z));
 }
 
 TEST(TestQuaternion, to_matrix4)
@@ -154,10 +155,10 @@ TEST(TestQuaternion, to_axis_angle)
     std::cout << "axis_: " << axis_ << std::endl;
     std::cout << "angle_: " << angle_ << std::endl;
 
-    EXPECT_TRUE(EQUAL_F(axis.x(), axis_.x()));
-    EXPECT_TRUE(EQUAL_F(axis.y(), axis_.y()));
-    EXPECT_TRUE(EQUAL_F(axis.z(), axis_.z()));
-    EXPECT_TRUE(EQUAL_F(angle, angle_));
+    EXPECT_TRUE(Math::equal(axis.x(), axis_.x()));
+    EXPECT_TRUE(Math::equal(axis.y(), axis_.y()));
+    EXPECT_TRUE(Math::equal(axis.z(), axis_.z()));
+    EXPECT_TRUE(Math::equal(angle, angle_));
 }
 
 TEST(TestQuaternion, to_euler_angle)
@@ -192,9 +193,9 @@ TEST(TestQuaternion, to_euler_angle)
     std::cout << "yaw_glm: " << yaw_glm << std::endl;
     std::cout << "roll_glm: " << roll_glm << std::endl;
 
-    EXPECT_TRUE(EQUAL_F(euler_angle.yaw, yaw_glm));
-    EXPECT_TRUE(EQUAL_F(euler_angle.pitch, pitch_glm));
-    EXPECT_TRUE(EQUAL_F(euler_angle.roll, roll_glm));
+    EXPECT_TRUE(Math::equal(euler_angle.yaw, yaw_glm));
+    EXPECT_TRUE(Math::equal(euler_angle.pitch, pitch_glm));
+    EXPECT_TRUE(Math::equal(euler_angle.roll, roll_glm));
 }
 
 TEST(TestQuaternion, conjugate)
@@ -209,10 +210,10 @@ TEST(TestQuaternion, conjugate)
     std::cout << "q_conj: " << q_conj.w << ", " << q_conj.x << ", " << q_conj.y << ", " << q_conj.z << std::endl;
     std::cout << "q_conj_glm: " << q_conj_glm.w << ", " << q_conj_glm.x << ", " << q_conj_glm.y << ", " << q_conj_glm.z << std::endl;
 
-    EXPECT_TRUE(EQUAL_F(q_conj.w, q_conj_glm.w));
-    EXPECT_TRUE(EQUAL_F(q_conj.x, q_conj_glm.x));
-    EXPECT_TRUE(EQUAL_F(q_conj.y, q_conj_glm.y));
-    EXPECT_TRUE(EQUAL_F(q_conj.z, q_conj_glm.z));
+    EXPECT_TRUE(Math::equal(q_conj.w, q_conj_glm.w));
+    EXPECT_TRUE(Math::equal(q_conj.x, q_conj_glm.x));
+    EXPECT_TRUE(Math::equal(q_conj.y, q_conj_glm.y));
+    EXPECT_TRUE(Math::equal(q_conj.z, q_conj_glm.z));
 }
 
 TEST(TestQuaternion, inverse)
@@ -227,10 +228,10 @@ TEST(TestQuaternion, inverse)
     std::cout << "q_inv: " << q_inv.w << ", " << q_inv.x << ", " << q_inv.y << ", " << q_inv.z << std::endl;
     std::cout << "q_inv_glm: " << q_inv_glm.w << ", " << q_inv_glm.x << ", " << q_inv_glm.y << ", " << q_inv_glm.z << std::endl;
 
-    EXPECT_TRUE(EQUAL_F(q_inv.w, q_inv_glm.w));
-    EXPECT_TRUE(EQUAL_F(q_inv.x, q_inv_glm.x));
-    EXPECT_TRUE(EQUAL_F(q_inv.y, q_inv_glm.y));
-    EXPECT_TRUE(EQUAL_F(q_inv.z, q_inv_glm.z));
+    EXPECT_TRUE(Math::equal(q_inv.w, q_inv_glm.w));
+    EXPECT_TRUE(Math::equal(q_inv.x, q_inv_glm.x));
+    EXPECT_TRUE(Math::equal(q_inv.y, q_inv_glm.y));
+    EXPECT_TRUE(Math::equal(q_inv.z, q_inv_glm.z));
 }
 
 TEST(TestQuaternion, dot)
@@ -244,7 +245,7 @@ TEST(TestQuaternion, dot)
     std::cout << "dot: " << dot << std::endl;
     std::cout << "dot_glm: " << dot_glm << std::endl;
 
-    EXPECT_TRUE(EQUAL_F(dot, dot_glm));
+    EXPECT_TRUE(Math::equal(dot, dot_glm));
 }
 
 TEST(TestQuaternion, identity)
@@ -255,8 +256,8 @@ TEST(TestQuaternion, identity)
     std::cout << "q: " << q.w << ", " << q.x << ", " << q.y << ", " << q.z << std::endl;
     std::cout << "q_glm: " << q_glm.w << ", " << q_glm.x << ", " << q_glm.y << ", " << q_glm.z << std::endl;
 
-    EXPECT_TRUE(EQUAL_F(q.w, q_glm.w));
-    EXPECT_TRUE(EQUAL_F(q.x, q_glm.x));
-    EXPECT_TRUE(EQUAL_F(q.y, q_glm.y));
-    EXPECT_TRUE(EQUAL_F(q.z, q_glm.z));
+    EXPECT_TRUE(Math::equal(q.w, q_glm.w));
+    EXPECT_TRUE(Math::equal(q.x, q_glm.x));
+    EXPECT_TRUE(Math::equal(q.y, q_glm.y));
+    EXPECT_TRUE(Math::equal(q.z, q_glm.z));
 }

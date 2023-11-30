@@ -4,14 +4,13 @@
 
 #include "vector.h"
 
-namespace Core
+namespace Core::Geometry
 {
-    namespace Geometry
-    {
-        int point_line_position(const Core::Vector2 &p, const Core::Vector2 &a, const Core::Vector2 b);
-        bool point_in_triangle(const Core::Vector2 &p, const Core::Vector2 &a, const Core::Vector2 &b, const Core::Vector2 &c);
-    }
+    int point_line_position(const Core::Vector2 &p, const Core::Vector2 &a, const Core::Vector2 b);
+    double distance_point_line(const Core::Vector2 &p, const Core::Vector2 &a, const Core::Vector2 &b);
+    double area_triangle(const Core::Vector2 &a, const Core::Vector2 &b, const Core::Vector2 &c);
+    bool point_in_triangle(const Core::Vector2 &p, const Core::Vector2 &a, const Core::Vector2 &b, const Core::Vector2 &c);
 
-}
+}; // namespace Core::Geometry
 
 #endif // GEOMETRY_H

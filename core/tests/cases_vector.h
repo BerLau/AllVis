@@ -3,8 +3,7 @@
 #define TESTS_CORE_CASES_VECTOR_H
 
 #include <gtest/gtest.h>
-#include <core.h>
-
+#include "vector.h"
 class VectorTest : public ::testing::Test
 {
 protected:

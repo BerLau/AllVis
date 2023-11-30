@@ -3,10 +3,10 @@
 #define CORE_TEST_UTILS_H
 
 #include <gtest/gtest.h>
-#include <core.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
+#include "matrix.h"
 
 std::ostream &operator<<(std::ostream &os, const glm::mat4 &m);
 

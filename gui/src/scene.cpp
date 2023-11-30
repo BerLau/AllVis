@@ -1,5 +1,6 @@
 #include "scene.h"
 #include "geometry/general.h"
+#include "math/random.h"
 namespace Rendering
 {
     void OGL_Scene::init()
@@ -37,6 +38,7 @@ namespace Rendering
 
     void OGL_Scene_3D::init()
     {
+        using namespace Core;
         skybox_texture = Texture_Manager::instance().get_default_cubemap();
         init_pbr_fbo();
         init_cubemap_fbo();
@@ -52,11 +54,11 @@ namespace Rendering
             // Rendering::OGL_Mesh::plane_mesh(10.0f, 10.0f, 10, 10)));
         plane->transform->set_position(Core::Vector3(0.0f, -1.0f, 0.0f));
         plane->transform->angle_axis_rotate(Core::Geometry::radians(-90.0f), Core::Vector3(1.0f, 0.0f, 0.0f));
-        plane->material->color = Core::Vector3(RANDOM_RANGE_F(0.2, 1.0), RANDOM_RANGE_F(0.2, 1.0), RANDOM_RANGE_F(0.2, 1.0));
+        plane->material->color = Core::Vector3(Math::random(0.2, 1.0), Math::random(0.2, 1.0), Math::random(0.2, 1.0));
         plane->transform->scale(0.5);
-        plane->material->metallic = RANDOM_RANGE_F(0.2, 1.0);
-        plane->material->roughness = RANDOM_RANGE_F(0.2, 1.0);
-        plane->material->ao = RANDOM_RANGE_F(0.1, 0.5);
+        plane->material->metallic = Math::random(0.2, 1.0);
+        plane->material->roughness = Math::random(0.2, 1.0);
+        plane->material->ao = Math::random(0.1, 0.5);
         models.push_back(std::move(plane));
         // add 5x5x5 cubes
         // const int row = 3;
@@ -131,11 +133,11 @@ namespace Rendering
         {
             auto light = Rendering::Light_Ptr(new Rendering::Light());
             light->name = "light " + std::to_string(i);
-            light->set_position(Core::Vector3(RANDOM_RANGE_F(-2.5, 2.5), RANDOM_RANGE_F(-2.5, 2.5), RANDOM_RANGE_F(-2.5, 2.5)));
+            light->set_position(Core::Vector3(Math::random(-2.5, 2.5), Math::random(-2.5, 2.5), Math::random(-2.5, 2.5)));
             light->spot_on(Core::Vector3(0.0f, 0.0f, 0.0f));
-            Core::Vector3 color = Core::Vector3(RANDOM_RANGE_F(0.2, 1.0), RANDOM_RANGE_F(0.2, 1.0), RANDOM_RANGE_F(0.2, 1.0));
+            Core::Vector3 color = Core::Vector3(Math::random(0.2, 1.0), Math::random(0.2, 1.0), Math::random(0.2, 1.0));
             light->color = color;
-            light->intensity = RANDOM_RANGE_F(0.2, 1.0);
+            light->intensity = Math::random(0.2, 1.0);
             light->type = Rendering::Light::POINT_LIGHT;
             lights.push_back({std::move(light), true});
         }

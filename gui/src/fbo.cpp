@@ -1,6 +1,6 @@
 #include "fbo.h"
-#include "global.h"
 #include <iostream>
+#include "math/base.h"
 namespace Rendering
 {
     void FBO::destroy()
@@ -23,7 +23,7 @@ namespace Rendering
 
     void FBO::resize(unsigned int width, unsigned int height)
     {
-        if (EQUAL_F(this->width, width) && EQUAL_F(this->height, height))
+        if (Core::Math::equal(this->width, width) && Core::Math::equal(this->height, height))
         {
             return;
         }

@@ -253,11 +253,11 @@ namespace GUI
                 // get the mouse movement
                 auto mouse_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
 
-                if (!EQUAL_F(mouse_delta.x, 0.0f))
+                if (!Core::Math::equal(mouse_delta.x, 0.0f))
                 {
                     scene->cameras[scene->active_camera_index].value->transform->rotate_y(-mouse_delta.x * k * del_t);
                 }
-                if (!EQUAL_F(mouse_delta.y, 0.0f))
+                if (!Core::Math::equal(mouse_delta.y, 0.0f))
                 {
                     scene->cameras[scene->active_camera_index].value->transform->rotate_x(-mouse_delta.y * k * del_t);
                 }
@@ -266,13 +266,13 @@ namespace GUI
                 mouse_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
                 Core::Vector3 camera_focus = scene->cameras[scene->active_camera_index].value->get_focus();
 
-                if (!EQUAL_F(mouse_delta.x, 0.0f))
+                if (!Core::Math::equal(mouse_delta.x, 0.0f))
                 {
 
                     scene->cameras[scene->active_camera_index].value->transform->move_around_vertically(camera_focus, mouse_delta.x * k * del_t);
                 }
 
-                if (!EQUAL_F(mouse_delta.y, 0.0f))
+                if (!Core::Math::equal(mouse_delta.y, 0.0f))
                 {
                     scene->cameras[scene->active_camera_index].value->transform->move_around_horizontally(camera_focus, mouse_delta.y * k * del_t);
                 }
@@ -287,11 +287,11 @@ namespace GUI
                 // get the mouse movement
                 auto mouse_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left);
 
-                if (!EQUAL_F(mouse_delta.x, 0.0f))
+                if (!Core::Math::equal(mouse_delta.x, 0.0f))
                 {
                     model->transform->rotate_y(-mouse_delta.x * k * del_t);
                 }
-                if (!EQUAL_F(mouse_delta.y, 0.0f))
+                if (!Core::Math::equal(mouse_delta.y, 0.0f))
                 {
                     model->transform->rotate_x(-mouse_delta.y * k * del_t);
                 }

@@ -5,6 +5,12 @@
 
 namespace Core
 {
+    struct EulerAngle
+    {
+        float pitch;
+        float yaw;
+        float roll;
+    };
     namespace Geometry
     {
         float radians(float degrees);
@@ -14,12 +20,7 @@ namespace Core
         float distance(const Core::Vector &v1, const Core::Vector &v2);
         Core::Vector normalize(const Core::Vector &vector);
     };
-    struct EulerAngle
-    {
-        float pitch;
-        float yaw;
-        float roll;
-    };
+
 };
 
 #endif

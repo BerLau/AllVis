@@ -125,6 +125,7 @@ namespace Core
     public:
         static Vector2 ones() { return Vector2(1.f, 1.f); }
         static Vector2 zeros() { return Vector2(0.f, 0.f); }
+        static float cross(const Vector2 &a, const Vector2 &b){return a.x() * b.y() - a.y() * b.x();}
     };
 
     class Vector3 : public Vector

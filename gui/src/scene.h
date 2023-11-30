@@ -11,7 +11,7 @@
 #include "light.h"
 #include "fbo.h"
 #include "geometry/geometry3d.h"
-#include "global.h"
+#include "math/base.h"
 
 
 namespace Rendering
@@ -102,7 +102,7 @@ namespace Rendering
         virtual void finalize_output() = 0;
         virtual void resize(float width, float height) override
         {
-            if (EQUAL_F(this->width, width) && EQUAL_F(this->height, height))
+            if (Core::Math::equal(this->width, width) && Core::Math::equal(this->height, height))
             {
                 return;
             }
@@ -201,7 +201,7 @@ namespace Rendering
         virtual void render();
         virtual void resize(float width, float height) override
         {
-            if (EQUAL_F(this->width, width) && EQUAL_F(this->height, height))
+            if (Core::Math::equal(this->width, width) && Core::Math::equal(this->height, height))
             {
                 return;
             }

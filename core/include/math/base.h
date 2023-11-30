@@ -3,6 +3,7 @@
 #define MATH_BASE_H
 
 #include <stdexcept>
+#include <constants.h>
 
 namespace Core
 {
@@ -10,37 +11,27 @@ namespace Core
     namespace Math
     {
         template <typename T>
-        int sign(T x)
-        {
-            return (x > 0) - (x < 0);
-        }
+        int sign(T x) { return (x > 0) - (x < 0); }
 
         template <typename T>
-        T abs(T x)
+        T abs(T x) { return x * sign(x); }
+
+        template <typename T>
+        double pow(T x, int n);
+
+        double sqrt(double y);
+
+        template <typename T>
+        bool equal(T x, T y);
+        template <typename T>
+        T clamp(T x, T min, T max)
         {
-            return x * sign(x);
+            // optimized version
+            return x < min ? min : (x > max ? max : x);
         }
 
-        double sqrt(double y)
-        {
-            if (y < 0)
-                throw std::domain_error("sqrt() argument must be non-negative");
-            // Newton-Raphson method
-            // let f(x) = x^2 - y
-            // f'(x) = 2x
-            // tangent line at x_n: y = f'(x_n)(x - x_n) + f(x_n)
-            // calculate x_(n+1) where y = 0: 0 = f'(x_n)(x_(n+1) - x_n) + f(x_n)
-            // x_(n+1) = x_n - f(x_n) / f'(x_n)
-            // x_(n+1) = x_n - (x_n^2 - y) / 2x_n
-            // x_(n+1) = (x_n + y / x_n) / 2
-            double x = y;
-            double e = 1e-15;
-            while (abs(x * x - y) > e)
-            {
-                x = (x + y / x) / 2;
-            }
-            return x;
-        }
+        /*---------------------------Implementation---------------------------*/
+        /*====================================================================*/
 
         template <typename T>
         double pow(T x, int n)
@@ -58,7 +49,27 @@ namespace Core
             }
 
             return n < 0 ? 1.0 / rslt : rslt;
-        }
+        };
+        template <typename T>
+        bool equal(T x, T y)
+        {
+            // if T is double
+            if constexpr (std::is_same_v<T, double>)
+            {
+                return abs(x - y) < Constants::EPSILON;
+            }
+            // if T is float
+            else if constexpr (std::is_same_v<T, float>)
+            {
+                return abs(x - y) < Constants::EPSILON_F;
+            }
+            // if T is arithmetic type
+            else if constexpr (std::is_arithmetic_v<T>)
+            {
+                return x == y;
+            }
+        };
+
     }; // namespace math
 };
 #endif // MATH_ARITHMETICS_H

@@ -1,8 +1,8 @@
 #include "quaternion.h"
 #include <cmath>
 #include <tuple>
-#include "global.h"
 #include "geometry/general.h"
+#include "math/base.h"
 
 namespace Core
 {
@@ -98,7 +98,7 @@ namespace Core
 
     bool Quaternion::operator==(const Quaternion &other) const
     {
-        return EQUAL_F(w, other.w) && EQUAL_F(x, other.x) && EQUAL_F(y, other.y) && EQUAL_F(z, other.z);
+        return Math::equal(w, other.w) && Math::equal(x, other.x) && Math::equal(y, other.y) && Math::equal(z, other.z);
     }
 
     bool Quaternion::operator!=(const Quaternion &other) const
@@ -186,7 +186,7 @@ namespace Core
 
     float Quaternion::yaw() const
     {
-        return std::asin(CLAMP(2.f * (w * y - x * z), -1, 1));
+        return std::asin(Math::clamp(2.f * (w * y - x * z), -1.f, 1.f));
     }
 
     float Quaternion::pitch() const

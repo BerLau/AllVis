@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include "cases_vector.h"
+#include "geometry/general.h"
 
 TEST_F(VectorTest, DEFAULT_CONSTRUCTION)
 {
@@ -114,7 +115,7 @@ TEST_F(VectorTest, NORMALIZE)
 {
     using namespace Core;
     Vector v1 = Vector::ones(3);
-    Vector v = Geometry::normalize(v1);
+    Vector v = Core:: Geometry::normalize(v1);
     float expected = std::sqrt(3);
     EXPECT_FLOAT_EQ(v[0], 1 / expected);
     EXPECT_FLOAT_EQ(v[1], 1 / expected);

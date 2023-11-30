@@ -1,69 +1,9 @@
 #include "geometry/geometry3d.h"
 #include <cmath>
-#include "global.h"
 #include "math/base.h"
-
-namespace Geometry
+#include "geometry/general.h"
+namespace Core::Geometry
 {
-    float radians(float degrees)
-    {
-        return degrees * (float(M_PI) / 180.0f);
-    }
-
-    float degrees(float radians)
-    {
-        return radians * (float(180.0f) / M_PI);
-    }
-
-    Core::Vector degrees(const Core::Vector &radians)
-    {
-        Core::Vector rslt(radians.size());
-        for (size_t i = 0; i < radians.size(); ++i)
-        {
-            rslt[i] = degrees(radians[i]);
-        }
-        return rslt;
-    }
-
-    Core::Vector radians(const Core::Vector &degrees)
-    {
-        Core::Vector rslt(degrees.size());
-        for (size_t i = 0; i < degrees.size(); ++i)
-        {
-            rslt[i] = radians(degrees[i]);
-        }
-        return rslt;
-    }
-
-    Core::Vector normalize(const Core::Vector &vector)
-    {
-        float length = std::sqrt(Core::Vector::dot(vector, vector));
-        return vector * (1.0f / length);
-    }
-
-    Core::Quaternion normalize(const Core::Quaternion &quaternion)
-    {
-        float length = Core::Quaternion::dot(quaternion, quaternion);
-        return quaternion * (1.0f / length);
-    }
-
-    Core::Quaternion angle_axis(float angle_rad, float x, float y, float z)
-    {
-        float half_angle = angle_rad * 0.5f;
-        float sin_half_angle = std::sin(half_angle);
-        return Core::Quaternion(cos(half_angle), x * sin_half_angle, y * sin_half_angle, z * sin_half_angle);
-    }
-
-    Core::Quaternion angle_axis(float angle_rad, const Core::Vector3 &axis)
-    {
-        return angle_axis(angle_rad, axis.x(), axis.y(), axis.z());
-    }
-
-    float distance(const Core::Vector &v1, const Core::Vector &v2)
-    {
-        return sqrt(Core::Vector::dot(v1 - v2, v1 - v2));
-    }
-
     Core::Matrix4 translate(const Core::Matrix4 &matrix, float x, float y, float z) // column major
     {
         Core::Matrix4 rslt = matrix;
@@ -208,7 +148,7 @@ namespace Geometry
         m(2, 1) = front.y();
         m(2, 2) = front.z();
         Core::Vector3 right = Core::Vector3::cross(up, front);
-        float inv_sqrt = 1.f / std::sqrt(std::fmax(FLOAT_EPSILON, Core::Vector3::dot(right, right)));
+        float inv_sqrt = 1.f / std::sqrt(std::fmax(Core::Constants::EPSILON_F, Core::Vector3::dot(right, right)));
         right *= inv_sqrt;
         m(0, 0) = right.x();
         m(0, 1) = right.y();
@@ -229,15 +169,4 @@ namespace Geometry
         up = Core::Vector3::cross(right, front);
     }
 
-    int point_line_position(const Core::Vector2 &p, const Core::Vector2 &a, const Core::Vector2 b)
-    {
-        //  return the cross product of ab and ap
-        return Core::Math::sign((b.x() - a.x()) * (p.y() - a.y()) - (p.x() - a.x()) * (b.y() - a.y()));
-    }
-
-    bool point_in_triangle(Core::Vector2 &p, Core::Vector2 &a, Core::Vector2 &b, Core::Vector2 &c)
-    {
-        // check if point at the same side of line ab, bc, ca
-        return point_line_position(p, a, b) ^ point_line_position(p, b, c) ^ point_line_position(p, c, a);
-    }
 }

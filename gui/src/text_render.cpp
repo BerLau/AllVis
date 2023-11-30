@@ -1,7 +1,7 @@
 #include "text_render.h"
 #include "ui_log.h"
-#include "global.h"
 #include <iostream>
+#include "math/base.h"
 namespace Rendering
 {
     void Text_Render::init()
@@ -83,7 +83,7 @@ namespace Rendering
 
     void Text_Render::update_font_size(float font_size)
     {
-        if (!EQUAL_F(this->font_size, font_size))
+        if (!Core::Math::equal(this->font_size, font_size))
         {
             this->font_size = font_size;
             load_font();

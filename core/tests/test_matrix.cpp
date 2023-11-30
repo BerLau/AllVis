@@ -4,6 +4,8 @@
 #include <glm/gtx/string_cast.hpp>
 #include "test_utils.h"
 #include <glm/gtc/type_ptr.hpp>
+#include "vector.h"
+#include "geometry/geometry3d.h"
 
 namespace Core
 {
@@ -508,9 +510,9 @@ namespace Core
     TEST(TestMatrix, normal_matrix)
     {
         auto m1 = Matrix4::identity();
-        m1 = Geometry::translate(m1, {1, 2, 3});
-        m1 = Geometry::rotate(m1, glm::radians(45.0f), {1, 0, 0});
-        m1 = Geometry::scale(m1, {1, 2, 3});
+        m1 = Core::Geometry::translate(m1, {1, 2, 3});
+        m1 = Core::Geometry::rotate(m1, glm::radians(45.0f), {1, 0, 0});
+        m1 = Core::Geometry::scale(m1, {1, 2, 3});
 
         Matrix3 normal_mat = m1.inverse().transpose();
 

@@ -1,9 +1,8 @@
 #include "geometry/general.h"
 #include <cmath>
-#include "global.h"
 #include "quaternion.h"
 
-namespace Geometry
+namespace Core::Geometry
 {
     float radians(float degrees)
     {

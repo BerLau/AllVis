@@ -2,7 +2,7 @@
 #include <stdexcept>
 #include "vector.h"
 #include <iostream>
-#include "global.h"
+#include "math/base.h"
 
 namespace Core
 {
@@ -214,7 +214,7 @@ namespace Core
             return false;
         for (size_t i = 0; i < size(); ++i)
         {
-            if (!EQUAL_F(values[i], other.values[i]))
+            if (!Math::equal(values[i], other.values[i]))
                 return false;
         }
         return true;
@@ -367,7 +367,7 @@ namespace Core
     MatrixS MatrixS::inverse() const
     {
         float det = determinant();
-        if (EQUAL_F(det, 0))
+        if (Math::equal(det, 0.f))
             throw std::runtime_error("MatrixS::inverse: determinant is zero");
         MatrixS result(dim());
         for (size_t i = 0; i < _rows; ++i)

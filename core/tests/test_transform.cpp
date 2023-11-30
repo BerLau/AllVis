@@ -1,6 +1,7 @@
-#include "core.h"
 #include "gtest/gtest.h"
 #include "test_utils.h"
+#include "vector.h"
+#include "transform.h"
 
 TEST(TestTransform, construct_from_base_vectors)
 {
