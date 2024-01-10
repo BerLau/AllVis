@@ -20,8 +20,7 @@ lib/*
 .cache/*
 .DS_Store
 .idea/*
-
-external/freetype
-external/glfw
-external/imgui
-external/libtiff
+external/freetype/*
+external/glfw/*
+external/imgui/*
+external/libtiff/*
