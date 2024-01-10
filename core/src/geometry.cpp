@@ -40,6 +40,26 @@ namespace Core::Geometry
         return vector * (1.0f / length);
     }
 
+    float dist_point_line(const Core::Vector &p, const Line &line)
+    {
+        Core::Vector v = p - line.origin;
+        return std::sqrt(Core::Vector::dot(v, v) - std::pow(Core::Vector::dot(v, line.direction), 2));
+    }
+
+    float dist_point_line_segment(const Core::Vector &p, const LineSegment &line_segment)
+    {
+        Core::Vector v = p - line_segment.start;
+        Core::Vector w = line_segment.end - line_segment.start;
+        float c1 = Core::Vector::dot(v, w);
+        if (c1 <= 0)
+            return v.length();
+        float c2 = Core::Vector::dot(w, w);
+        if (c2 <= c1)
+            return Vector(p - line_segment.end).length();
+        float b = c1 / c2;
+        Core::Vector pb = line_segment.start + w * b;
+        return Vector(p - pb).length();
+    }
     Core::Quaternion normalize(const Core::Quaternion &quaternion)
     {
         float length = Core::Quaternion::dot(quaternion, quaternion);

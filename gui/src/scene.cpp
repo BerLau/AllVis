@@ -61,8 +61,8 @@ namespace Rendering
         plane->material->ao = Math::random(0.1, 0.5);
         models.push_back(std::move(plane));
         // add 5x5x5 cubes
-        // const int row = 3;
-        // int index = 0;
+        const int row = 3;
+        int index = 0;
         // for (int i = 0; i < row; ++i)
         // {
         //     float z = -float(row) + i * float(row) / 2.f;
@@ -79,43 +79,43 @@ namespace Rendering
         //             auto cube_model = Rendering::OGL_Model_Ptr(new Rendering::OGL_Model(
         //             "Circle " + std::to_string(index++),
         //             Rendering::OGL_Mesh::circle_mesh(1.0f, 32)));
-        //             cube_model->material->color = Core::Vector3(RANDOM_RANGE_F(0.2, 1.0), RANDOM_RANGE_F(0.2, 1.0), RANDOM_RANGE_F(0.2, 1.0));
+        //             cube_model->material->color = Core::Vector3(Math::random(0.2, 1.0), Math::random(0.2, 1.0), Math::random(0.2, 1.0));
         //             cube_model->transform->scale(0.5);
         //             cube_model->transform->set_position(pos);
-        //             cube_model->material->metallic = RANDOM_RANGE_F(0.2, 1.0);
-        //             cube_model->material->roughness = RANDOM_RANGE_F(0.2, 1.0);
-        //             cube_model->material->ao = RANDOM_RANGE_F(0.1, 0.5);
+        //             cube_model->material->metallic = Math::random(0.2, 1.0);
+        //             cube_model->material->roughness = Math::random(0.2, 1.0);
+        //             cube_model->material->ao = Math::random(0.1, 0.5);
         //             models.push_back(std::move(cube_model));
         //         }
         //     }
         // }
 
-        // float off_set = float(row) / 4.f;
-        // // float off_set = 0.f;
-        // index = 0;
-        // for (int i = 0; i < row; ++i)
-        // {
-        //     float y = -float(row) + i * float(row) / 2.f + off_set;
-        //     for (int j = 0; j < row; ++j)
-        //     {
-        //         float z = -float(row) + j * float(row) / 2.f + off_set;
-        //         for (int k = 0; k < row; ++k)
-        //         {
-        //             float x = -float(row) + k * float(row) / 2.f + off_set;
-        //             Core::Vector3 pos = Core::Vector3(x, y, z);
-        //             auto sphere_model = Rendering::OGL_Model_Ptr(new Rendering::OGL_Model(
-        //                 "Sphere " + std::to_string(index++),
-        //                 Rendering::OGL_Mesh::sphere_mesh(1.0, 32, 32)));
-        //             sphere_model->transform->set_position(pos);
-        //             sphere_model->material->color = Core::Vector3(RANDOM_RANGE_F(0.2, 1.0), RANDOM_RANGE_F(0.2, 1.0), RANDOM_RANGE_F(0.2, 1.0));
-        //             sphere_model->material->metallic = RANDOM_RANGE_F(0.2, 1.0);
-        //             sphere_model->material->roughness = RANDOM_RANGE_F(0.2, 1.0);
-        //             sphere_model->material->ao = RANDOM_RANGE_F(0.1, 0.5);
-        //             sphere_model->transform->scale(0.5);
-        //             models.push_back(std::move(sphere_model));
-        //         }
-        //     }
-        // }
+        float off_set = float(row) / 4.f;
+        // float off_set = 0.f;
+        index = 0;
+        for (int i = 0; i < row; ++i)
+        {
+            float y = -float(row) + i * float(row) / 2.f + off_set;
+            for (int j = 0; j < row; ++j)
+            {
+                float z = -float(row) + j * float(row) / 2.f + off_set;
+                for (int k = 0; k < row; ++k)
+                {
+                    float x = -float(row) + k * float(row) / 2.f + off_set;
+                    Core::Vector3 pos = Core::Vector3(x, y, z);
+                    auto sphere_model = Rendering::OGL_Model_Ptr(new Rendering::OGL_Model(
+                        "Sphere " + std::to_string(index++),
+                        Rendering::OGL_Mesh::sphere_mesh(1.0, 32, 32)));
+                    sphere_model->transform->set_position(pos);
+                    sphere_model->material->color = Core::Vector3(Math::random(0.2, 1.0), Math::random(0.2, 1.0), Math::random(0.2, 1.0));
+                    sphere_model->material->metallic = Math::random(0.2, 1.0);
+                    sphere_model->material->roughness = Math::random(0.2, 1.0);
+                    sphere_model->material->ao = Math::random(0.1, 0.5);
+                    sphere_model->transform->scale(0.5);
+                    models.push_back(std::move(sphere_model));
+                }
+            }
+        }
 
         // set lights
         // set directional light

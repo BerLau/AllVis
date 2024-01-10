@@ -19,6 +19,6 @@ TEST(Tools, reverse_str)
 {
     std::string s = "abcdefghijklmn";
     std::string r = "nmlkjihgfedcba";
-   Core:: Tools::reverse_str(r.data(),s.length());
+   Core:: Tools::reverse_str(r);
     EXPECT_TRUE(s == r);
 }

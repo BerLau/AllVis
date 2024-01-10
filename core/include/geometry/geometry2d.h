@@ -10,6 +10,7 @@ namespace Core::Geometry
     double distance_point_line(const Core::Vector2 &p, const Core::Vector2 &a, const Core::Vector2 &b);
     double area_triangle(const Core::Vector2 &a, const Core::Vector2 &b, const Core::Vector2 &c);
     bool point_in_triangle(const Core::Vector2 &p, const Core::Vector2 &a, const Core::Vector2 &b, const Core::Vector2 &c);
+    bool point_in_convex_polygon(const Core::Vector2 &p, Core::Vector2 *vertices, unsigned int num_vertices);
 
 }; // namespace Core::Geometry
 

@@ -36,6 +36,7 @@ namespace Core
         template <typename T>
         double pow(T x, int n)
         {
+            static_assert(std::is_arithmetic_v<T>, "T must be arithmetic type");
             double rslt = 1;
             int pos_exp = abs(n);
             while (pos_exp > 0)
