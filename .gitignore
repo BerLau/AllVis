@@ -18,3 +18,5 @@ install_manifest.txt
 *.o
 lib/*
 .cache/*
+.DS_Store
+.idea/*
