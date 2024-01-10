@@ -1,1 +1,0 @@
-/usr/bin/clang-17  -Wall -Winline -Wformat-security -Wpointer-arith -Wdisabled-optimization -Wno-unknown-pragmas -fstrict-aliasing CMakeFiles/strip_rw.dir/strip_rw.c.o CMakeFiles/strip_rw.dir/strip.c.o CMakeFiles/strip_rw.dir/test_arrays.c.o -o strip_rw  -Wl,-rpath,/home/oliver/Source/OpenGLDemo/external/libtiff/libtiff ../libtiff/libtiff.so.6.0.0 

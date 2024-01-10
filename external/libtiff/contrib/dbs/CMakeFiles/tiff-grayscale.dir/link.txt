@@ -1,1 +1,0 @@
-/usr/bin/clang-17  -Wall -Winline -Wformat-security -Wpointer-arith -Wdisabled-optimization -Wno-unknown-pragmas -fstrict-aliasing CMakeFiles/tiff-grayscale.dir/tiff-grayscale.c.o -o tiff-grayscale  -Wl,-rpath,/home/oliver/Source/OpenGLDemo/external/libtiff/libtiff ../../libtiff/libtiff.so.6.0.0 /usr/lib/x86_64-linux-gnu/libm.so 

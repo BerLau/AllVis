@@ -1,8 +1,6 @@
 # external libraries
 cmake_minimum_required(VERSION 3.10)
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/freetype freetype)
-
 # Configure GLAD
 
 # if glad is not found, abort
@@ -14,7 +12,7 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/glad glad)
 # Configure GLFW
 
 # if glfw folder is not found, download it
-if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/glad)
+if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/glfw/CMakeLists.txt)
     message(INFO "glfw not found, fetching it from https://github.com/glfw/glfw.git")
     execute_process(COMMAND git clone https://github.com/glfw/glfw.git ${CMAKE_CURRENT_SOURCE_DIR}/glfw)
 endif()
@@ -24,16 +22,22 @@ if(GLFW_NOT_FOUND)
 endif()
 
 # Configure FreeType
-
 # if freetype folder is not found, download it
-if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/freetype)
+if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/freetype/CMakeLists.txt)
     message(INFO "freetype not found, fetching it from https://github.com/freetype/freetype.git")
     execute_process(COMMAND git clone https://github.com/freetype/freetype.git ${CMAKE_CURRENT_SOURCE_DIR}/freetype)
 endif()
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/freetype freetype)
 
-# Configure ImGUI
+#Configure libtiff
+# if libtiff folder is not found, download it
+if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/libtiff/CMakeLists.txt)
+    message(INFO "libtiff not found, fetching it from https://gitlab.com/libtiff/libtiff.git")
+    execute_process(COMMAND git clone https://gitlab.com/libtiff/libtiff.git ${CMAKE_CURRENT_SOURCE_DIR}/libtiff)
+endif()
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/libtiff)
 
+# Configure ImGUI
 # if imgui folder is not found, download it
 if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/imgui)
     message(INFO "imgui not found, fetch it from https://github.com/ocornut/imgui.git")
@@ -44,18 +48,6 @@ endif()
 
 # add stb_image
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/stb_image)
-
-#add libtiff
-
-# if libtiff folder is not found, download it
-if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/libtiff)
-    message(INFO "libtiff not found, fetching it from https://gitlab.com/libtiff/libtiff.git")
-    execute_process(COMMAND git clone https://gitlab.com/libtiff/libtiff.git ${CMAKE_CURRENT_SOURCE_DIR}/libtiff)
-endif()
-
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/libtiff)
-
-
 set(IMGUI_SOURCES 
     imgui/imgui.cpp
     imgui/imgui_draw.cpp
@@ -65,7 +57,6 @@ set(IMGUI_SOURCES
     imgui/backends/imgui_impl_glfw.cpp
     imgui/backends/imgui_impl_opengl3.cpp
 )
-
 set(IMGUI_HEADERS
     imgui/imconfig.h
     imgui/imgui.h
@@ -77,15 +68,16 @@ set(IMGUI_HEADERS
     imgui/backends/imgui_impl_opengl3.h
 )
 
-# add the imgui library
 add_library(imgui STATIC
     ${IMGUI_SOURCES}
     ${IMGUI_HEADERS}
 )
-
 # add the imgui include directory
 target_include_directories(imgui PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/imgui
     ${CMAKE_CURRENT_SOURCE_DIR}/imgui/backends
 )
+
+
+
 

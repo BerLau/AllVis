@@ -1,1 +1,0 @@
-/usr/bin/clang++-17 -fPIC -Wl,--version-script=/home/oliver/Source/OpenGLDemo/external/libtiff/libtiff/libtiffxx.map -shared -Wl,-soname,libtiffxx.so.6 -o libtiffxx.so.6.0.0 CMakeFiles/tiffxx.dir/tif_stream.cxx.o  -Wl,-rpath,/home/oliver/Source/OpenGLDemo/external/libtiff/libtiff libtiff.so.6.0.0 
