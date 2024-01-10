@@ -1,0 +1,1 @@
+/usr/bin/clang-17  -Wall -Winline -Wformat-security -Wpointer-arith -Wdisabled-optimization -Wno-unknown-pragmas -fstrict-aliasing CMakeFiles/test_append_to_strip.dir/test_append_to_strip.c.o -o test_append_to_strip  -Wl,-rpath,/home/oliver/Source/OpenGLDemo/external/libtiff/libtiff ../libtiff/libtiff.so.6.0.0 

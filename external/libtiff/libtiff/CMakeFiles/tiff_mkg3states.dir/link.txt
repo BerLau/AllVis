@@ -1,0 +1,1 @@
+/usr/bin/clang-17  -Wall -Winline -Wformat-security -Wpointer-arith -Wdisabled-optimization -Wno-unknown-pragmas -fstrict-aliasing CMakeFiles/tiff_mkg3states.dir/mkg3states.c.o -o tiff_mkg3states  -Wl,-rpath,/home/oliver/Source/OpenGLDemo/external/libtiff/libtiff libtiff.so.6.0.0 

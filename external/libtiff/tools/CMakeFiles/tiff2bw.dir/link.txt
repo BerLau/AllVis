@@ -1,0 +1,1 @@
+/usr/bin/clang-17  -Wall -Winline -Wformat-security -Wpointer-arith -Wdisabled-optimization -Wno-unknown-pragmas -fstrict-aliasing CMakeFiles/tiff2bw.dir/tiff2bw.c.o -o tiff2bw  -Wl,-rpath,/home/oliver/Source/OpenGLDemo/external/libtiff/libtiff: ../libtiff/libtiff.so.6.0.0 
