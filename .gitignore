@@ -16,3 +16,5 @@ install_manifest.txt
 .cache/*
 # ignore all files .o files
 *.o
+lib/*
+.cache/*
