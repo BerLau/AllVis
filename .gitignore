@@ -2,7 +2,7 @@
 build/*
 # ingore all cmake cache files
 CMakeCache.txt
-# ingore all cmake install files
+# ingore all CMakeFiles folder
 CMakeFiles/*
 # ingore all cmake install files
 cmake_install.cmake

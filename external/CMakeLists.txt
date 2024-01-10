@@ -39,15 +39,13 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/libtiff)
 
 # Configure ImGUI
 # if imgui folder is not found, download it
-if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/imgui)
+if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/imgui/CMakeLists.txt)
     message(INFO "::imgui not found, fetch it from https://github.com/ocornut/imgui.git")
     execute_process(COMMAND git clone https://github.com/ocornut/imgui.git ${CMAKE_CURRENT_SOURCE_DIR}/imgui)
     # switch to docking branch
     execute_process(COMMAND git checkout docking WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/imgui)
 endif()
 
-# add stb_image
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/stb_image)
 set(IMGUI_SOURCES 
     imgui/imgui.cpp
     imgui/imgui_draw.cpp
@@ -77,6 +75,9 @@ target_include_directories(imgui PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/imgui
     ${CMAKE_CURRENT_SOURCE_DIR}/imgui/backends
 )
+
+# add stb_image
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/stb_image)
 
 
 
