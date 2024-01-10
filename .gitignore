@@ -20,7 +20,11 @@ lib/*
 .cache/*
 .DS_Store
 .idea/*
-external/freetype/**
-external/glfw/**
-external/imgui/**
-external/libtiff/**
+# ingore all files under external/freetype
+external/freetype/*
+# ingore all files under external/glfw
+external/glfw/*
+# ingore all files under external/imgui
+external/imgui/*
+# ingore all files under external/libtiff
+external/libtiff/*
